@@ -55,6 +55,7 @@ struct Token {
     Token* next; // 次の入力トークン
     int val; // kindがTK_NUMの場合、その数値
     char* str; // トークン文字列
+    int len; // トークン文字列の長さ
 };
 
 // 現在着目しているトークン
@@ -122,11 +123,12 @@ int expect_number()
 bool at_eof() { return token->kind == TK_EOF; }
 
 // 新しいトークンを作成してcurに繋げる
-Token* new_token(TokenKind kind, Token* cur, char* str)
+Token* new_token(TokenKind kind, Token* cur, char* str, int len)
 {
     Token* tok = calloc(1, sizeof(Token));
     tok->kind = kind;
     tok->str = str;
+    tok->len = len;
     cur->next = tok;
     return tok;
 }
@@ -134,6 +136,18 @@ Token* new_token(TokenKind kind, Token* cur, char* str)
 // 入力文字列pをトークナイズしてそれを返す
 Token* tokenize()
 {
+    static const char* OPS[] = {
+        // "==",
+        // "!=",
+        // "<=",
+        // ">=",
+        "+",
+        "-",
+        "*",
+        "/",
+        "(",
+        ")",
+    };
     char* p = user_input;
     Token head;
     head.next = NULL;
@@ -146,18 +160,21 @@ Token* tokenize()
             continue;
         }
 
-        if (*p == '+'
-            || *p == '-'
-            || *p == '*'
-            || *p == '/'
-            || *p == '('
-            || *p == ')') {
-            cur = new_token(TK_RESERVED, cur, p++);
+        int isOpe = 0;
+        for (int i = 0; i < sizeof(OPS) / sizeof(OPS[0]); ++i) {
+            if (memcmp(p, OPS[i], strlen(OPS[i])) == 0) {
+                cur = new_token(TK_RESERVED, cur, p, strlen(OPS[i]));
+                p += strlen(OPS[i]);
+                isOpe = 1;
+                break;
+            }
+        }
+        if (isOpe) {
             continue;
         }
 
         if (isdigit(*p)) {
-            cur = new_token(TK_NUM, cur, p);
+            cur = new_token(TK_NUM, cur, p, 0);
             cur->val = strtol(p, &p, 10);
             continue;
         }
@@ -165,7 +182,7 @@ Token* tokenize()
         error_at(p, "トークナイズできません");
     }
 
-    new_token(TK_EOF, cur, p);
+    new_token(TK_EOF, cur, p, 0);
     return head.next;
 }
 

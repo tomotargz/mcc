@@ -12,6 +12,8 @@ typedef enum {
     ND_SUB,
     ND_MUL,
     ND_DIV,
+    ND_EQ,
+    ND_NE,
     ND_NUM,
 } NodeKind;
 
@@ -95,8 +97,8 @@ void error(char* fmt, ...)
 bool consume(char* op)
 {
     if (token->kind != TK_RESERVED
-            || token->len != strlen(op)
-            || memcmp(token->str, op, strlen(op)))
+        || token->len != strlen(op)
+        || memcmp(token->str, op, strlen(op)))
         return false;
     token = token->next;
     return true;
@@ -107,8 +109,8 @@ bool consume(char* op)
 void expect(char* op)
 {
     if (token->kind != TK_RESERVED
-            || token->len != strlen(op)
-            || memcmp(token->str, op, strlen(op)))
+        || token->len != strlen(op)
+        || memcmp(token->str, op, strlen(op)))
         error_at(token->str, "'%s'ではありません", op);
     token = token->next;
 }
@@ -191,31 +193,35 @@ Token* tokenize()
 }
 
 // 生成規則
-// expr = mul ("+" mul | "-" mul)*
+// expr = add
+// add = mul ("+" mul | "-" mul)*
 // mul = unary ("*" unary | "/" unary)*
 // unary = ("+" | "-")? primary
 // primary = (num | "(" expr ")")
 
 Node* expr();
+Node* add();
+Node* mul();
+Node* unary();
+Node* primary();
 
-Node* primary()
+Node* expr()
 {
-    if (consume("(")) {
-        Node* node = expr();
-        expect(")");
-        return node;
-    }
-    return new_node_num(expect_number());
+    return add();
 }
 
-Node* unary()
+Node* add()
 {
-    if (consume("+")) {
-        return primary();
-    } else if (consume("-")) {
-        return new_node(ND_SUB, new_node_num(0), primary());
+    Node* node = mul();
+    for (;;) {
+        if (consume("+")) {
+            node = new_node(ND_ADD, node, mul());
+        } else if (consume("-")) {
+            node = new_node(ND_SUB, node, mul());
+        } else {
+            return node;
+        }
     }
-    return primary();
 }
 
 Node* mul()
@@ -232,18 +238,24 @@ Node* mul()
     }
 }
 
-Node* expr()
+Node* unary()
 {
-    Node* node = mul();
-    for (;;) {
-        if (consume("+")) {
-            node = new_node(ND_ADD, node, mul());
-        } else if (consume("-")) {
-            node = new_node(ND_SUB, node, mul());
-        } else {
-            return node;
-        }
+    if (consume("+")) {
+        return primary();
+    } else if (consume("-")) {
+        return new_node(ND_SUB, new_node_num(0), primary());
     }
+    return primary();
+}
+
+Node* primary()
+{
+    if (consume("(")) {
+        Node* node = expr();
+        expect(")");
+        return node;
+    }
+    return new_node_num(expect_number());
 }
 
 void gen(Node* node)

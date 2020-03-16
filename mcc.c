@@ -193,13 +193,15 @@ Token* tokenize()
 }
 
 // 生成規則
-// expr = add
+// expr = equality
+// equality = add ("==" add | "!=" add)*
 // add = mul ("+" mul | "-" mul)*
 // mul = unary ("*" unary | "/" unary)*
 // unary = ("+" | "-")? primary
 // primary = (num | "(" expr ")")
 
 Node* expr();
+Node* equality();
 Node* add();
 Node* mul();
 Node* unary();
@@ -207,7 +209,21 @@ Node* primary();
 
 Node* expr()
 {
-    return add();
+    return equality();
+}
+
+Node* equality()
+{
+    Node* node = add();
+    for (;;) {
+        if (consume("==")) {
+            node = new_node(ND_EQ, node, add());
+        } else if (consume("!=")) {
+            node = new_node(ND_NE, node, add());
+        } else {
+            return node;
+        }
+    }
 }
 
 Node* add()
@@ -285,6 +301,10 @@ void gen(Node* node)
         printf("  cqo\n");
         printf("  idiv rdi\n");
         break;
+    case ND_EQ:
+        printf("  cmp rax, rdi\n");
+        printf("  sete al\n");
+        printf("  movzb rax, al\n");
     default:
         break;
     }

@@ -1,11 +1,15 @@
 CFLAGS=-std=c11 -g -static
 SRCS=$(wildcard *.c)
-OBJS=$(SRCS:.c=.o)
+OBJS := $(SRCS:%.c=%.o)
+DEPS := $(SRCS:%.c=%.d)
 
 mcc: $(OBJS)
 	$(CC) -o mcc $(OBJS) $(LDFLAGS)
 
-$(OBJS): mcc.h
+-include $(DEPS)
+
+%.o: %.c
+	$(CC) -c -MMD -MP $<
 
 test: mcc
 	./test.sh

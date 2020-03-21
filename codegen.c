@@ -1,16 +1,16 @@
 #include <stdio.h>
 
-#include "mcc.h"
+#include "codegen.h"
 
-void gen(Node* node)
+void generate(Node* node)
 {
     if (node->kind == ND_NUM) {
         printf("  push %d\n", node->val);
         return;
     }
 
-    gen(node->lhs);
-    gen(node->rhs);
+    generate(node->lhs);
+    generate(node->rhs);
 
     printf("  pop rdi\n");
     printf("  pop rax\n");

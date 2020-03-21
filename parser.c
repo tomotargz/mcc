@@ -1,10 +1,10 @@
 #include <ctype.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "mcc.h"
 
@@ -34,23 +34,14 @@ Token* new_token(TokenKind kind, Token* cur, char* str, int len)
     return tok;
 }
 
+bool startsWith(const char* a, char* b)
+{
+    return memcmp(a, b, strlen(b)) == 0;
+}
+
 // 入力文字列pをトークナイズしてそれを返す
 Token* tokenize()
 {
-    static const char* OPS[] = {
-        "==",
-        "!=",
-        "<=",
-        "<",
-        ">=",
-        ">",
-        "+",
-        "-",
-        "*",
-        "/",
-        "(",
-        ")",
-    };
     char* p = user_input;
     Token head;
     head.next = NULL;
@@ -63,26 +54,30 @@ Token* tokenize()
             continue;
         }
 
-        int isOpe = 0;
-        for (int i = 0; i < sizeof(OPS) / sizeof(OPS[0]); ++i) {
-            if (memcmp(p, OPS[i], strlen(OPS[i])) == 0) {
-                cur = new_token(TK_RESERVED, cur, p, strlen(OPS[i]));
-                p += strlen(OPS[i]);
-                isOpe = 1;
-                break;
-            }
-        }
-        if (isOpe) {
-            continue;
-        }
-
-        if (isdigit(*p)) {
+        if (startsWith(p, "==")
+            || startsWith(p, "!=")
+            || startsWith(p, "<=")
+            || startsWith(p, ">=")) {
+            cur = new_token(TK_RESERVED, cur, p, 2);
+            p += 2;
+        } else if (startsWith(p, "<")
+            || startsWith(p, ">")
+            || startsWith(p, "<")
+            || startsWith(p, "+")
+            || startsWith(p, "-")
+            || startsWith(p, "*")
+            || startsWith(p, "/")
+            || startsWith(p, "(")
+            || startsWith(p, ")")) {
+            cur = new_token(TK_RESERVED, cur, p, 1);
+            ++p;
+        } else if (isdigit(*p)) {
             cur = new_token(TK_NUM, cur, p, 0);
             cur->val = strtol(p, &p, 10);
             continue;
+        } else {
+            error_at(p, "トークナイズできません");
         }
-
-        error_at(p, "トークナイズできません");
     }
 
     new_token(TK_EOF, cur, p, 0);

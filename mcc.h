@@ -52,3 +52,4 @@ Node* mul();
 Node* unary();
 Node* primary();
 
+void gen(Node* node);

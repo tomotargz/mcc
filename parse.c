@@ -63,7 +63,7 @@ Node* unary()
     if (consume("+")) {
         return primary();
     } else if (consume("-")) {
-        return new_node(ND_SUB, new_node_num(0), primary());
+        return new_node(NODE_SUBTRACTION, new_node_num(0), primary());
     }
     return primary();
 }
@@ -73,9 +73,9 @@ Node* mul()
     Node* node = unary();
     for (;;) {
         if (consume("*")) {
-            node = new_node(ND_MUL, node, unary());
+            node = new_node(NODE_MULTIPLICATION, node, unary());
         } else if (consume("/")) {
-            node = new_node(ND_DIV, node, unary());
+            node = new_node(NODE_DIVISION, node, unary());
         } else {
             return node;
         }
@@ -87,9 +87,9 @@ Node* add()
     Node* node = mul();
     for (;;) {
         if (consume("+")) {
-            node = new_node(ND_ADD, node, mul());
+            node = new_node(NODE_ADDITION, node, mul());
         } else if (consume("-")) {
-            node = new_node(ND_SUB, node, mul());
+            node = new_node(NODE_SUBTRACTION, node, mul());
         } else {
             return node;
         }
@@ -101,13 +101,13 @@ Node* relational()
     Node* node = add();
     for (;;) {
         if (consume("<=")) {
-            node = new_node(ND_LE, node, add());
+            node = new_node(NODE_LESS_OR_EQUAL, node, add());
         } else if (consume("<")) {
-            node = new_node(ND_LT, node, add());
+            node = new_node(NODE_LESS_THAN, node, add());
         } else if (consume(">=")) {
-            node = new_node(ND_LE, add(), node);
+            node = new_node(NODE_LESS_OR_EQUAL, add(), node);
         } else if (consume(">")) {
-            node = new_node(ND_LT, add(), node);
+            node = new_node(NODE_LESS_THAN, add(), node);
         } else {
             return node;
         }
@@ -119,9 +119,9 @@ Node* equality()
     Node* node = relational();
     for (;;) {
         if (consume("==")) {
-            node = new_node(ND_EQ, node, relational());
+            node = new_node(NODE_EQUAL, node, relational());
         } else if (consume("!=")) {
-            node = new_node(ND_NE, node, relational());
+            node = new_node(NODE_NOT_EQUAL, node, relational());
         } else {
             return node;
         }

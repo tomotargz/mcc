@@ -14,7 +14,7 @@ Node* new_node(NodeKind kind, Node* lhs, Node* rhs)
 Node* new_node_num(int val)
 {
     Node* node = calloc(1, sizeof(Node));
-    node->kind = ND_NUM;
+    node->kind = NODE_NUMBER;
     node->val = val;
     return node;
 }

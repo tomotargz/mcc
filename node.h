@@ -2,15 +2,15 @@
 #define NODE_H
 
 typedef enum {
-    ND_ADD,
-    ND_SUB,
-    ND_MUL,
-    ND_DIV,
-    ND_EQ,
-    ND_NE,
-    ND_LT,
-    ND_LE,
-    ND_NUM,
+    NODE_ADDITION,
+    NODE_SUBTRACTION,
+    NODE_MULTIPLICATION,
+    NODE_DIVISION,
+    NODE_EQUAL,
+    NODE_NOT_EQUAL,
+    NODE_LESS_THAN,
+    NODE_LESS_OR_EQUAL,
+    NODE_NUMBER,
 } NodeKind;
 
 typedef struct Node Node;

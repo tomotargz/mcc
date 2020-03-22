@@ -25,7 +25,7 @@ Node* expr();
 bool consume(char* op)
 {
     if (current->kind != TOKEN_RESERVED
-        || current->len != strlen(op)
+        || current->length != strlen(op)
         || memcmp(current->str, op, strlen(op)))
         return false;
     current = current->next;
@@ -35,7 +35,7 @@ bool consume(char* op)
 void expect(char* op)
 {
     if (current->kind != TOKEN_RESERVED
-        || current->len != strlen(op)
+        || current->length != strlen(op)
         || memcmp(current->str, op, strlen(op)))
         // error_at(current->str, "'%s'ではありません", op);
         error("'%s'ではありません", op);
@@ -47,7 +47,7 @@ int expect_number()
     if (current->kind != TOKEN_NUMBER)
         // error_at(current->str, "数ではありません");
         error("数ではありません");
-    int val = current->val;
+    int val = current->value;
     current = current->next;
     return val;
 }

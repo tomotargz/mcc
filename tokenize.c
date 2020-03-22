@@ -17,7 +17,7 @@ Token* new_token(TokenKind kind, Token* cur, char* str, int len)
     Token* tok = calloc(1, sizeof(Token));
     tok->kind = kind;
     tok->str = str;
-    tok->len = len;
+    tok->length = len;
     cur->next = tok;
     return tok;
 }
@@ -57,7 +57,7 @@ Token* tokenize(char* source)
             ++it;
         } else if (isdigit(*it)) {
             current = new_token(TOKEN_NUMBER, current, it, 0);
-            current->val = strtol(it, &it, 10);
+            current->value = strtol(it, &it, 10);
             // info("number %d", current->val);
         } else if('a' <= *it && *it <= 'z'){
             // info("identifier %c", *it);

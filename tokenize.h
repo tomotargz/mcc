@@ -11,10 +11,10 @@ typedef enum {
 typedef struct Token Token;
 struct Token {
     TokenKind kind;
-    Token* next;
-    int val;
     char* str;
-    int len;
+    int length;
+    int value;
+    Token* next;
 };
 
 Token* tokenize(char* source);

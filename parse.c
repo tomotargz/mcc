@@ -1,5 +1,6 @@
 // Generative Rule
 //
+// program = statement*
 // statement = expr ";"
 // expr = equality
 // equality = relational ("==" relational | "!=" relational)*
@@ -141,8 +142,20 @@ Node* statement()
     return node;
 }
 
-Node* parse(Token* tokens)
+Node** program()
+{
+    static Node* statements[100];
+    int i = 0;
+    while (current->kind != TOKEN_EOF) {
+        statements[i++] = statement();
+        info("statement %d", i);
+    }
+    statements[i] = NULL;
+    return statements;
+}
+
+Node** parse(Token* tokens)
 {
     current = tokens;
-    return statement();
+    return program();
 }

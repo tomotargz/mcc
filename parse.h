@@ -4,6 +4,6 @@
 #include "node.h"
 #include "tokenize.h"
 
-Node* parse(Token* tokens);
+Node** parse(Token* tokens);
 
 #endif

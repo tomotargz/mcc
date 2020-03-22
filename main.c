@@ -20,7 +20,7 @@ int main(int argc, char** argv)
 
     char* source = argv[1];
     Token* tokens = tokenize(source);
-    Node* node = parse(tokens);
+    Node** node = parse(tokens);
 
     // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
@@ -28,7 +28,10 @@ int main(int argc, char** argv)
     printf("main:\n");
 
     // 抽象構文木を下りながらコード生成
-    generate(node);
+    while(*node){
+        generate(*node);
+        ++node;
+    }
 
     // スタックトップに式全体の値が残っているはずなので
     // それをRAXにロードして関数からの返り値とする

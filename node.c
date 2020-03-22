@@ -18,3 +18,11 @@ Node* new_node_num(int val)
     node->val = val;
     return node;
 }
+
+Node* new_node_local_variable(char name)
+{
+    Node* node = calloc(1, sizeof(Node));
+    node->kind = NODE_LOCAL_VARIABLE;
+    node->offset = (name - 'a' + 1) * 8;
+    return node;
+}

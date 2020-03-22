@@ -2,18 +2,20 @@
 //
 // program = statement*
 // statement = expr ";"
-// expr = equality
+// expr = assign
+// assign = equality ("=" assign)?
 // equality = relational ("==" relational | "!=" relational)*
 // relational = add ("<" add | "<=" add | ">" add | "=>" add)*
 // add = mul ("+" mul | "-" mul)*
 // mul = unary ("*" unary | "/" unary)*
 // unary = ("+" | "-")? primary
-// primary = (num | "(" expr ")")
+// primary = (identifier | num | "(" expr ")")
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "error.h"
+#include "node.h"
 #include "parse.h"
 
 static Token* current;
@@ -50,12 +52,22 @@ int expect_number()
     return val;
 }
 
+Node* identifier()
+{
+    Node* node = new_node_local_variable((current->str)[0]);
+    current = current->next;
+    return node;
+}
+
 Node* primary()
 {
     if (consume("(")) {
         Node* node = expr();
         expect(")");
         return node;
+    }
+    if ('a' <= (current->str)[0] && (current->str)[0] <= 'z') {
+        return identifier();
     }
     return new_node_num(expect_number());
 }
@@ -130,9 +142,18 @@ Node* equality()
     }
 }
 
+Node* assign()
+{
+    Node* node = equality();
+    if (consume("=")) {
+        node = new_node(NODE_ASSIGNMENT, node, assign());
+    }
+    return node;
+}
+
 Node* expr()
 {
-    return equality();
+    return assign();
 }
 
 Node* statement()
@@ -148,7 +169,6 @@ Node** program()
     int i = 0;
     while (current->kind != TOKEN_EOF) {
         statements[i++] = statement();
-        info("statement %d", i);
     }
     statements[i] = NULL;
     return statements;

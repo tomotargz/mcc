@@ -3,5 +3,6 @@
 
 void error(char* format, ...);
 void error_at(char* position, char* source, char* format, ...);
+void info(char* format, ...);
 
 #endif

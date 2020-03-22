@@ -2,6 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void info(char* format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    vfprintf(stderr, format, ap);
+    fprintf(stderr, "\n");
+}
+
 void error(char* format, ...)
 {
     va_list ap;

@@ -1,5 +1,6 @@
 // Generative Rule
 //
+// statement = expr ";"
 // expr = equality
 // equality = relational ("==" relational | "!=" relational)*
 // relational = add ("<" add | "<=" add | ">" add | "=>" add)*
@@ -133,8 +134,15 @@ Node* expr()
     return equality();
 }
 
+Node* statement()
+{
+    Node* node = expr();
+    expect(";");
+    return node;
+}
+
 Node* parse(Token* tokens)
 {
     current = tokens;
-    return expr();
+    return statement();
 }

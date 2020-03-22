@@ -37,7 +37,7 @@ Token* tokenize(char* source)
             || startsWith(it, "!=")
             || startsWith(it, "<=")
             || startsWith(it, ">=")) {
-            current = new_token(TK_RESERVED, current, it, 2);
+            current = new_token(TOKEN_RESERVED, current, it, 2);
             it += 2;
         } else if (startsWith(it, "<")
             || startsWith(it, ">")
@@ -48,16 +48,16 @@ Token* tokenize(char* source)
             || startsWith(it, "/")
             || startsWith(it, "(")
             || startsWith(it, ")")) {
-            current = new_token(TK_RESERVED, current, it, 1);
+            current = new_token(TOKEN_RESERVED, current, it, 1);
             ++it;
         } else if (isdigit(*it)) {
-            current = new_token(TK_NUM, current, it, 0);
+            current = new_token(TOKEN_NUMBER, current, it, 0);
             current->val = strtol(it, &it, 10);
         } else {
             error_at(it, source, "トークナイズできません");
         }
     }
 
-    new_token(TK_EOF, current, it, 0);
+    new_token(TOKEN_EOF, current, it, 0);
     return head.next;
 }

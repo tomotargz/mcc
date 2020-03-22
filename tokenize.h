@@ -2,10 +2,10 @@
 #define TOKENIZE_H
 
 typedef enum {
-    TK_RESERVED,
-    TK_IDENT,
-    TK_NUM,
-    TK_EOF,
+    TOKEN_RESERVED,
+    TOKEN_IDENTIFIER,
+    TOKEN_NUMBER,
+    TOKEN_EOF,
 } TokenKind;
 
 typedef struct Token Token;

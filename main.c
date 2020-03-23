@@ -10,6 +10,7 @@
 #include "error.h"
 #include "parse.h"
 #include "tokenize.h"
+#include "debug.h"
 
 int main(int argc, char** argv)
 {
@@ -20,6 +21,7 @@ int main(int argc, char** argv)
 
     char* source = argv[1];
     Token* tokens = tokenize(source);
+    printTokens(tokens);
     Node** node = parse(tokens);
 
     // アセンブリの前半部分を出力

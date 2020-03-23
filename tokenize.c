@@ -37,7 +37,6 @@ Token* tokenize(char* source)
             || startsWith(it, "!=")
             || startsWith(it, "<=")
             || startsWith(it, ">=")) {
-            // info("reserved %c%c", *it, *it);
             current = new_token(TOKEN_RESERVED, current, it, 2);
             it += 2;
         } else if (startsWith(it, "<")
@@ -52,15 +51,12 @@ Token* tokenize(char* source)
             || startsWith(it, ";")
             || startsWith(it, "=")
             ) {
-            // info("reserved %c", *it);
             current = new_token(TOKEN_RESERVED, current, it, 1);
             ++it;
         } else if (isdigit(*it)) {
             current = new_token(TOKEN_NUMBER, current, it, 0);
             current->value = strtol(it, &it, 10);
-            // info("number %d", current->val);
         } else if('a' <= *it && *it <= 'z'){
-            // info("identifier %c", *it);
             current = new_token(TOKEN_IDENTIFIER, current, it, 1);
             ++it;
         } else {

@@ -18,44 +18,44 @@
 #include "node.h"
 #include "parse.h"
 
-static Token* current;
+static Token* crr;
 
 Node* expr();
 
 bool consume(char* op)
 {
-    if (current->kind != TOKEN_RESERVED
-        || current->len != strlen(op)
-        || memcmp(current->str, op, strlen(op)))
+    if (crr->kind != TOKEN_RESERVED
+        || crr->len != strlen(op)
+        || memcmp(crr->str, op, strlen(op)))
         return false;
-    current = current->next;
+    crr = crr->next;
     return true;
 }
 
 void expect(char* op)
 {
-    if (current->kind != TOKEN_RESERVED
-        || current->len != strlen(op)
-        || memcmp(current->str, op, strlen(op)))
-        // error_at(current->str, "'%s'ではありません", op);
+    if (crr->kind != TOKEN_RESERVED
+        || crr->len != strlen(op)
+        || memcmp(crr->str, op, strlen(op)))
+        // error_at(crr->str, "'%s'ではありません", op);
         error("'%s'ではありません", op);
-    current = current->next;
+    crr = crr->next;
 }
 
 int expect_number()
 {
-    if (current->kind != TOKEN_NUMBER)
-        // error_at(current->str, "数ではありません");
+    if (crr->kind != TOKEN_NUMBER)
+        // error_at(crr->str, "数ではありません");
         error("数ではありません");
-    int val = current->val;
-    current = current->next;
+    int val = crr->val;
+    crr = crr->next;
     return val;
 }
 
 Node* identifier()
 {
-    Node* node = new_node_local_variable((current->str)[0]);
-    current = current->next;
+    Node* node = new_node_local_variable((crr->str)[0]);
+    crr = crr->next;
     return node;
 }
 
@@ -66,7 +66,7 @@ Node* primary()
         expect(")");
         return node;
     }
-    if ('a' <= (current->str)[0] && (current->str)[0] <= 'z') {
+    if ('a' <= (crr->str)[0] && (crr->str)[0] <= 'z') {
         return identifier();
     }
     return new_node_num(expect_number());
@@ -167,7 +167,7 @@ Node** program()
 {
     static Node* statements[100];
     int i = 0;
-    while (current->kind != TOKEN_EOF) {
+    while (crr->kind != TOKEN_EOF) {
         statements[i++] = statement();
     }
     statements[i] = NULL;
@@ -176,6 +176,6 @@ Node** program()
 
 Node** parse(Token* tokens)
 {
-    current = tokens;
+    crr = tokens;
     return program();
 }

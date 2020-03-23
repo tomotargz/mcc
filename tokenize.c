@@ -55,9 +55,15 @@ Token* tokenize(char* source)
             ++it;
         } else if (isdigit(*it)) {
             current = new_token(TOKEN_NUMBER, current, it, 0, strtol(it, &it, 10));
-        } else if ('a' <= *it && *it <= 'z') {
-            current = new_token(TOKEN_IDENTIFIER, current, it, 1, 0);
-            ++it;
+        } else if (isalpha(*it) || *it == '_') {
+            char* end = it + 1;
+            int len = 1;
+            while (isalpha(*end) || *end == '_' || isdigit(*end)) {
+                ++len;
+                ++end;
+            }
+            current = new_token(TOKEN_IDENTIFIER, current, it, len, 0);
+            it = end;
         } else {
             error_at(it, source, "トークナイズできません");
         }

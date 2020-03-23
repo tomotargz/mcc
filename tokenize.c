@@ -12,12 +12,13 @@ bool startsWith(char* a, char* b)
     return memcmp(a, b, strlen(b)) == 0;
 }
 
-Token* new_token(TokenKind kind, Token* cur, char* str, int len)
+Token* new_token(TokenKind kind, Token* cur, char* str, int len, int val)
 {
     Token* tok = calloc(1, sizeof(Token));
     tok->kind = kind;
     tok->str = str;
-    tok->length = len;
+    tok->len = len;
+    tok->val = val;
     cur->next = tok;
     return tok;
 }
@@ -37,7 +38,7 @@ Token* tokenize(char* source)
             || startsWith(it, "!=")
             || startsWith(it, "<=")
             || startsWith(it, ">=")) {
-            current = new_token(TOKEN_RESERVED, current, it, 2);
+            current = new_token(TOKEN_RESERVED, current, it, 2, 0);
             it += 2;
         } else if (startsWith(it, "<")
             || startsWith(it, ">")
@@ -49,21 +50,19 @@ Token* tokenize(char* source)
             || startsWith(it, "(")
             || startsWith(it, ")")
             || startsWith(it, ";")
-            || startsWith(it, "=")
-            ) {
-            current = new_token(TOKEN_RESERVED, current, it, 1);
+            || startsWith(it, "=")) {
+            current = new_token(TOKEN_RESERVED, current, it, 1, 0);
             ++it;
         } else if (isdigit(*it)) {
-            current = new_token(TOKEN_NUMBER, current, it, 0);
-            current->value = strtol(it, &it, 10);
-        } else if('a' <= *it && *it <= 'z'){
-            current = new_token(TOKEN_IDENTIFIER, current, it, 1);
+            current = new_token(TOKEN_NUMBER, current, it, 0, strtol(it, &it, 10));
+        } else if ('a' <= *it && *it <= 'z') {
+            current = new_token(TOKEN_IDENTIFIER, current, it, 1, 0);
             ++it;
         } else {
             error_at(it, source, "トークナイズできません");
         }
     }
 
-    new_token(TOKEN_EOF, current, it, 0);
+    new_token(TOKEN_EOF, current, it, 0, 0);
     return head.next;
 }

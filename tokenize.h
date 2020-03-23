@@ -12,8 +12,8 @@ typedef struct Token Token;
 struct Token {
     TokenKind kind;
     char* str;
-    int length;
-    int value;
+    int len;
+    int val;
     Token* next;
 };
 

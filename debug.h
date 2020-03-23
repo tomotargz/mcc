@@ -8,11 +8,11 @@ void printTokens(Token* tokens)
 {
     for (Token* crr = tokens; crr; crr = crr->next) {
         if (crr->kind == TOKEN_RESERVED) {
-            info("reserved %.*s", crr->length, crr->str);
+            info("reserved %.*s", crr->len, crr->str);
         } else if (crr->kind == TOKEN_IDENTIFIER) {
-            info("identifier %.*s", crr->length, crr->str);
+            info("identifier %.*s", crr->len, crr->str);
         } else if (crr->kind == TOKEN_NUMBER) {
-            info("number %d", crr->value);
+            info("number %d", crr->val);
         } else if (crr->kind == TOKEN_EOF) {
             info("eof");
         }

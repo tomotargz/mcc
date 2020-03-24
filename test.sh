@@ -39,5 +39,7 @@ try 1 "0>=0;"
 try 0 "0>=1;"
 try 1 "1>=0;"
 try 1 "a=1;a;"
+try 1 "a=1;b=a;b;"
+try 6 "hoge=1;fuga=hoge*2;piyo=fuga*3;piyo;"
 
 echo OK

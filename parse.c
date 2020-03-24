@@ -18,7 +18,8 @@
 #include "node.h"
 #include "parse.h"
 
-static Token* crr;
+static Token* crr = NULL;
+static LVar* lvars = NULL;
 
 Node* expr();
 
@@ -52,9 +53,39 @@ int expect_number()
     return val;
 }
 
+int lvarOffset(char* str, int len)
+{
+    if (!lvars) {
+        LVar* lvar = calloc(1, sizeof(LVar));
+        lvar->name = str;
+        lvar->len = len;
+        lvar->offset = 8;
+        lvars = lvar;
+        return 8;
+    }
+
+    LVar* crr = lvars;
+    for (;; crr = crr->next) {
+        if (crr->len == len && memcmp(crr->name, str, len) == 0) {
+            return crr->offset;
+        }
+        if (!crr->next) {
+            break;
+        }
+    }
+    LVar* lvar = calloc(1, sizeof(LVar));
+    lvar->name = str;
+    lvar->len = len;
+    lvar->offset = crr->offset + 8;
+    crr->next = lvar;
+    crr = lvar;
+    return lvar->offset;
+}
+
 Node* identifier()
 {
-    Node* node = new_node_local_variable((crr->str)[0]);
+    int offset = lvarOffset(crr->str, crr->len);
+    Node* node = new_node_local_variable(offset);
     crr = crr->next;
     return node;
 }
@@ -174,8 +205,10 @@ Node** program()
     return statements;
 }
 
-Node** parse(Token* tokens)
+ParseResult parse(Token* tokens)
 {
     crr = tokens;
-    return program();
+    Node** ast = program();
+    ParseResult result = { ast, lvars };
+    return result;
 }

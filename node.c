@@ -19,10 +19,10 @@ Node* new_node_num(int val)
     return node;
 }
 
-Node* new_node_local_variable(char name)
+Node* new_node_local_variable(int offset)
 {
     Node* node = calloc(1, sizeof(Node));
     node->kind = NODE_LOCAL_VARIABLE;
-    node->offset = (name - 'a' + 1) * 8;
+    node->offset = offset;
     return node;
 }

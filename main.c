@@ -7,10 +7,10 @@
 #include <string.h>
 
 #include "codegen.h"
+#include "debug.h"
 #include "error.h"
 #include "parse.h"
 #include "tokenize.h"
-#include "debug.h"
 
 int main(int argc, char** argv)
 {
@@ -21,8 +21,17 @@ int main(int argc, char** argv)
 
     char* source = argv[1];
     Token* tokens = tokenize(source);
-    printTokens(tokens);
-    Node** node = parse(tokens);
+    // printTokens(tokens);
+    ParseResult result = parse(tokens);
+    Node** ast = result.ast;
+    LVar* lvars = result.lvars;
+    int offset = 0;
+    for (; lvars; lvars = lvars->next) {
+        if(!lvars->next){
+            offset = lvars->offset;
+            break;
+        }
+    }
 
     // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
@@ -31,13 +40,13 @@ int main(int argc, char** argv)
 
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
-    printf("  sub rsp, 208\n");
+    printf("  sub rsp, %d\n", offset);
 
     // 抽象構文木を下りながらコード生成
-    while(*node){
-        generate(*node);
+    while (*ast) {
+        generate(*ast);
         printf("  pop rax\n");
-        ++node;
+        ++ast;
     }
 
     // スタックトップに式全体の値が残っているはずなので

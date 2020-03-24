@@ -4,6 +4,19 @@
 #include "node.h"
 #include "tokenize.h"
 
-Node** parse(Token* tokens);
+typedef struct LVar LVar;
+struct LVar {
+    char* name;
+    int len;
+    int offset;
+    LVar* next;
+};
+
+typedef struct {
+    Node** ast;
+    LVar* lvars;
+} ParseResult;
+
+ParseResult parse(Token* tokens);
 
 #endif

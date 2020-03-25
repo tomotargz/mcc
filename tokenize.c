@@ -23,6 +23,11 @@ Token* new_token(TokenKind kind, Token* cur, char* str, int len, int val)
     return tok;
 }
 
+bool isAlphaDigitUnderbar(char c)
+{
+    return isalpha(c) || isdigit(c) || c == '_';
+}
+
 Token* tokenize(char* source)
 {
     Token head;
@@ -55,10 +60,13 @@ Token* tokenize(char* source)
             ++it;
         } else if (isdigit(*it)) {
             current = new_token(TOKEN_NUMBER, current, it, 0, strtol(it, &it, 10));
+        } else if (memcmp(it, "return", 6) == 0 && !isAlphaDigitUnderbar(it[6])) {
+            current = new_token(TOKEN_RETURN, current, it, 6, 0);
+            it += 6;
         } else if (isalpha(*it) || *it == '_') {
             char* end = it + 1;
             int len = 1;
-            while (isalpha(*end) || *end == '_' || isdigit(*end)) {
+            while (isAlphaDigitUnderbar(*end)) {
                 ++len;
                 ++end;
             }

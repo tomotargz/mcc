@@ -32,6 +32,13 @@ void generate(Node* node)
         printf("  mov [rax], rdi\n");
         printf("  push rdi\n");
         return;
+    } else if (node->kind == NODE_RETURN) {
+        generate(node->lhs);
+        printf("  pop rax\n");
+        printf("  mov rsp, rbp\n");
+        printf("  pop rbp\n");
+        printf("  ret\n");
+        return;
     }
 
     generate(node->lhs);

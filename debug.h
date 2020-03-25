@@ -13,6 +13,8 @@ void printTokens(Token* tokens)
             info("identifier %.*s", crr->len, crr->str);
         } else if (crr->kind == TOKEN_NUMBER) {
             info("number %d", crr->val);
+        } else if (crr->kind == TOKEN_RETURN) {
+            info("return");
         } else if (crr->kind == TOKEN_EOF) {
             info("eof");
         }

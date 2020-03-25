@@ -1,7 +1,7 @@
 // Generative Rule
 //
 // program = statement*
-// statement = expr ";"
+// statement = expr ";" | return expr ";"
 // expr = assign
 // assign = equality ("=" assign)?
 // equality = relational ("==" relational | "!=" relational)*
@@ -17,18 +17,28 @@
 #include "error.h"
 #include "node.h"
 #include "parse.h"
+#include "tokenize.h"
 
 static Token* crr = NULL;
 static LVar* lvars = NULL;
 
 Node* expr();
 
-bool consume(char* op)
+bool consumeStr(char* op)
 {
     if (crr->kind != TOKEN_RESERVED
         || crr->len != strlen(op)
         || memcmp(crr->str, op, strlen(op)))
         return false;
+    crr = crr->next;
+    return true;
+}
+
+bool consume(TokenKind k)
+{
+    if (crr->kind != k) {
+        return false;
+    }
     crr = crr->next;
     return true;
 }
@@ -92,7 +102,7 @@ Node* identifier()
 
 Node* primary()
 {
-    if (consume("(")) {
+    if (consumeStr("(")) {
         Node* node = expr();
         expect(")");
         return node;
@@ -105,9 +115,9 @@ Node* primary()
 
 Node* unary()
 {
-    if (consume("+")) {
+    if (consumeStr("+")) {
         return primary();
-    } else if (consume("-")) {
+    } else if (consumeStr("-")) {
         return new_node(NODE_SUBTRACTION, new_node_num(0), primary());
     }
     return primary();
@@ -117,9 +127,9 @@ Node* mul()
 {
     Node* node = unary();
     for (;;) {
-        if (consume("*")) {
+        if (consumeStr("*")) {
             node = new_node(NODE_MULTIPLICATION, node, unary());
-        } else if (consume("/")) {
+        } else if (consumeStr("/")) {
             node = new_node(NODE_DIVISION, node, unary());
         } else {
             return node;
@@ -131,9 +141,9 @@ Node* add()
 {
     Node* node = mul();
     for (;;) {
-        if (consume("+")) {
+        if (consumeStr("+")) {
             node = new_node(NODE_ADDITION, node, mul());
-        } else if (consume("-")) {
+        } else if (consumeStr("-")) {
             node = new_node(NODE_SUBTRACTION, node, mul());
         } else {
             return node;
@@ -145,13 +155,13 @@ Node* relational()
 {
     Node* node = add();
     for (;;) {
-        if (consume("<=")) {
+        if (consumeStr("<=")) {
             node = new_node(NODE_LESS_OR_EQUAL, node, add());
-        } else if (consume("<")) {
+        } else if (consumeStr("<")) {
             node = new_node(NODE_LESS_THAN, node, add());
-        } else if (consume(">=")) {
+        } else if (consumeStr(">=")) {
             node = new_node(NODE_LESS_OR_EQUAL, add(), node);
-        } else if (consume(">")) {
+        } else if (consumeStr(">")) {
             node = new_node(NODE_LESS_THAN, add(), node);
         } else {
             return node;
@@ -163,9 +173,9 @@ Node* equality()
 {
     Node* node = relational();
     for (;;) {
-        if (consume("==")) {
+        if (consumeStr("==")) {
             node = new_node(NODE_EQUAL, node, relational());
-        } else if (consume("!=")) {
+        } else if (consumeStr("!=")) {
             node = new_node(NODE_NOT_EQUAL, node, relational());
         } else {
             return node;
@@ -176,7 +186,7 @@ Node* equality()
 Node* assign()
 {
     Node* node = equality();
-    if (consume("=")) {
+    if (consumeStr("=")) {
         node = new_node(NODE_ASSIGNMENT, node, assign());
     }
     return node;
@@ -189,7 +199,12 @@ Node* expr()
 
 Node* statement()
 {
-    Node* node = expr();
+    Node* node = NULL;
+    if (consume(TOKEN_RETURN)) {
+        node = new_node(NODE_RETURN, expr(), NULL);
+    } else {
+        node = expr();
+    }
     expect(";");
     return node;
 }

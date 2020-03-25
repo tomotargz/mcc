@@ -13,6 +13,7 @@ typedef enum {
     NODE_NUMBER,
     NODE_ASSIGNMENT,
     NODE_LOCAL_VARIABLE,
+    NODE_RETURN,
 } NodeKind;
 
 typedef struct Node Node;

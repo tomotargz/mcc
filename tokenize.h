@@ -6,6 +6,8 @@ typedef enum {
     TOKEN_IDENTIFIER,
     TOKEN_NUMBER,
     TOKEN_RETURN,
+    TOKEN_IF,
+    TOKEN_ELSE,
     TOKEN_EOF,
 } TokenKind;
 

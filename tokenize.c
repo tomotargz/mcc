@@ -63,6 +63,12 @@ Token* tokenize(char* source)
         } else if (memcmp(it, "return", 6) == 0 && !isAlphaDigitUnderbar(it[6])) {
             current = new_token(TOKEN_RETURN, current, it, 6, 0);
             it += 6;
+        } else if (memcmp(it, "if", 2) == 0 && !isAlphaDigitUnderbar(it[2])) {
+            current = new_token(TOKEN_IF, current, it, 2, 0);
+            it += 2;
+        } else if (memcmp(it, "else", 4) == 0 && !isAlphaDigitUnderbar(it[4])) {
+            current = new_token(TOKEN_ELSE, current, it, 4, 0);
+            it += 4;
         } else if (isalpha(*it) || *it == '_') {
             char* end = it + 1;
             int len = 1;

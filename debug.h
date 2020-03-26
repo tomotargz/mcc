@@ -15,6 +15,10 @@ void printTokens(Token* tokens)
             info("number %d", crr->val);
         } else if (crr->kind == TOKEN_RETURN) {
             info("return");
+        } else if (crr->kind == TOKEN_IF) {
+            info("if");
+        } else if (crr->kind == TOKEN_ELSE) {
+            info("else");
         } else if (crr->kind == TOKEN_EOF) {
             info("eof");
         }

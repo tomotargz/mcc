@@ -3,6 +3,8 @@
 #include "codegen.h"
 #include "error.h"
 
+static int tag = 0;
+
 void generate_lval(Node* node)
 {
     if (node->kind != NODE_LOCAL_VARIABLE) {
@@ -38,6 +40,23 @@ void generate(Node* node)
         printf("  mov rsp, rbp\n");
         printf("  pop rbp\n");
         printf("  ret\n");
+        return;
+    } else if (node->kind == NODE_IF) {
+        generate(node->cond);
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        if (node->els) {
+            printf("  je .Lelse%d\n", tag);
+            generate(node->then);
+            printf("  jmp .Lend%d\n", tag);
+            printf(".Lelse%d:\n", tag);
+            generate(node->els);
+        } else {
+            printf("  je .Lend%d\n", tag);
+            generate(node->then);
+        }
+        printf(".Lend%d:\n", tag);
+        ++tag;
         return;
     }
 

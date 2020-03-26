@@ -42,5 +42,9 @@ try 1 "a=1;a;"
 try 1 "a=1;b=a;b;"
 try 6 "hoge=1;fuga=hoge*2;piyo=fuga*3;piyo;"
 try 1 "return 1;return 2;"
+try 1 "if(1==1) return 1; return 0;"
+try 0 "if(0==1) return 1; return 0;"
+try 1 "if(1==1) return 1; else return 0;"
+try 0 "if(0==1) return 1; else return 0;"
 
 echo OK

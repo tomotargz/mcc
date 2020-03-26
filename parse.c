@@ -1,15 +1,19 @@
-// Generative Rule
-//
-// program = statement*
-// statement = expr ";" | return expr ";"
-// expr = assign
-// assign = equality ("=" assign)?
-// equality = relational ("==" relational | "!=" relational)*
-// relational = add ("<" add | "<=" add | ">" add | "=>" add)*
-// add = mul ("+" mul | "-" mul)*
-// mul = unary ("*" unary | "/" unary)*
-// unary = ("+" | "-")? primary
-// primary = (identifier | num | "(" expr ")")
+/*
+Generative Rule
+
+program = statement*
+statement = expr ";"
+| "if" "(" expr ")" statement ("else" statement)?
+| return expr ";"
+expr = assign
+assign = equality ("=" assign)?
+equality = relational ("==" relational | "!=" relational)*
+relational = add ("<" add | "<=" add | ">" add | "=>" add)*
+add = mul ("+" mul | "-" mul)*
+mul = unary ("*" unary | "/" unary)*
+unary = ("+" | "-")? primary
+primary = (identifier | num | "(" expr ")")
+*/
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -202,10 +206,23 @@ Node* statement()
     Node* node = NULL;
     if (consume(TOKEN_RETURN)) {
         node = new_node(NODE_RETURN, expr(), NULL);
+        expect(";");
+    } else if (consume(TOKEN_IF)) {
+        node = calloc(1, sizeof(Node));
+        node->kind = NODE_IF;
+        expect("(");
+        node->cond = expr();
+        expect(")");
+        node->then = statement();
+        if (consume(TOKEN_ELSE)) {
+            node->els = statement();
+        }else{
+            node->els = NULL;
+        }
     } else {
         node = expr();
+        expect(";");
     }
-    expect(";");
     return node;
 }
 

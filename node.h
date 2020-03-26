@@ -13,6 +13,8 @@ typedef enum {
     NODE_NUMBER,
     NODE_ASSIGNMENT,
     NODE_LOCAL_VARIABLE,
+    NODE_CONDITION,
+    NODE_IF,
     NODE_RETURN,
 } NodeKind;
 
@@ -23,6 +25,10 @@ struct Node {
     Node* rhs;
     int val;
     int offset;
+
+    Node* cond;
+    Node* then;
+    Node* els;
 };
 
 Node* new_node(NodeKind kind, Node* lhs, Node* rhs);

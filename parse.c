@@ -5,6 +5,7 @@ program = statement*
 statement = expr ";"
 | "if" "(" expr ")" statement ("else" statement)?
 | "while" "(" expr ")" statement
+| "for" "(" expr? ";" expr? ";" expr? ")" statement
 | return expr ";"
 expr = assign
 assign = equality ("=" assign)?
@@ -226,6 +227,23 @@ Node* statement()
         expect("(");
         node->cond = expr();
         expect(")");
+        node->body = statement();
+    } else if (consume(TOKEN_FOR)) {
+        node = calloc(1, sizeof(Node));
+        node->kind = NODE_FOR;
+        expect("(");
+        if (!consumeStr(";")) {
+            node->init = expr();
+            expect(";");
+        }
+        if (!consumeStr(";")) {
+            node->cond = expr();
+            expect(";");
+        }
+        if (!consumeStr(")")) {
+            node->inc = expr();
+            expect(")");
+        }
         node->body = statement();
     } else {
         node = expr();

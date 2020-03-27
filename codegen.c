@@ -42,32 +42,51 @@ void generate(Node* node)
         printf("  ret\n");
         return;
     } else if (node->kind == NODE_IF) {
+        int t = tag++;
         generate(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
         if (node->els) {
-            printf("  je .Lelse%d\n", tag);
+            printf("  je .Lelse%d\n", t);
             generate(node->then);
-            printf("  jmp .Lend%d\n", tag);
-            printf(".Lelse%d:\n", tag);
+            printf("  jmp .Lend%d\n", t);
+            printf(".Lelse%d:\n", t);
             generate(node->els);
         } else {
-            printf("  je .Lend%d\n", tag);
+            printf("  je .Lend%d\n", t);
             generate(node->then);
         }
-        printf(".Lend%d:\n", tag);
-        ++tag;
+        printf(".Lend%d:\n", t);
         return;
     } else if (node->kind == NODE_WHILE) {
-        printf(".Lbegin%d:\n", tag);
+        int t = tag++;
+        printf(".Lbegin%d:\n", t);
         generate(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  je .Lend%d\n", tag);
+        printf("  je .Lend%d\n", t);
         generate(node->body);
-        printf(" jmp .Lbegin%d\n", tag);
-        printf(".Lend%d:\n", tag);
-        ++tag;
+        printf(" jmp .Lbegin%d\n", t);
+        printf(".Lend%d:\n", t);
+        return;
+    } else if (node->kind == NODE_FOR) {
+        int t = tag++;
+        if (node->init) {
+            generate(node->init);
+        }
+        printf(".Lbegin%d:\n", t);
+        if (node->cond) {
+            generate(node->cond);
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            printf("  je .Lend%d\n", t);
+        }
+        generate(node->body);
+        if (node->inc){
+            generate(node->inc);
+        }
+        printf("  jmp .Lbegin%d\n", t);
+        printf(".Lend%d:\n", t);
         return;
     }
 

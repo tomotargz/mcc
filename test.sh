@@ -49,5 +49,9 @@ try 0 "if(0==1) return 1; else return 0;"
 try 1 "a=0;while(a==0)return 1;return 0;"
 try 0 "a=0;while(a==1)return 1;return 0;"
 try 3 "a=0;while(a<3)a=a+1;return a;"
+try 3 "for(i=0;i<3;i=i+1)0;return i;"
+try 3 "for(i=0;i<3;)i=i+1;return i;"
+try 3 "for(i=0;;i=i+1)if(i>=3)return i;"
+try 3 "i=0;for(;i<3;i=i+1)0;return i;"
 
 echo OK

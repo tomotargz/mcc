@@ -58,6 +58,17 @@ void generate(Node* node)
         printf(".Lend%d:\n", tag);
         ++tag;
         return;
+    } else if (node->kind == NODE_WHILE) {
+        printf(".Lbegin%d:\n", tag);
+        generate(node->cond);
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        printf("  je .Lend%d\n", tag);
+        generate(node->body);
+        printf(" jmp .Lbegin%d\n", tag);
+        printf(".Lend%d:\n", tag);
+        ++tag;
+        return;
     }
 
     generate(node->lhs);

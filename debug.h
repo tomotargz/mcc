@@ -19,6 +19,8 @@ void printTokens(Token* tokens)
             info("if");
         } else if (crr->kind == TOKEN_ELSE) {
             info("else");
+        } else if (crr->kind == TOKEN_WHILE) {
+            info("while");
         } else if (crr->kind == TOKEN_EOF) {
             info("eof");
         }

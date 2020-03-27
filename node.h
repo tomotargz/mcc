@@ -15,6 +15,7 @@ typedef enum {
     NODE_LOCAL_VARIABLE,
     NODE_CONDITION,
     NODE_IF,
+    NODE_WHILE,
     NODE_RETURN,
 } NodeKind;
 
@@ -26,9 +27,12 @@ struct Node {
     int val;
     int offset;
 
+    // if(cond)then;else els;
+    // while(cond)body;
     Node* cond;
     Node* then;
     Node* els;
+    Node* body;
 };
 
 Node* new_node(NodeKind kind, Node* lhs, Node* rhs);

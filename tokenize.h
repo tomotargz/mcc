@@ -8,6 +8,7 @@ typedef enum {
     TOKEN_RETURN,
     TOKEN_IF,
     TOKEN_ELSE,
+    TOKEN_WHILE,
     TOKEN_EOF,
 } TokenKind;
 

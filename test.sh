@@ -46,5 +46,8 @@ try 1 "if(1==1) return 1; return 0;"
 try 0 "if(0==1) return 1; return 0;"
 try 1 "if(1==1) return 1; else return 0;"
 try 0 "if(0==1) return 1; else return 0;"
+try 1 "a=0;while(a==0)return 1;return 0;"
+try 0 "a=0;while(a==1)return 1;return 0;"
+try 3 "a=0;while(a<3)a=a+1;return a;"
 
 echo OK

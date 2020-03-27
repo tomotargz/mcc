@@ -4,6 +4,7 @@ Generative Rule
 program = statement*
 statement = expr ";"
 | "if" "(" expr ")" statement ("else" statement)?
+| "while" "(" expr ")" statement
 | return expr ";"
 expr = assign
 assign = equality ("=" assign)?
@@ -216,9 +217,16 @@ Node* statement()
         node->then = statement();
         if (consume(TOKEN_ELSE)) {
             node->els = statement();
-        }else{
+        } else {
             node->els = NULL;
         }
+    } else if (consume(TOKEN_WHILE)) {
+        node = calloc(1, sizeof(Node));
+        node->kind = NODE_WHILE;
+        expect("(");
+        node->cond = expr();
+        expect(")");
+        node->body = statement();
     } else {
         node = expr();
         expect(";");

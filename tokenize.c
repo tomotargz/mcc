@@ -69,6 +69,9 @@ Token* tokenize(char* source)
         } else if (memcmp(it, "else", 4) == 0 && !isAlphaDigitUnderbar(it[4])) {
             current = new_token(TOKEN_ELSE, current, it, 4, 0);
             it += 4;
+        } else if (memcmp(it, "while", 5) == 0 && !isAlphaDigitUnderbar(it[5])) {
+            current = new_token(TOKEN_WHILE, current, it, 5, 0);
+            it += 5;
         } else if (isalpha(*it) || *it == '_') {
             char* end = it + 1;
             int len = 1;

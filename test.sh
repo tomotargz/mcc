@@ -53,5 +53,11 @@ try 3 "for(i=0;i<3;i=i+1)0;return i;"
 try 3 "for(i=0;i<3;)i=i+1;return i;"
 try 3 "for(i=0;;i=i+1)if(i>=3)return i;"
 try 3 "i=0;for(;i<3;i=i+1)0;return i;"
+try 0 "{a=1;b=2;c=3;return 0;}"
+try 1 "if(1==1){a=1;return a;}return 0;"
+try 6 "i=0;while(i<5){i=i+1;i=i+1;}return i;"
+try 2 "i=0;{i=1;i=2;}return i;"
+
+
 
 echo OK

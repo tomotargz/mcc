@@ -82,11 +82,17 @@ void generate(Node* node)
             printf("  je .Lend%d\n", t);
         }
         generate(node->body);
-        if (node->inc){
+        if (node->inc) {
             generate(node->inc);
         }
         printf("  jmp .Lbegin%d\n", t);
         printf(".Lend%d:\n", t);
+        return;
+    } else if (node->kind == NODE_BLOCK) {
+        for (int i = 0; node->statements[i]; ++i) {
+            info("i=%d", i);
+            generate(node->statements[i]);
+        }
         return;
     }
 

@@ -17,6 +17,7 @@ typedef enum {
     NODE_IF,
     NODE_WHILE,
     NODE_FOR,
+    NODE_BLOCK,
     NODE_RETURN,
 } NodeKind;
 
@@ -37,6 +38,8 @@ struct Node {
     Node* body;
     Node* init;
     Node* inc;
+
+    Node* statements[100];
 };
 
 Node* new_node(NodeKind kind, Node* lhs, Node* rhs);

@@ -3,6 +3,7 @@ Generative Rule
 
 program = statement*
 statement = expr ";"
+| "{" statement* "}"
 | "if" "(" expr ")" statement ("else" statement)?
 | "while" "(" expr ")" statement
 | "for" "(" expr? ";" expr? ";" expr? ")" statement
@@ -245,6 +246,14 @@ Node* statement()
             expect(")");
         }
         node->body = statement();
+    } else if (consumeStr("{")) {
+        node = calloc(1, sizeof(Node));
+        node->kind = NODE_BLOCK;
+        int i = 0;
+        for (; i < 100 && !consumeStr("}"); ++i) {
+            node->statements[i] = statement();
+        }
+        node->statements[i] = NULL;
     } else {
         node = expr();
         expect(";");

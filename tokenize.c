@@ -54,6 +54,8 @@ Token* tokenize(char* source)
             || startsWith(it, "/")
             || startsWith(it, "(")
             || startsWith(it, ")")
+            || startsWith(it, "{")
+            || startsWith(it, "}")
             || startsWith(it, ";")
             || startsWith(it, "=")) {
             current = new_token(TOKEN_RESERVED, current, it, 1, 0);

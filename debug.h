@@ -1,8 +1,8 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
-#include "tokenize.h"
 #include "error.h"
+#include "tokenize.h"
 
 void printTokens(Token* tokens)
 {
@@ -23,6 +23,8 @@ void printTokens(Token* tokens)
             info("while");
         } else if (crr->kind == TOKEN_EOF) {
             info("eof");
+        } else {
+            info("%c", crr->kind);
         }
     }
 }

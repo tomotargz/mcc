@@ -2,7 +2,11 @@
 #define TOKENIZE_H
 
 typedef enum {
-    TOKEN_RESERVED,
+    TOKEN_RESERVED = 256,
+    TOKEN_EQ,
+    TOKEN_NE,
+    TOKEN_LE,
+    TOKEN_GE,
     TOKEN_IDENTIFIER,
     TOKEN_NUMBER,
     TOKEN_RETURN,
@@ -15,7 +19,7 @@ typedef enum {
 
 typedef struct Token Token;
 struct Token {
-    TokenKind kind;
+    int kind;
     char* str;
     int len;
     int val;

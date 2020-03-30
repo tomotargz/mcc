@@ -19,6 +19,7 @@ typedef enum {
     NODE_FOR,
     NODE_BLOCK,
     NODE_RETURN,
+    NODE_CALL,
 } NodeKind;
 
 typedef struct Node Node;
@@ -40,6 +41,10 @@ struct Node {
     Node* inc;
 
     Node* statements[100];
+
+    // function
+    char* name;
+    int len;
 };
 
 Node* new_node(NodeKind kind, Node* lhs, Node* rhs);

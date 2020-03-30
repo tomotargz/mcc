@@ -16,6 +16,9 @@ try() {
     fi
 }
 
+# try 0 "func(); return 0;"
+# try 0 "a=0;func(); return a;"
+
 try 0 "0;"
 try 6 "1+2+3;"
 try 0 "3-2-1;"
@@ -57,6 +60,7 @@ try 0 "{a=1;b=2;c=3;return 0;}"
 try 1 "if(1==1){a=1;return a;}return 0;"
 try 6 "i=0;while(i<5){i=i+1;i=i+1;}return i;"
 try 2 "i=0;{i=1;i=2;}return i;"
+try 7 "{1+2;2+3;3+4;}"
 
 
 

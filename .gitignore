@@ -4,3 +4,6 @@
 tmp*
 a.out
 mcc
+func.c
+func.s
+temp

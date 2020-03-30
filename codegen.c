@@ -94,6 +94,22 @@ void generate(Node* node)
             generate(node->statements[i]);
         }
         return;
+    } else if (node->kind == NODE_CALL) {
+        int t = tag++;
+        printf("  mov rax, rsp\n");
+        printf("  cqo\n");
+        printf("  mov rbx, 16\n");
+        printf("  div rbx\n");
+        printf("  cmp rdx, 0\n");
+        printf("  jne .Lpad%d\n", t);
+        printf("  call %.*s\n", node->len, node->name);
+        printf("  jmp .Lend%d\n", t);
+        printf(".Lpad%d:\n", t);
+        printf("  add rsp, 8\n");
+        printf("  call %.*s\n", node->len, node->name);
+        printf("  sub rsp, 8\n");
+        printf(".Lend%d:\n", t);
+        return;
     }
 
     generate(node->lhs);

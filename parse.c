@@ -15,8 +15,13 @@ relational = add ("<" add | "<=" add | ">" add | "=>" add)*
 add = mul ("+" mul | "-" mul)*
 mul = unary ("*" unary | "/" unary)*
 unary = ("+" | "-")? primary
-primary = (identifier | num | "(" expr ")")
+primary =
+(identifier ("(" ")")?
+| num
+| "(" expr ")"
+)
 */
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -101,6 +106,18 @@ int lvarOffset(char* str, int len)
 
 Node* identifier()
 {
+    Token* next = crr->next;
+    bool isFunc = next->kind == TOKEN_RESERVED && *next->str == '(';
+    if (isFunc) {
+        Node* node = calloc(1, sizeof(Node));
+        node->kind = NODE_CALL;
+        node->name = crr->str;
+        node->len = crr->len;
+        crr = crr->next;
+        expect("(");
+        expect(")");
+        return node;
+    }
     int offset = lvarOffset(crr->str, crr->len);
     Node* node = new_node_local_variable(offset);
     crr = crr->next;
@@ -114,8 +131,9 @@ Node* primary()
         expect(")");
         return node;
     }
-    if ('a' <= (crr->str)[0] && (crr->str)[0] <= 'z') {
-        return identifier();
+    if (isalpha(*crr->str) || *crr->str == '_') {
+        Node* node = identifier();
+        return node;
     }
     return new_node_num(expect_number());
 }

@@ -2,24 +2,33 @@
 Generative Rule
 
 program = statement*
+
 statement = expr ";"
 | "{" statement* "}"
 | "if" "(" expr ")" statement ("else" statement)?
 | "while" "(" expr ")" statement
 | "for" "(" expr? ";" expr? ";" expr? ")" statement
 | return expr ";"
+
 expr = assign
+
 assign = equality ("=" assign)?
+
 equality = relational ("==" relational | "!=" relational)*
+
 relational = add ("<" add | "<=" add | ">" add | "=>" add)*
+
 add = mul ("+" mul | "-" mul)*
+
 mul = unary ("*" unary | "/" unary)*
+
 unary = ("+" | "-")? primary
-primary =
-(identifier ("(" ")")?
-| num
+
+primary = num
 | "(" expr ")"
-)
+| identifier
+| identifier "(" ")"
+| identifier "(" expr ("," expr)* ")"
 */
 #include <ctype.h>
 #include <stdbool.h>
@@ -94,36 +103,48 @@ int lvarOffset(char* str, int len)
 
 Node* identifier()
 {
-    Token* next = crr->next;
-    bool isFunc = next->kind == TOKEN_RESERVED && next->kind == '(';
-    if (isFunc) {
-        Node* node = calloc(1, sizeof(Node));
-        node->kind = NODE_CALL;
-        node->name = crr->str;
-        node->len = crr->len;
-        crr = crr->next;
-        expect('(');
-        expect(')');
-        return node;
-    }
     int offset = lvarOffset(crr->str, crr->len);
     Node* node = new_node_local_variable(offset);
     crr = crr->next;
     return node;
 }
 
+// call = identifier "(" ")" | identifier "(" expr ("," expr)* ")"
+Node* call()
+{
+    Node* node = calloc(1, sizeof(Node));
+    node->kind = NODE_CALL;
+    node->name = crr->str;
+    node->len = crr->len;
+    crr = crr->next;
+    expect('(');
+    int i = 0;
+    while (!consume(')')) {
+        node->args[i] = expr();
+        consume(',');
+        ++i;
+    }
+    node->args[i] = NULL;
+    return node;
+}
+
+// primary = num
+// | "(" expr ")"
+// | identifier
+// | call
 Node* primary()
 {
-    if (consume('(')) {
+    if (crr->kind == TOKEN_NUMBER) {
+        return new_node_num(expect_number());
+    } else if (consume('(')) {
         Node* node = expr();
         expect(')');
         return node;
+    } else if (crr->next->kind == '(') {
+        return call();
+    } else {
+        return identifier();
     }
-    if (crr->kind == TOKEN_IDENTIFIER) {
-        Node* node = identifier();
-        return node;
-    }
-    return new_node_num(expect_number());
 }
 
 Node* unary()

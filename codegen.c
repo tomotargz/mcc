@@ -96,19 +96,18 @@ void generate(Node* node)
         return;
     } else if (node->kind == NODE_CALL) {
         int t = tag++;
-        printf("  mov rax, rsp\n");
-        printf("  cqo\n");
-        printf("  mov rbx, 16\n");
-        printf("  div rbx\n");
-        printf("  cmp rdx, 0\n");
-        printf("  jne .Lpad%d\n", t);
+        int i = 0;
+        for (; node->args[i] != NULL; ++i) {
+            generate(node->args[i]);
+        }
+        --i;
+        static char* ARG_REG[] = {
+            "rdi", "rsi", "rdx", "rcx", "r8", "r9"
+        };
+        for (; i >= 0; --i) {
+            printf("  pop %s\n", ARG_REG[i]);
+        }
         printf("  call %.*s\n", node->len, node->name);
-        printf("  jmp .Lend%d\n", t);
-        printf(".Lpad%d:\n", t);
-        printf("  add rsp, 8\n");
-        printf("  call %.*s\n", node->len, node->name);
-        printf("  sub rsp, 8\n");
-        printf(".Lend%d:\n", t);
         return;
     }
 

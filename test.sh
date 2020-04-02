@@ -16,7 +16,9 @@ try() {
     fi
 }
 
-# try 0 "func(); return 0;"
+# try 0 "func1(1); return 0;"
+# try 0 "func6(1,2,3,4,5,6); return 0;"
+# try 0 "func1(); return 0;"
 # try 0 "a=0;func(); return a;"
 
 try 0 "0;"

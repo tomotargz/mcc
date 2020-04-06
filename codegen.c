@@ -108,6 +108,7 @@ void generate(Node* node)
             printf("  pop %s\n", ARG_REG[i]);
         }
         printf("  call %.*s\n", node->len, node->name);
+        printf("  push rax\n");
         return;
     }
 

@@ -107,7 +107,19 @@ void generate(Node* node)
         for (; i >= 0; --i) {
             printf("  pop %s\n", ARG_REG[i]);
         }
+        // 16byte align
+        printf("  mov rax, rsp\n");
+        printf("  and rax, 15\n");
+        printf("  jnz .Lalign%d\n", t);
+        printf("  mov rax, 0\n");
         printf("  call %.*s\n", node->len, node->name);
+        printf("  jmp .Lend%d\n", t);
+        printf(".Lalign%d:\n", t);
+        printf("  sub rsp, 8\n");
+        printf("  mov rax, 0\n");
+        printf("  call %.*s\n", node->len, node->name);
+        printf("  add rsp, 8\n");
+        printf(".Lend%d:\n", t);
         printf("  push rax\n");
         return;
     }

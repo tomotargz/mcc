@@ -22,8 +22,11 @@ try() {
     fi
 }
 
-try 3 "func1();"
-try 21 "return func2(1,2,3,4,5,6);"
+try 1 "main(){return 1;}"
+try 2 "func(){return 1+1;}main(){return func();}"
+
+# try 3 "func1();"
+# try 21 "return func2(1,2,3,4,5,6);"
 
 # try 0 "0;"
 # try 6 "1+2+3;"

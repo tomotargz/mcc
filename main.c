@@ -21,38 +21,29 @@ int main(int argc, char** argv)
 
     char* source = argv[1];
     Token* tokens = tokenize(source);
-    // printTokens(tokens);
-    ParseResult result = parse(tokens);
-    Node** ast = result.ast;
-    LVar* lvars = result.lvars;
-    int offset = 0;
-    for (; lvars; lvars = lvars->next) {
-        if(!lvars->next){
-            offset = lvars->offset;
-            break;
-        }
-    }
+    printTokens(tokens);
+    Function* func = parse(tokens);
 
-    // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
-    printf(".global main\n");
-    printf("main:\n");
 
-    printf("  push rbp\n");
-    printf("  mov rbp, rsp\n");
-    printf("  sub rsp, %d\n", offset);
+    for (Function* f = func; f; f = f->next) {
+        printf(".global %s\n", f->name);
+        printf("%s:\n", f->name);
 
-    // 抽象構文木を下りながらコード生成
-    while (*ast) {
-        generate(*ast);
-        printf("  pop rax\n");
-        ++ast;
+        // prologue
+        printf("  push rbp\n");
+        printf("  mov rbp, rsp\n");
+        printf("  sub rsp, %d\n", f->stackSize);
+
+        for (Node* n = func->node; n; n = n->next) {
+            generate(n);
+        }
+
+        // epilogue
+        printf(".L.return.%s:\n", f->name);
+        printf("  mov rsp, rbp\n");
+        printf("  pop rbp\n");
+        printf("  ret\n");
     }
-
-    // スタックトップに式全体の値が残っているはずなので
-    // それをRAXにロードして関数からの返り値とする
-    printf("  mov rsp, rbp\n");
-    printf("  pop rbp\n");
-    printf("  ret\n");
     return 0;
 }

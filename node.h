@@ -25,6 +25,7 @@ typedef enum {
 typedef struct Node Node;
 struct Node {
     NodeKind kind;
+    Node* next;
     Node* lhs;
     Node* rhs;
     int val;
@@ -44,7 +45,6 @@ struct Node {
 
     // function
     char* name;
-    int len;
     Node* args[10];
 };
 

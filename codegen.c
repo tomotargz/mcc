@@ -112,12 +112,12 @@ void generate(Node* node)
         printf("  and rax, 15\n");
         printf("  jnz .Lalign%d\n", t);
         printf("  mov rax, 0\n");
-        printf("  call %.*s\n", node->len, node->name);
+        printf("  call %s\n", node->name);
         printf("  jmp .Lend%d\n", t);
         printf(".Lalign%d:\n", t);
         printf("  sub rsp, 8\n");
         printf("  mov rax, 0\n");
-        printf("  call %.*s\n", node->len, node->name);
+        printf("  call %s\n", node->name);
         printf("  add rsp, 8\n");
         printf(".Lend%d:\n", t);
         printf("  push rax\n");

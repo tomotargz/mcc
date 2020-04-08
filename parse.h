@@ -7,16 +7,19 @@
 typedef struct LVar LVar;
 struct LVar {
     char* name;
-    int len;
     int offset;
     LVar* next;
 };
 
-typedef struct {
-    Node** ast;
-    LVar* lvars;
-} ParseResult;
+typedef struct Function Function;
+struct Function{
+    Function* next;
+    char* name;
+    Node* node;
+    LVar* lVars;
+    int stackSize;
+};
 
-ParseResult parse(Token* tokens);
+Function* parse(Token* tokens);
 
 #endif

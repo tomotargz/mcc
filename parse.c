@@ -1,7 +1,9 @@
 /*
 Generative Rule
 
-program = statement*
+program = function*
+
+function = identifier "(" ")" "{" statement* "}"
 
 statement = expr ";"
 | "{" statement* "}"
@@ -72,12 +74,11 @@ int expect_number()
     return val;
 }
 
-int lvarOffset(char* str, int len)
+int lvarOffset(char* str)
 {
     if (!lvars) {
         LVar* lvar = calloc(1, sizeof(LVar));
         lvar->name = str;
-        lvar->len = len;
         lvar->offset = 8;
         lvars = lvar;
         return 8;
@@ -85,7 +86,7 @@ int lvarOffset(char* str, int len)
 
     LVar* crr = lvars;
     for (;; crr = crr->next) {
-        if (crr->len == len && memcmp(crr->name, str, len) == 0) {
+        if (strcmp(crr->name, str) == 0) {
             return crr->offset;
         }
         if (!crr->next) {
@@ -94,7 +95,6 @@ int lvarOffset(char* str, int len)
     }
     LVar* lvar = calloc(1, sizeof(LVar));
     lvar->name = str;
-    lvar->len = len;
     lvar->offset = crr->offset + 8;
     crr->next = lvar;
     crr = lvar;
@@ -103,7 +103,7 @@ int lvarOffset(char* str, int len)
 
 Node* identifier()
 {
-    int offset = lvarOffset(crr->str, crr->len);
+    int offset = lvarOffset(crr->str);
     Node* node = new_node_local_variable(offset);
     crr = crr->next;
     return node;
@@ -115,7 +115,6 @@ Node* call()
     Node* node = calloc(1, sizeof(Node));
     node->kind = NODE_CALL;
     node->name = crr->str;
-    node->len = crr->len;
     crr = crr->next;
     expect('(');
     int i = 0;
@@ -288,21 +287,44 @@ Node* statement()
     return node;
 }
 
-Node** program()
+Function* function()
 {
-    static Node* statements[100];
-    int i = 0;
-    while (crr->kind != TOKEN_EOF) {
-        statements[i++] = statement();
+    if (crr->kind != TOKEN_IDENTIFIER) {
+        error("invalid token");
     }
-    statements[i] = NULL;
-    return statements;
+    char* name = crr->str;
+    Node head = {};
+    Node* pos = &head;
+    crr = crr->next;
+
+    expect('(');
+    expect(')');
+    expect('{');
+    while (!consume('}')) {
+        pos->next = statement();
+        pos = pos->next;
+    }
+    Function* func = calloc(1, sizeof(Function));
+    func->name = name;
+    func->node = head.next;
+    func->lVars = NULL;
+    func->stackSize = 0;
+    return func;
 }
 
-ParseResult parse(Token* tokens)
+Function* program()
+{
+    Function head = {};
+    Function* pos = &head;
+    while (crr->kind != TOKEN_EOF) {
+        pos->next = function();
+        pos = pos->next;
+    }
+    return head.next;
+}
+
+Function* parse(Token* tokens)
 {
     crr = tokens;
-    Node** ast = program();
-    ParseResult result = { ast, lvars };
-    return result;
+    return program();
 }

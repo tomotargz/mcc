@@ -60,8 +60,7 @@ Token* tokenize(char* source)
             || startsWith(pos, "}")
             || startsWith(pos, ";")
             || startsWith(pos, "=")
-            || startsWith(pos, ",")
-            ) {
+            || startsWith(pos, ",")) {
             append(*pos);
             ++pos;
         } else if (isdigit(*pos)) {
@@ -90,8 +89,7 @@ Token* tokenize(char* source)
                 ++end;
             }
             append(TOKEN_IDENTIFIER);
-            tail->str = pos;
-            tail->len = len;
+            tail->str = strndup(pos, len);
             pos = end;
         } else {
             error_at(pos, source, "トークナイズできません");

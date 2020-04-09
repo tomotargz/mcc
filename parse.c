@@ -44,6 +44,7 @@ primary = num
 
 static Token* crr = NULL;
 static LVar* lvars = NULL;
+static int stackSize = 0;
 
 Node* expr();
 
@@ -81,6 +82,7 @@ int lvarOffset(char* str)
         lvar->name = str;
         lvar->offset = 8;
         lvars = lvar;
+        stackSize = 8;
         return 8;
     }
 
@@ -98,6 +100,7 @@ int lvarOffset(char* str)
     lvar->offset = crr->offset + 8;
     crr->next = lvar;
     crr = lvar;
+    stackSize = lvar->offset;
     return lvar->offset;
 }
 
@@ -300,6 +303,8 @@ Function* function()
     expect('(');
     expect(')');
     expect('{');
+    lvars = NULL;
+    stackSize = 0;
     while (!consume('}')) {
         pos->next = statement();
         pos = pos->next;
@@ -307,8 +312,8 @@ Function* function()
     Function* func = calloc(1, sizeof(Function));
     func->name = name;
     func->node = head.next;
-    func->lVars = NULL;
-    func->stackSize = 0;
+    func->lVars = lvars;
+    func->stackSize = stackSize;
     return func;
 }
 

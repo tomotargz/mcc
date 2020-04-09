@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 
     char* source = argv[1];
     Token* tokens = tokenize(source);
-    printTokens(tokens);
+    // printTokens(tokens);
     Function* func = parse(tokens);
 
     printf(".intel_syntax noprefix\n");

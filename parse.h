@@ -16,6 +16,7 @@ struct Function{
     Function* next;
     char* name;
     Node* node;
+    Node* params;
     LVar* lVars;
     int stackSize;
 };

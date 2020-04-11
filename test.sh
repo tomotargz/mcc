@@ -10,7 +10,7 @@ try() {
     input="$2"
 
     ./mcc "$input" > tmp.s
-    gcc -o tmp tmp.s tmp2.o
+    gcc -O0 -o tmp tmp.s tmp2.o
     ./tmp
     actual="$?"
 
@@ -22,8 +22,9 @@ try() {
     fi
 }
 
-try 1 "main(){return 1;}"
-try 2 "func(){return 1+1;}main(){return func();}"
+try 3 "add(a){r = a;return r;}main(){return add(3);}"
+try 21 "add(a,b,c,d,e,f){ret = a+b+c+d+e+f;return ret;}main(){return add(1,2,3,4,5,6);}"
+try 6 "func(){return 1+2+3;}main(){return func();}"
 try 1 "main(){a=1;return a;}"
 try 3 "main(){func1();}"
 try 21 "main(){return func2(1,2,3,4,5,6);}"
@@ -69,7 +70,6 @@ try 1 "main(){if(1==1){a=1;return a;}return 0;}"
 try 6 "main(){i=0;while(i<5){i=i+1;i=i+1;}return i;}"
 try 2 "main(){i=0;{i=1;i=2;}return i;}"
 try 7 "main(){{1+2;2+3;return 3+4;}}"
-
 
 
 echo OK

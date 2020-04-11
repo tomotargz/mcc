@@ -90,7 +90,6 @@ void generate(Node* node)
         return;
     } else if (node->kind == NODE_BLOCK) {
         for (int i = 0; node->statements[i]; ++i) {
-            info("i=%d", i);
             generate(node->statements[i]);
         }
         return;

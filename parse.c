@@ -3,7 +3,7 @@ Generative Rule
 
 program = function*
 
-function = identifier "(" ")" "{" statement* "}"
+function = identifier "(" identifier* ")" "{" statement* "}"
 
 statement = expr ";"
 | "{" statement* "}"
@@ -300,16 +300,26 @@ Function* function()
     Node* pos = &head;
     crr = crr->next;
 
-    expect('(');
-    expect(')');
-    expect('{');
+    Function* func = calloc(1, sizeof(Function));
+
     lvars = NULL;
+    expect('(');
+    Node dummyParam = {};
+    Node* tail = &dummyParam;
+    while (!consume(')')) {
+        tail->next = identifier();
+        tail = tail->next;
+        consume(',');
+    }
+    func->params = dummyParam.next;
+
+    tail->next = NULL;
+    expect('{');
     stackSize = 0;
     while (!consume('}')) {
         pos->next = statement();
         pos = pos->next;
     }
-    Function* func = calloc(1, sizeof(Function));
     func->name = name;
     func->node = head.next;
     func->lVars = lvars;

@@ -22,6 +22,7 @@ try() {
     fi
 }
 
+try 3 "main(){a=3;b=&a;return *b;}"
 try 3 "add(a){r = a;return r;}main(){return add(3);}"
 try 21 "add(a,b,c,d,e,f){ret = a+b+c+d+e+f;return ret;}main(){return add(1,2,3,4,5,6);}"
 try 6 "func(){return 1+2+3;}main(){return func();}"

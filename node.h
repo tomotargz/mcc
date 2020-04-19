@@ -20,6 +20,8 @@ typedef enum {
     NODE_BLOCK,
     NODE_RETURN,
     NODE_CALL,
+    NODE_ADDR,
+    NODE_DEREF,
 } NodeKind;
 
 typedef struct Node Node;

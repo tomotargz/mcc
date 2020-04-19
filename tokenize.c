@@ -60,7 +60,8 @@ Token* tokenize(char* source)
             || startsWith(pos, "}")
             || startsWith(pos, ";")
             || startsWith(pos, "=")
-            || startsWith(pos, ",")) {
+            || startsWith(pos, ",")
+            || startsWith(pos, "&")) {
             append(*pos);
             ++pos;
         } else if (isdigit(*pos)) {

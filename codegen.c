@@ -5,6 +5,7 @@
 
 static int tag = 0;
 
+// push the local variable's address to the stack
 void generate_lval(Node* node)
 {
     if (node->kind != NODE_LOCAL_VARIABLE) {
@@ -119,6 +120,15 @@ void generate(Node* node)
         printf("  call %s\n", node->name);
         printf("  add rsp, 8\n");
         printf(".Lend%d:\n", t);
+        printf("  push rax\n");
+        return;
+    }else if(node->kind == NODE_ADDR){
+        generate_lval(node->lhs);
+        return;
+    }else if(node->kind == NODE_DEREF){
+        generate(node->lhs);
+        printf("  pop rax\n");
+        printf("  mov rax, [rax]\n");
         printf("  push rax\n");
         return;
     }

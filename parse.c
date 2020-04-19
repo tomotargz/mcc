@@ -25,6 +25,8 @@ add = mul ("+" mul | "-" mul)*
 mul = unary ("*" unary | "/" unary)*
 
 unary = ("+" | "-")? primary
+| "*" identifier
+| "&" identifier
 
 primary = num
 | "(" expr ")"
@@ -155,6 +157,10 @@ Node* unary()
         return primary();
     } else if (consume('-')) {
         return new_node(NODE_SUBTRACTION, new_node_num(0), primary());
+    } else if (consume('&')) {
+        return new_node(NODE_ADDR, identifier(), NULL);
+    } else if (consume('*')) {
+        return new_node(NODE_DEREF, identifier(), NULL);
     }
     return primary();
 }

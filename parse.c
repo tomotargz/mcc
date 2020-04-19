@@ -3,7 +3,7 @@ Generative Rule
 
 program = function*
 
-function = "int" identifier "(" identifier* ")" "{" statement* "}"
+function = "int" identifier "(" ("int" identifier)* ")" "{" statement* "}"
 
 statement = expr ";"
 | "{" statement* "}"
@@ -314,6 +314,7 @@ Function* function()
     Node dummyParam = {};
     Node* tail = &dummyParam;
     while (!consume(')')) {
+        expect(TOKEN_INT);
         tail->next = identifier();
         tail = tail->next;
         consume(',');

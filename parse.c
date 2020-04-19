@@ -3,10 +3,10 @@ Generative Rule
 
 program = function*
 
-function = "int" identifier "(" ("int" identifier)* ")" "{" statement* "}"
+function = "int" identifier "(" ("int" lvarDecl)* ")" "{" statement* "}"
 
 statement = expr ";"
-| "int" identifier ";"
+| "int" lvarDecl ";"
 | "{" statement* "}"
 | "if" "(" expr ")" statement ("else" statement)?
 | "while" "(" expr ")" statement
@@ -80,31 +80,13 @@ int expect_number()
 
 int lvarOffset(char* str)
 {
-    if (!lvars) {
-        LVar* lvar = calloc(1, sizeof(LVar));
-        lvar->name = str;
-        lvar->offset = 8;
-        lvars = lvar;
-        stackSize = 8;
-        return 8;
-    }
-
-    LVar* crr = lvars;
-    for (;; crr = crr->next) {
-        if (strcmp(crr->name, str) == 0) {
-            return crr->offset;
-        }
-        if (!crr->next) {
-            break;
+    for (LVar* v = lvars; v; v = v->next) {
+        if (strcmp(v->name, str) == 0) {
+            return v->offset;
         }
     }
-    LVar* lvar = calloc(1, sizeof(LVar));
-    lvar->name = str;
-    lvar->offset = crr->offset + 8;
-    crr->next = lvar;
-    crr = lvar;
-    stackSize = lvar->offset;
-    return lvar->offset;
+    error("undefined variable");
+    return 0;
 }
 
 Node* identifier()
@@ -240,13 +222,43 @@ Node* expr()
     return assign();
 }
 
+Node* lvarDecl()
+{
+    if (!lvars) {
+        LVar* lvar = calloc(1, sizeof(LVar));
+        lvar->name = crr->str;
+        lvar->offset = 8;
+        lvar->next = NULL;
+        lvars = lvar;
+        stackSize = 8;
+    } else {
+        LVar* v = lvars;
+        for (;; v = v->next) {
+            if (strcmp(v->name, crr->str) == 0) {
+                crr = crr->next;
+                return new_node(NODE_NULL, NULL, NULL);
+            }
+            if (!v->next) {
+                break;
+            }
+        }
+        LVar* lvar = calloc(1, sizeof(LVar));
+        lvar->name = crr->str;
+        lvar->offset = v->offset + 8;
+        lvar->next = NULL;
+        v->next = lvar;
+        stackSize = lvar->offset;
+    }
+    crr = crr->next;
+    return new_node(NODE_NULL, NULL, NULL);
+}
+
 Node* statement()
 {
     Node* node = NULL;
     if (consume(TOKEN_INT)) {
-        identifier();
+        node = lvarDecl();
         expect(';');
-        node = new_node(NODE_NULL, NULL, NULL);
     } else if (consume(TOKEN_RETURN)) {
         node = new_node(NODE_RETURN, expr(), NULL);
         expect(';');
@@ -320,7 +332,7 @@ Function* function()
     Node* tail = &dummyParam;
     while (!consume(')')) {
         expect(TOKEN_INT);
-        tail->next = identifier();
+        tail->next = lvarDecl();
         tail = tail->next;
         consume(',');
     }

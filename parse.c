@@ -3,7 +3,7 @@ Generative Rule
 
 program = function*
 
-function = identifier "(" identifier* ")" "{" statement* "}"
+function = "int" identifier "(" identifier* ")" "{" statement* "}"
 
 statement = expr ";"
 | "{" statement* "}"
@@ -298,6 +298,7 @@ Node* statement()
 
 Function* function()
 {
+    expect(TOKEN_INT);
     if (crr->kind != TOKEN_IDENTIFIER) {
         error("invalid token");
     }

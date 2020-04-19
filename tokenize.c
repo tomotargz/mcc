@@ -82,6 +82,9 @@ Token* tokenize(char* source)
         } else if (startsWith(pos, "for") && !isAlphaDigitUnderbar(pos[3])) {
             append(TOKEN_FOR);
             pos += 3;
+        } else if (startsWith(pos, "int") && !isAlphaDigitUnderbar(pos[3])) {
+            append(TOKEN_INT);
+            pos += 3;
         } else if (isalpha(*pos) || *pos == '_') {
             char* end = pos + 1;
             int len = 1;

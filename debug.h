@@ -21,6 +21,8 @@ void printTokens(Token* tokens)
             info("while");
         } else if (crr->kind == TOKEN_EOF) {
             info("eof");
+        } else if (crr->kind == TOKEN_INT) {
+            info("int");
         } else {
             info("%c", crr->kind);
         }

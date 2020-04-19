@@ -18,7 +18,9 @@ void generate_lval(Node* node)
 
 void generate(Node* node)
 {
-    if (node->kind == NODE_NUMBER) {
+    if (node->kind == NODE_NULL) {
+        return;
+    } else if (node->kind == NODE_NUMBER) {
         printf("  push %d\n", node->val);
         return;
     } else if (node->kind == NODE_LOCAL_VARIABLE) {
@@ -122,10 +124,10 @@ void generate(Node* node)
         printf(".Lend%d:\n", t);
         printf("  push rax\n");
         return;
-    }else if(node->kind == NODE_ADDR){
+    } else if (node->kind == NODE_ADDR) {
         generate_lval(node->lhs);
         return;
-    }else if(node->kind == NODE_DEREF){
+    } else if (node->kind == NODE_DEREF) {
         generate(node->lhs);
         printf("  pop rax\n");
         printf("  mov rax, [rax]\n");

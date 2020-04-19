@@ -6,6 +6,7 @@ program = function*
 function = "int" identifier "(" ("int" identifier)* ")" "{" statement* "}"
 
 statement = expr ";"
+| "int" identifier ";"
 | "{" statement* "}"
 | "if" "(" expr ")" statement ("else" statement)?
 | "while" "(" expr ")" statement
@@ -242,7 +243,11 @@ Node* expr()
 Node* statement()
 {
     Node* node = NULL;
-    if (consume(TOKEN_RETURN)) {
+    if (consume(TOKEN_INT)) {
+        identifier();
+        expect(';');
+        node = new_node(NODE_NULL, NULL, NULL);
+    } else if (consume(TOKEN_RETURN)) {
         node = new_node(NODE_RETURN, expr(), NULL);
         expect(';');
     } else if (consume(TOKEN_IF)) {

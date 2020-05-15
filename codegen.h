@@ -2,7 +2,8 @@
 #define CODEGEN_H
 
 #include "node.h"
+#include "parse.h"
 
-void generate(Node* node);
+void generateFunctions(Function* functions);
 
 #endif

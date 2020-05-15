@@ -2,6 +2,7 @@
 
 #include "codegen.h"
 #include "error.h"
+#include "parse.h"
 
 static int tag = 0;
 
@@ -180,4 +181,48 @@ void generate(Node* node)
     }
 
     printf("  push rax\n");
+}
+
+void generateFunctions(Function* functions)
+{
+    printf(".intel_syntax noprefix\n");
+
+    for (Function* f = functions; f; f = f->next) {
+        printf(".global %s\n", f->name);
+        printf("%s:\n", f->name);
+
+        // prologue
+        printf("# prolugue\n");
+        printf("  push rbp\n");
+        printf("  mov rbp, rsp\n");
+
+        // copy params to stack
+        printf("# push params to stack\n");
+        Node* param = f->params;
+        static char* ARG_REG[] = {
+            "rdi", "rsi", "rdx", "rcx", "r8", "r9"
+        };
+        int i = 0;
+        for (; param; param = param->next, ++i) {
+            printf("  sub rsp, 8\n");
+            printf("  mov [rsp], %s\n", ARG_REG[i]);
+        }
+
+        // extend stack for local variable
+        printf("# extend stack for local variables\n");
+        printf("  sub rsp, %d\n", f->stackSize - i * 8);
+
+        // generate body
+        printf("# generate body\n");
+        for (Node* n = f->node; n; n = n->next) {
+            generate(n);
+        }
+
+        // epilogue
+        printf("# epilogue\n");
+        printf(".L.return.%s:\n", f->name);
+        printf("  mov rsp, rbp\n");
+        printf("  pop rbp\n");
+        printf("  ret\n");
+    }
 }

@@ -15,7 +15,7 @@
 int main(int argc, char** argv)
 {
     if (argc != 2) {
-        error("引数の個数が正しくありません");
+        error("error: require 2 args");
         return 1;
     }
 

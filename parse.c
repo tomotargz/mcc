@@ -46,7 +46,7 @@ primary = num
 #include "tokenize.h"
 
 static Token* crr = NULL;
-static LVar* lvars = NULL;
+static LocalVariable* lvars = NULL;
 static int stackSize = 0;
 
 Node* expr();
@@ -80,7 +80,7 @@ int expect_number()
 
 int lvarOffset(char* str)
 {
-    for (LVar* v = lvars; v; v = v->next) {
+    for (LocalVariable* v = lvars; v; v = v->next) {
         if (strcmp(v->name, str) == 0) {
             return v->offset;
         }
@@ -225,14 +225,14 @@ Node* expr()
 Node* lvarDecl()
 {
     if (!lvars) {
-        LVar* lvar = calloc(1, sizeof(LVar));
+        LocalVariable* lvar = calloc(1, sizeof(LocalVariable));
         lvar->name = crr->str;
         lvar->offset = 8;
         lvar->next = NULL;
         lvars = lvar;
         stackSize = 8;
     } else {
-        LVar* v = lvars;
+        LocalVariable* v = lvars;
         for (;; v = v->next) {
             if (strcmp(v->name, crr->str) == 0) {
                 crr = crr->next;
@@ -242,7 +242,7 @@ Node* lvarDecl()
                 break;
             }
         }
-        LVar* lvar = calloc(1, sizeof(LVar));
+        LocalVariable* lvar = calloc(1, sizeof(LocalVariable));
         lvar->name = crr->str;
         lvar->offset = v->offset + 8;
         lvar->next = NULL;

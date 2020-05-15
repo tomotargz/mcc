@@ -4,11 +4,11 @@
 #include "node.h"
 #include "tokenize.h"
 
-typedef struct LVar LVar;
-struct LVar {
+typedef struct LocalVariable LocalVariable;
+struct LocalVariable {
     char* name;
     int offset;
-    LVar* next;
+    LocalVariable* next;
 };
 
 typedef struct Function Function;
@@ -17,7 +17,7 @@ struct Function{
     char* name;
     Node* node;
     Node* params;
-    LVar* lVars;
+    LocalVariable* lVars;
     int stackSize;
 };
 

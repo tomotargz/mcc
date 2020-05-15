@@ -7,7 +7,7 @@
 static int tag = 0;
 
 // push the local variable's address to the stack
-void generate_lval(Node* node)
+void generateLocalVariable(Node* node)
 {
     if (node->kind != NODE_LOCAL_VARIABLE) {
         error("node is not local variable");
@@ -17,6 +17,7 @@ void generate_lval(Node* node)
     printf("  push rax\n");
 }
 
+// generate code that pushes the evaluated value to the top of the stack
 void generate(Node* node)
 {
     if (node->kind == NODE_NULL) {
@@ -25,13 +26,13 @@ void generate(Node* node)
         printf("  push %d\n", node->val);
         return;
     } else if (node->kind == NODE_LOCAL_VARIABLE) {
-        generate_lval(node);
+        generateLocalVariable(node);
         printf("  pop rax\n");
         printf("  mov rax, [rax]\n");
         printf("  push rax\n");
         return;
     } else if (node->kind == NODE_ASSIGNMENT) {
-        generate_lval(node->lhs);
+        generateLocalVariable(node->lhs);
         generate(node->rhs);
         printf("  pop rdi\n");
         printf("  pop rax\n");
@@ -126,7 +127,7 @@ void generate(Node* node)
         printf("  push rax\n");
         return;
     } else if (node->kind == NODE_ADDR) {
-        generate_lval(node->lhs);
+        generateLocalVariable(node->lhs);
         return;
     } else if (node->kind == NODE_DEREF) {
         generate(node->lhs);
@@ -183,46 +184,51 @@ void generate(Node* node)
     printf("  push rax\n");
 }
 
+void generateFunction(Function* function)
+{
+    printf(".global %s\n", function->name);
+    printf("%s:\n", function->name);
+
+    // prologue
+    printf("# prolugue\n");
+    printf("  push rbp\n");
+    printf("  mov rbp, rsp\n");
+
+    // copy params to stack
+    printf("# push params to stack\n");
+    Node* param = function->params;
+    static char* ARG_REG[] = {
+        "rdi", "rsi", "rdx", "rcx", "r8", "r9"
+    };
+    int i = 0;
+    for (; param; param = param->next, ++i) {
+        printf("  sub rsp, 8\n");
+        printf("  mov [rsp], %s\n", ARG_REG[i]);
+    }
+
+    // extend stack for local variable
+    printf("# extend stack for local variables\n");
+    printf("  sub rsp, %d\n", function->stackSize - i * 8);
+
+    // generate body
+    printf("# generate body\n");
+    for (Node* n = function->node; n; n = n->next) {
+        generate(n);
+    }
+
+    // epilogue
+    printf("# epilogue\n");
+    printf(".L.return.%s:\n", function->name);
+    printf("  mov rsp, rbp\n");
+    printf("  pop rbp\n");
+    printf("  ret\n");
+}
+
 void generateFunctions(Function* functions)
 {
     printf(".intel_syntax noprefix\n");
 
-    for (Function* f = functions; f; f = f->next) {
-        printf(".global %s\n", f->name);
-        printf("%s:\n", f->name);
-
-        // prologue
-        printf("# prolugue\n");
-        printf("  push rbp\n");
-        printf("  mov rbp, rsp\n");
-
-        // copy params to stack
-        printf("# push params to stack\n");
-        Node* param = f->params;
-        static char* ARG_REG[] = {
-            "rdi", "rsi", "rdx", "rcx", "r8", "r9"
-        };
-        int i = 0;
-        for (; param; param = param->next, ++i) {
-            printf("  sub rsp, 8\n");
-            printf("  mov [rsp], %s\n", ARG_REG[i]);
-        }
-
-        // extend stack for local variable
-        printf("# extend stack for local variables\n");
-        printf("  sub rsp, %d\n", f->stackSize - i * 8);
-
-        // generate body
-        printf("# generate body\n");
-        for (Node* n = f->node; n; n = n->next) {
-            generate(n);
-        }
-
-        // epilogue
-        printf("# epilogue\n");
-        printf(".L.return.%s:\n", f->name);
-        printf("  mov rsp, rbp\n");
-        printf("  pop rbp\n");
-        printf("  ret\n");
+    for (Function* function = functions; function; function = function->next) {
+        generateFunction(function);
     }
 }

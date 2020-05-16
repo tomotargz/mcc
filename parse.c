@@ -277,6 +277,13 @@ Node* lvarDecl()
     return newNode(NODE_NULL, NULL, NULL);
 }
 
+// stmt = "return" expr ";"
+//       | "if" "(" expr ")" stmt ("else" stmt)?
+//       | "while" "(" expr ")" stmt
+//       | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//       | "{" stmt* "}"
+//       | declaration
+//       | expr ";"
 Node* statement()
 {
     Node* node = NULL;

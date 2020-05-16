@@ -124,8 +124,7 @@ Node* identifier()
 // call = identifier "(" ")" | identifier "(" expr ("," expr)* ")"
 Node* call()
 {
-    Node* node = calloc(1, sizeof(Node));
-    node->kind = NODE_CALL;
+    Node* node = newNode(NODE_CALL, NULL, NULL);
     node->name = crr->str;
     crr = crr->next;
     expect('(');
@@ -294,8 +293,7 @@ Node* statement()
         node = newNode(NODE_RETURN, expr(), NULL);
         expect(';');
     } else if (consume(TOKEN_IF)) {
-        node = calloc(1, sizeof(Node));
-        node->kind = NODE_IF;
+        node = newNode(NODE_IF, NULL, NULL);
         expect('(');
         node->cond = expr();
         expect(')');
@@ -306,15 +304,13 @@ Node* statement()
             node->els = NULL;
         }
     } else if (consume(TOKEN_WHILE)) {
-        node = calloc(1, sizeof(Node));
-        node->kind = NODE_WHILE;
+        node = newNode(NODE_WHILE, NULL, NULL);
         expect('(');
         node->cond = expr();
         expect(')');
         node->body = statement();
     } else if (consume(TOKEN_FOR)) {
-        node = calloc(1, sizeof(Node));
-        node->kind = NODE_FOR;
+        node = newNode(NODE_FOR, NULL, NULL);
         expect('(');
         if (!consume(';')) {
             node->init = expr();
@@ -330,8 +326,7 @@ Node* statement()
         }
         node->body = statement();
     } else if (consume('{')) {
-        node = calloc(1, sizeof(Node));
-        node->kind = NODE_BLOCK;
+        node = newNode(NODE_BLOCK, NULL, NULL);
         int i = 0;
         for (; i < 100 && !consume('}'); ++i) {
             node->statements[i] = statement();

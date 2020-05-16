@@ -75,28 +75,32 @@ static int stackSize = 0;
 
 Node* expr();
 
-bool consume(int kind)
+Token* consume(char* str)
 {
-    if (crr->kind != kind) {
-        return false;
+    if (crr->kind != TOKEN_RESERVED
+        || strlen(crr->str) != strlen(str)
+        || strncmp(crr->str, str, strlen(crr->str))) {
+        return NULL;
     }
+    Token* result = crr;
     crr = crr->next;
-    return true;
+    return result;
 }
 
-void expect(int kind)
+void expect(char* str)
 {
-    if (crr->kind != kind) {
-        error("invalid token.");
+    if (crr->kind != TOKEN_RESERVED
+        || strlen(crr->str) != strlen(str)
+        || strncmp(crr->str, str, strlen(crr->str))) {
+        error("unexpected token");
     }
     crr = crr->next;
 }
 
-int expect_number()
+int expectNumber()
 {
     if (crr->kind != TOKEN_NUMBER)
-        // error_at(crr->str, "数ではありません");
-        error("数ではありません");
+        error("unexpected non number token");
     int val = crr->val;
     crr = crr->next;
     return val;
@@ -127,11 +131,11 @@ Node* call()
     Node* node = newNode(NODE_CALL, NULL, NULL);
     node->name = crr->str;
     crr = crr->next;
-    expect('(');
+    expect("(");
     int i = 0;
-    while (!consume(')')) {
+    while (!consume(")")) {
         node->args[i] = expr();
-        consume(',');
+        consume(",");
         ++i;
     }
     node->args[i] = NULL;
@@ -145,12 +149,12 @@ Node* call()
 Node* primary()
 {
     if (crr->kind == TOKEN_NUMBER) {
-        return newNodeNum(expect_number());
-    } else if (consume('(')) {
+        return newNodeNum(expectNumber());
+    } else if (consume("(")) {
         Node* node = expr();
-        expect(')');
+        expect(")");
         return node;
-    } else if (crr->next->kind == '(') {
+    } else if (!strncmp(crr->next->str, "(", 1)) {
         return call();
     } else {
         return identifier();
@@ -159,13 +163,13 @@ Node* primary()
 
 Node* unary()
 {
-    if (consume('+')) {
+    if (consume("+")) {
         return primary();
-    } else if (consume('-')) {
+    } else if (consume("-")) {
         return newNode(NODE_SUBTRACTION, newNodeNum(0), primary());
-    } else if (consume('&')) {
+    } else if (consume("&")) {
         return newNode(NODE_ADDR, identifier(), NULL);
-    } else if (consume('*')) {
+    } else if (consume("*")) {
         return newNode(NODE_DEREF, identifier(), NULL);
     }
     return primary();
@@ -175,9 +179,9 @@ Node* mul()
 {
     Node* node = unary();
     for (;;) {
-        if (consume('*')) {
+        if (consume("*")) {
             node = newNode(NODE_MULTIPLICATION, node, unary());
-        } else if (consume('/')) {
+        } else if (consume("/")) {
             node = newNode(NODE_DIVISION, node, unary());
         } else {
             return node;
@@ -189,9 +193,9 @@ Node* add()
 {
     Node* node = mul();
     for (;;) {
-        if (consume('+')) {
+        if (consume("+")) {
             node = newNode(NODE_ADDITION, node, mul());
-        } else if (consume('-')) {
+        } else if (consume("-")) {
             node = newNode(NODE_SUBTRACTION, node, mul());
         } else {
             return node;
@@ -203,13 +207,13 @@ Node* relational()
 {
     Node* node = add();
     for (;;) {
-        if (consume(TOKEN_LE)) {
+        if (consume("<=")) {
             node = newNode(NODE_LESS_OR_EQUAL, node, add());
-        } else if (consume('<')) {
+        } else if (consume("<")) {
             node = newNode(NODE_LESS_THAN, node, add());
-        } else if (consume(TOKEN_GE)) {
+        } else if (consume(">=")) {
             node = newNode(NODE_LESS_OR_EQUAL, add(), node);
-        } else if (consume('>')) {
+        } else if (consume(">")) {
             node = newNode(NODE_LESS_THAN, add(), node);
         } else {
             return node;
@@ -221,9 +225,9 @@ Node* equality()
 {
     Node* node = relational();
     for (;;) {
-        if (consume(TOKEN_EQ)) {
+        if (consume("==")) {
             node = newNode(NODE_EQUAL, node, relational());
-        } else if (consume(TOKEN_NE)) {
+        } else if (consume("!=")) {
             node = newNode(NODE_NOT_EQUAL, node, relational());
         } else {
             return node;
@@ -234,7 +238,7 @@ Node* equality()
 Node* assign()
 {
     Node* node = equality();
-    if (consume('=')) {
+    if (consume("=")) {
         node = newNode(NODE_ASSIGNMENT, node, assign());
     }
     return node;
@@ -286,55 +290,55 @@ Node* lvarDecl()
 Node* statement()
 {
     Node* node = NULL;
-    if (consume(TOKEN_INT)) {
+    if (consume("int")) {
         node = lvarDecl();
-        expect(';');
-    } else if (consume(TOKEN_RETURN)) {
+        expect(";");
+    } else if (consume("return")) {
         node = newNode(NODE_RETURN, expr(), NULL);
-        expect(';');
-    } else if (consume(TOKEN_IF)) {
+        expect(";");
+    } else if (consume("if")) {
         node = newNode(NODE_IF, NULL, NULL);
-        expect('(');
+        expect("(");
         node->cond = expr();
-        expect(')');
+        expect(")");
         node->then = statement();
-        if (consume(TOKEN_ELSE)) {
+        if (consume("else")) {
             node->els = statement();
         } else {
             node->els = NULL;
         }
-    } else if (consume(TOKEN_WHILE)) {
+    } else if (consume("while")) {
         node = newNode(NODE_WHILE, NULL, NULL);
-        expect('(');
+        expect("(");
         node->cond = expr();
-        expect(')');
+        expect(")");
         node->body = statement();
-    } else if (consume(TOKEN_FOR)) {
+    } else if (consume("for")) {
         node = newNode(NODE_FOR, NULL, NULL);
-        expect('(');
-        if (!consume(';')) {
+        expect("(");
+        if (!consume(";")) {
             node->init = expr();
-            expect(';');
+            expect(";");
         }
-        if (!consume(';')) {
+        if (!consume(";")) {
             node->cond = expr();
-            expect(';');
+            expect(";");
         }
-        if (!consume(')')) {
+        if (!consume(")")) {
             node->inc = expr();
-            expect(')');
+            expect(")");
         }
         node->body = statement();
-    } else if (consume('{')) {
+    } else if (consume("{")) {
         node = newNode(NODE_BLOCK, NULL, NULL);
         int i = 0;
-        for (; i < 100 && !consume('}'); ++i) {
+        for (; i < 100 && !consume("}"); ++i) {
             node->statements[i] = statement();
         }
         node->statements[i] = NULL;
     } else {
         node = expr();
-        expect(';');
+        expect(";");
     }
     return node;
 }
@@ -344,9 +348,10 @@ Type INT_TYPE = { TYPE_INT, NULL };
 // basetype = "int" "*"*
 Type* basetype()
 {
-    expect(TOKEN_INT);
+    expect("int");
+
     Type* type = &INT_TYPE;
-    while (consume('*')) {
+    while (consume("*")) {
         type = pointerTo(type);
     }
     return type;
@@ -376,7 +381,7 @@ Node* params()
     Node* tail = &head;
     tail->next = param();
     tail = tail->next;
-    while (consume(',')) {
+    while (consume(",")) {
         tail->next = param();
         tail = tail->next;
     }
@@ -394,16 +399,16 @@ Function* function()
         error("invalid token");
     }
     func->name = expectIdentifier();
-    expect('(');
-    if (!consume(')')) {
+    expect("(");
+    if (!consume(")")) {
         func->params = params();
-        expect(')');
+        expect(")");
     }
-    expect('{');
+    expect("{");
     Node head;
     head.next = NULL;
     Node* tail = &head;
-    while (!consume('}')) {
+    while (!consume("}")) {
         tail->next = statement();
         tail = tail->next;
     }

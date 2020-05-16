@@ -2,24 +2,15 @@
 #define TOKENIZE_H
 
 typedef enum {
-    TOKEN_EQ = 256,
-    TOKEN_NE,
-    TOKEN_LE,
-    TOKEN_GE,
+    TOKEN_RESERVED,
     TOKEN_IDENTIFIER,
     TOKEN_NUMBER,
-    TOKEN_RETURN,
-    TOKEN_IF,
-    TOKEN_ELSE,
-    TOKEN_WHILE,
-    TOKEN_FOR,
-    TOKEN_EOF,
-    TOKEN_INT,
+    TOKEN_EOF
 } TokenKind;
 
 typedef struct Token Token;
 struct Token {
-    int kind;
+    TokenKind kind;
     char* str;
     int val;
     Token* next;

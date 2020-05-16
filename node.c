@@ -2,7 +2,7 @@
 
 #include "node.h"
 
-Node* new_node(NodeKind kind, Node* lhs, Node* rhs)
+Node* newNode(NodeKind kind, Node* lhs, Node* rhs)
 {
     Node* node = calloc(1, sizeof(Node));
     node->kind = kind;
@@ -11,7 +11,7 @@ Node* new_node(NodeKind kind, Node* lhs, Node* rhs)
     return node;
 }
 
-Node* new_node_num(int val)
+Node* newNodeNum(int val)
 {
     Node* node = calloc(1, sizeof(Node));
     node->kind = NODE_NUMBER;
@@ -19,7 +19,7 @@ Node* new_node_num(int val)
     return node;
 }
 
-Node* new_node_local_variable(int offset)
+Node* newNodeLocalVariable(int offset)
 {
     Node* node = calloc(1, sizeof(Node));
     node->kind = NODE_LOCAL_VARIABLE;

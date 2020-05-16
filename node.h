@@ -54,8 +54,8 @@ struct Node {
     Node* args[10];
 };
 
-Node* new_node(NodeKind kind, Node* lhs, Node* rhs);
-Node* new_node_num(int val);
-Node* new_node_local_variable(int offset);
+Node* newNode(NodeKind kind, Node* lhs, Node* rhs);
+Node* newNodeNum(int val);
+Node* newNodeLocalVariable(int offset);
 
 #endif

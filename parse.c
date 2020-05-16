@@ -116,7 +116,7 @@ int lvarOffset(char* str)
 Node* identifier()
 {
     int offset = lvarOffset(crr->str);
-    Node* node = new_node_local_variable(offset);
+    Node* node = newNodeLocalVariable(offset);
     crr = crr->next;
     return node;
 }
@@ -146,7 +146,7 @@ Node* call()
 Node* primary()
 {
     if (crr->kind == TOKEN_NUMBER) {
-        return new_node_num(expect_number());
+        return newNodeNum(expect_number());
     } else if (consume('(')) {
         Node* node = expr();
         expect(')');
@@ -163,11 +163,11 @@ Node* unary()
     if (consume('+')) {
         return primary();
     } else if (consume('-')) {
-        return new_node(NODE_SUBTRACTION, new_node_num(0), primary());
+        return newNode(NODE_SUBTRACTION, newNodeNum(0), primary());
     } else if (consume('&')) {
-        return new_node(NODE_ADDR, identifier(), NULL);
+        return newNode(NODE_ADDR, identifier(), NULL);
     } else if (consume('*')) {
-        return new_node(NODE_DEREF, identifier(), NULL);
+        return newNode(NODE_DEREF, identifier(), NULL);
     }
     return primary();
 }
@@ -177,9 +177,9 @@ Node* mul()
     Node* node = unary();
     for (;;) {
         if (consume('*')) {
-            node = new_node(NODE_MULTIPLICATION, node, unary());
+            node = newNode(NODE_MULTIPLICATION, node, unary());
         } else if (consume('/')) {
-            node = new_node(NODE_DIVISION, node, unary());
+            node = newNode(NODE_DIVISION, node, unary());
         } else {
             return node;
         }
@@ -191,9 +191,9 @@ Node* add()
     Node* node = mul();
     for (;;) {
         if (consume('+')) {
-            node = new_node(NODE_ADDITION, node, mul());
+            node = newNode(NODE_ADDITION, node, mul());
         } else if (consume('-')) {
-            node = new_node(NODE_SUBTRACTION, node, mul());
+            node = newNode(NODE_SUBTRACTION, node, mul());
         } else {
             return node;
         }
@@ -205,13 +205,13 @@ Node* relational()
     Node* node = add();
     for (;;) {
         if (consume(TOKEN_LE)) {
-            node = new_node(NODE_LESS_OR_EQUAL, node, add());
+            node = newNode(NODE_LESS_OR_EQUAL, node, add());
         } else if (consume('<')) {
-            node = new_node(NODE_LESS_THAN, node, add());
+            node = newNode(NODE_LESS_THAN, node, add());
         } else if (consume(TOKEN_GE)) {
-            node = new_node(NODE_LESS_OR_EQUAL, add(), node);
+            node = newNode(NODE_LESS_OR_EQUAL, add(), node);
         } else if (consume('>')) {
-            node = new_node(NODE_LESS_THAN, add(), node);
+            node = newNode(NODE_LESS_THAN, add(), node);
         } else {
             return node;
         }
@@ -223,9 +223,9 @@ Node* equality()
     Node* node = relational();
     for (;;) {
         if (consume(TOKEN_EQ)) {
-            node = new_node(NODE_EQUAL, node, relational());
+            node = newNode(NODE_EQUAL, node, relational());
         } else if (consume(TOKEN_NE)) {
-            node = new_node(NODE_NOT_EQUAL, node, relational());
+            node = newNode(NODE_NOT_EQUAL, node, relational());
         } else {
             return node;
         }
@@ -236,7 +236,7 @@ Node* assign()
 {
     Node* node = equality();
     if (consume('=')) {
-        node = new_node(NODE_ASSIGNMENT, node, assign());
+        node = newNode(NODE_ASSIGNMENT, node, assign());
     }
     return node;
 }
@@ -260,7 +260,7 @@ Node* lvarDecl()
         for (;; v = v->next) {
             if (strcmp(v->name, crr->str) == 0) {
                 crr = crr->next;
-                return new_node(NODE_NULL, NULL, NULL);
+                return newNode(NODE_NULL, NULL, NULL);
             }
             if (!v->next) {
                 break;
@@ -274,7 +274,7 @@ Node* lvarDecl()
         stackSize = lvar->offset;
     }
     crr = crr->next;
-    return new_node(NODE_NULL, NULL, NULL);
+    return newNode(NODE_NULL, NULL, NULL);
 }
 
 Node* statement()
@@ -284,7 +284,7 @@ Node* statement()
         node = lvarDecl();
         expect(';');
     } else if (consume(TOKEN_RETURN)) {
-        node = new_node(NODE_RETURN, expr(), NULL);
+        node = newNode(NODE_RETURN, expr(), NULL);
         expect(';');
     } else if (consume(TOKEN_IF)) {
         node = calloc(1, sizeof(Node));

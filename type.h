@@ -2,13 +2,15 @@
 #define TYPE_H
 
 typedef enum TypeKind {
-    INT,
-    PTR
+    TYPE_INT,
+    TYPE_POINTER
 } TypeKind;
 
 typedef struct Type {
     TypeKind type;
     struct Type* pointTo;
 } Type;
+
+Type* pointerTo(Type* type);
 
 #endif

@@ -1,3 +1,27 @@
+// program = function*
+// function = basetype ident "(" params? ")" "{" stmt* "}"
+// basetype = "int" "*"*
+// params   = param ("," param)*
+// param    = basetype ident
+// stmt = "return" expr ";"
+//       | "if" "(" expr ")" stmt ("else" stmt)?
+//       | "while" "(" expr ")" stmt
+//       | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//       | "{" stmt* "}"
+//       | declaration
+//       | expr ";"
+// expr = assign
+// assign = equality ("=" assign)?
+// equality = relational ("==" relational | "!=" relational)*
+// relational = add ("<" add | "<=" add | ">" add | ">=" add)*
+// add = mul ("+" mul | "-" mul)*
+// mul = unary ("*" unary | "/" unary)*
+// unary = ("+" | "-" | "*" | "&")? unary
+//       | primary
+// primary = "(" expr ")" | ident func-args? | num
+// func-args = "(" (assign ("," assign)*)? ")"
+// declaration = basetype ident ("=" expr) ";"
+
 /*
 Generative Rule
 
@@ -46,7 +70,7 @@ primary = num
 #include "tokenize.h"
 
 static Token* crr = NULL;
-static LocalVariable* lvars = NULL;
+static LocalVariable* localVariables = NULL;
 static int stackSize = 0;
 
 Node* expr();
@@ -80,7 +104,7 @@ int expect_number()
 
 int lvarOffset(char* str)
 {
-    for (LocalVariable* v = lvars; v; v = v->next) {
+    for (LocalVariable* v = localVariables; v; v = v->next) {
         if (strcmp(v->name, str) == 0) {
             return v->offset;
         }
@@ -224,15 +248,15 @@ Node* expr()
 
 Node* lvarDecl()
 {
-    if (!lvars) {
+    if (!localVariables) {
         LocalVariable* lvar = calloc(1, sizeof(LocalVariable));
         lvar->name = crr->str;
         lvar->offset = 8;
         lvar->next = NULL;
-        lvars = lvar;
+        localVariables = lvar;
         stackSize = 8;
     } else {
-        LocalVariable* v = lvars;
+        LocalVariable* v = localVariables;
         for (;; v = v->next) {
             if (strcmp(v->name, crr->str) == 0) {
                 crr = crr->next;
@@ -313,52 +337,88 @@ Node* statement()
     return node;
 }
 
-Function* function()
+Type INT_TYPE = { TYPE_INT, NULL };
+
+// basetype = "int" "*"*
+Type* basetype()
 {
     expect(TOKEN_INT);
+    Type* type = &INT_TYPE;
+    while (consume('*')) {
+        type = pointerTo(type);
+    }
+    return type;
+}
+
+char* expectIdentifier()
+{
     if (crr->kind != TOKEN_IDENTIFIER) {
         error("invalid token");
     }
     char* name = crr->str;
-    Node head = {};
-    Node* pos = &head;
     crr = crr->next;
+    return name;
+}
 
-    Function* func = calloc(1, sizeof(Function));
+// param    = basetype ident
+Node* param()
+{
+    Type* type = basetype();
+    return lvarDecl();
+}
 
-    lvars = NULL;
-    expect('(');
-    Node dummyParam = {};
-    Node* tail = &dummyParam;
-    while (!consume(')')) {
-        expect(TOKEN_INT);
-        tail->next = lvarDecl();
+// params   = param ("," param)*
+Node* params()
+{
+    Node head = {};
+    Node* tail = &head;
+    tail->next = param();
+    tail = tail->next;
+    while (consume(',')) {
+        tail->next = param();
         tail = tail->next;
-        consume(',');
     }
-    func->params = dummyParam.next;
+    return head.next;
+}
 
-    tail->next = NULL;
-    expect('{');
+// function = basetype ident "(" params? ")" "{" stmt* "}"
+Function* function()
+{
+    localVariables = NULL;
     stackSize = 0;
-    while (!consume('}')) {
-        pos->next = statement();
-        pos = pos->next;
+    Function* func = calloc(1, sizeof(Function));
+    basetype();
+    if (crr->kind != TOKEN_IDENTIFIER) {
+        error("invalid token");
     }
-    func->name = name;
+    func->name = expectIdentifier();
+    expect('(');
+    if (!consume(')')) {
+        func->params = params();
+        expect(')');
+    }
+    expect('{');
+    Node head;
+    head.next = NULL;
+    Node* tail = &head;
+    while (!consume('}')) {
+        tail->next = statement();
+        tail = tail->next;
+    }
     func->node = head.next;
-    func->lVars = lvars;
+    func->localVariables = localVariables;
     func->stackSize = stackSize;
     return func;
 }
 
+// program = function*
 Function* program()
 {
     Function head = {};
-    Function* pos = &head;
+    Function* tail = &head;
     while (crr->kind != TOKEN_EOF) {
-        pos->next = function();
-        pos = pos->next;
+        tail->next = function();
+        tail = tail->next;
     }
     return head.next;
 }

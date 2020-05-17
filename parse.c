@@ -259,7 +259,7 @@ Node* expr()
     return assign();
 }
 
-Node* declarateLocalVariable()
+Node* declarateLocalVariable(Type* type)
 {
     LocalVariable* prev = &localVariablesHead;
     for (LocalVariable* curr = localVariablesHead.next; curr; curr = curr->next, prev = prev->next) {
@@ -271,6 +271,7 @@ Node* declarateLocalVariable()
     newLocalVariable->name = crr->str;
     newLocalVariable->offset = prev->offset + 8;
     newLocalVariable->next = NULL;
+    newLocalVariable->type = type;
     prev->next = newLocalVariable;
     stackSize = newLocalVariable->offset;
     crr = crr->next;
@@ -281,7 +282,7 @@ Node* declarateLocalVariable()
 Node* declaration()
 {
     Type* type = basetype();
-    Node* node = declarateLocalVariable();
+    Node* node = declarateLocalVariable(type);
     expect(";");
     return node;
 }
@@ -376,7 +377,7 @@ char* expectIdentifier()
 Node* param()
 {
     Type* type = basetype();
-    return declarateLocalVariable();
+    return declarateLocalVariable(type);
 }
 
 // params   = param ("," param)*

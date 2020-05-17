@@ -8,11 +8,12 @@ typedef struct LocalVariable LocalVariable;
 struct LocalVariable {
     char* name;
     int offset;
+    Type* type;
     LocalVariable* next;
 };
 
 typedef struct Function Function;
-struct Function{
+struct Function {
     Function* next;
     char* name;
     Node* node;

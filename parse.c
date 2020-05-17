@@ -127,6 +127,16 @@ int lvarOffset(char* str)
     return 0;
 }
 
+Token* consumeIdentifier()
+{
+    if (crr->kind == TOKEN_IDENTIFIER) {
+        Token* identifier = crr;
+        crr = crr->next;
+        return identifier;
+    }
+    return NULL;
+}
+
 Node* identifier()
 {
     int offset = lvarOffset(crr->str);
@@ -135,56 +145,70 @@ Node* identifier()
     return node;
 }
 
-// call = identifier "(" ")" | identifier "(" expr ("," expr)* ")"
-Node* call()
+void functionArguments(Node* function)
 {
-    Node* node = newNode(NODE_CALL, NULL, NULL);
-    node->name = crr->str;
-    crr = crr->next;
-    expect("(");
     int i = 0;
     while (!consume(")")) {
-        node->args[i] = expr();
+        function->args[i] = expr();
         consume(",");
         ++i;
     }
-    node->args[i] = NULL;
-    return node;
+    function->args[i] = NULL;
 }
 
-// primary = num
-// | "(" expr ")"
-// | identifier
-// | call
+// // primary = num
+// // | "(" expr ")"
+// // | identifier
+// // | call
+// primary = "(" expr ")" | ident func-args? | num
 Node* primary()
 {
     if (crr->kind == TOKEN_NUMBER) {
         return newNodeNum(expectNumber());
-    } else if (consume("(")) {
+    }
+
+    if (consume("(")) {
         Node* node = expr();
         expect(")");
         return node;
-    } else if (!strncmp(crr->next->str, "(", 1)) {
-        return call();
-    } else {
-        return identifier();
     }
+
+    Token* identifier = consumeIdentifier();
+    if (identifier) {
+        // Function call
+        if (consume("(")) {
+            Node* node = newNode(NODE_CALL, NULL, NULL);
+            node->name = identifier->str;
+            functionArguments(node);
+            return node;
+        }
+        // Variable
+        int offset = lvarOffset(identifier->str);
+        Node* node = newNodeLocalVariable(offset);
+        return node;
+    }
+
+    error("invalid token.");
+    return NULL;
 }
 
+// unary = ("+" | "-" | "*" | "&")? unary
+//       | primary
 Node* unary()
 {
     if (consume("+")) {
-        return primary();
+        return unary();
     } else if (consume("-")) {
-        return newNode(NODE_SUBTRACTION, newNodeNum(0), primary());
+        return newNode(NODE_SUBTRACTION, newNodeNum(0), unary());
     } else if (consume("&")) {
-        return newNode(NODE_ADDR, identifier(), NULL);
+        return newNode(NODE_ADDR, unary(), NULL);
     } else if (consume("*")) {
-        return newNode(NODE_DEREF, identifier(), NULL);
+        return newNode(NODE_DEREF, unary(), NULL);
     }
     return primary();
 }
 
+// mul = unary ("*" unary | "/" unary)*
 Node* mul()
 {
     Node* node = unary();
@@ -199,6 +223,7 @@ Node* mul()
     }
 }
 
+// add = mul ("+" mul | "-" mul)*
 Node* add()
 {
     Node* node = mul();
@@ -213,6 +238,7 @@ Node* add()
     }
 }
 
+// relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 Node* relational()
 {
     Node* node = add();
@@ -231,6 +257,7 @@ Node* relational()
     }
 }
 
+// equality = relational ("==" relational | "!=" relational)*
 Node* equality()
 {
     Node* node = relational();
@@ -245,6 +272,7 @@ Node* equality()
     }
 }
 
+// assign = equality ("=" assign)?
 Node* assign()
 {
     Node* node = equality();
@@ -254,6 +282,7 @@ Node* assign()
     return node;
 }
 
+// expr = assign
 Node* expr()
 {
     return assign();

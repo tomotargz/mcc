@@ -280,6 +280,13 @@ Node* lvarDecl()
     return newNode(NODE_NULL, NULL, NULL);
 }
 
+Node* declaration()
+{
+    Node* node = lvarDecl();
+    expect(";");
+    return node;
+}
+
 // stmt = "return" expr ";"
 //       | "if" "(" expr ")" stmt ("else" stmt)?
 //       | "while" "(" expr ")" stmt
@@ -291,8 +298,7 @@ Node* statement()
 {
     Node* node = NULL;
     if (consume("int")) {
-        node = lvarDecl();
-        expect(";");
+        node = declaration();
     } else if (consume("return")) {
         node = newNode(NODE_RETURN, expr(), NULL);
         expect(";");

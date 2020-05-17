@@ -249,7 +249,7 @@ Node* expr()
     return assign();
 }
 
-Node* lvarDecl()
+Node* localVariableDeclaration()
 {
     if (!localVariables) {
         LocalVariable* lvar = calloc(1, sizeof(LocalVariable));
@@ -282,7 +282,7 @@ Node* lvarDecl()
 
 Node* declaration()
 {
-    Node* node = lvarDecl();
+    Node* node = localVariableDeclaration();
     expect(";");
     return node;
 }
@@ -377,7 +377,7 @@ char* expectIdentifier()
 Node* param()
 {
     Type* type = basetype();
-    return lvarDecl();
+    return localVariableDeclaration();
 }
 
 // params   = param ("," param)*

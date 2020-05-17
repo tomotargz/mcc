@@ -22,43 +22,6 @@
 // func-args = "(" (assign ("," assign)*)? ")"
 // declaration = basetype ident ("=" expr) ";"
 
-/*
-Generative Rule
-
-program = function*
-
-function = "int" identifier "(" ("int" lvarDecl)* ")" "{" statement* "}"
-
-statement = expr ";"
-| "int" lvarDecl ";"
-| "{" statement* "}"
-| "if" "(" expr ")" statement ("else" statement)?
-| "while" "(" expr ")" statement
-| "for" "(" expr? ";" expr? ";" expr? ")" statement
-| return expr ";"
-
-expr = assign
-
-assign = equality ("=" assign)?
-
-equality = relational ("==" relational | "!=" relational)*
-
-relational = add ("<" add | "<=" add | ">" add | "=>" add)*
-
-add = mul ("+" mul | "-" mul)*
-
-mul = unary ("*" unary | "/" unary)*
-
-unary = ("+" | "-")? primary
-| "*" identifier
-| "&" identifier
-
-primary = num
-| "(" expr ")"
-| identifier
-| identifier "(" ")"
-| identifier "(" expr ("," expr)* ")"
-*/
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdlib.h>

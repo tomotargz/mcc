@@ -6,15 +6,24 @@
 
 static int tag = 0;
 
+static void generate(Node* node);
+
 // push the local variable's address to the stack
-void generateLocalVariable(Node* node)
+void generateAddress(Node* node)
 {
-    if (node->kind != NODE_LOCAL_VARIABLE) {
-        error("node is not local variable");
+    if (node->kind == NODE_LOCAL_VARIABLE) {
+        printf("  mov rax, rbp\n");
+        printf("  sub rax, %d\n", node->offset);
+        printf("  push rax\n");
+        return;
     }
-    printf("  mov rax, rbp\n");
-    printf("  sub rax, %d\n", node->offset);
-    printf("  push rax\n");
+
+    if (node->kind == NODE_DEREF) {
+        generate(node->lhs);
+        return;
+    }
+
+    error("invalid node");
 }
 
 // generate code that pushes the evaluated value to the top of the stack
@@ -26,13 +35,13 @@ void generate(Node* node)
         printf("  push %d\n", node->val);
         return;
     } else if (node->kind == NODE_LOCAL_VARIABLE) {
-        generateLocalVariable(node);
+        generateAddress(node);
         printf("  pop rax\n");
         printf("  mov rax, [rax]\n");
         printf("  push rax\n");
         return;
     } else if (node->kind == NODE_ASSIGNMENT) {
-        generateLocalVariable(node->lhs);
+        generateAddress(node->lhs);
         generate(node->rhs);
         printf("  pop rdi\n");
         printf("  pop rax\n");
@@ -127,7 +136,7 @@ void generate(Node* node)
         printf("  push rax\n");
         return;
     } else if (node->kind == NODE_ADDR) {
-        generateLocalVariable(node->lhs);
+        generateAddress(node->lhs);
         return;
     } else if (node->kind == NODE_DEREF) {
         generate(node->lhs);

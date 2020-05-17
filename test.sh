@@ -22,11 +22,7 @@ try() {
     fi
 }
 
-# try 1 "int main(){int* a;*a=1;return 1;}"
-# try 3 "int main(){int* a;*a=0;return 3;}"
-# try 3 "int main(int a;int* b;b = &a;*b = 3;return a;)"
-# try 3 "int main(){int a;int b;a=3;b=&a;return *b;}"
-
+try 3 "int main(){int a;int* b;b = &a;*b = 3;return a;}"
 try 3 "int add(int a){int r;r = a;return r;}int main(){return add(3);}"
 try 21 "int add(int a,int b,int c,int d,int e,int f){int ret;ret = a+b+c+d+e+f;return ret;}int main(){return add(1,2,3,4,5,6);}"
 try 6 "int func(){return 1+2+3;}int main(){return func();}"

@@ -70,10 +70,13 @@ primary = num
 #include "tokenize.h"
 
 static Token* crr = NULL;
-static LocalVariable* localVariables = NULL;
+
+static LocalVariable localVariablesHead = { "head", 0, NULL };
+static LocalVariable* localVariablesTail = &localVariablesHead;
 static int stackSize = 0;
 
 Node* expr();
+Type* basetype();
 
 Token* consume(char* str)
 {
@@ -106,9 +109,16 @@ int expectNumber()
     return val;
 }
 
+bool peek(char* str)
+{
+    return crr->kind == TOKEN_RESERVED
+        && strlen(crr->str) == strlen(str)
+        && strncmp(crr->str, str, strlen(crr->str)) == 0;
+}
+
 int lvarOffset(char* str)
 {
-    for (LocalVariable* v = localVariables; v; v = v->next) {
+    for (LocalVariable* v = localVariablesHead.next; v; v = v->next) {
         if (strcmp(v->name, str) == 0) {
             return v->offset;
         }
@@ -249,40 +259,29 @@ Node* expr()
     return assign();
 }
 
-Node* localVariableDeclaration()
+Node* declarateLocalVariable()
 {
-    if (!localVariables) {
-        LocalVariable* lvar = calloc(1, sizeof(LocalVariable));
-        lvar->name = crr->str;
-        lvar->offset = 8;
-        lvar->next = NULL;
-        localVariables = lvar;
-        stackSize = 8;
-    } else {
-        LocalVariable* v = localVariables;
-        for (;; v = v->next) {
-            if (strcmp(v->name, crr->str) == 0) {
-                crr = crr->next;
-                return newNode(NODE_NULL, NULL, NULL);
-            }
-            if (!v->next) {
-                break;
-            }
+    LocalVariable* prev = &localVariablesHead;
+    for (LocalVariable* curr = localVariablesHead.next; curr; curr = curr->next, prev = prev->next) {
+        if (strcmp(curr->name, crr->str) == 0) {
+            error("duplicated declaration");
         }
-        LocalVariable* lvar = calloc(1, sizeof(LocalVariable));
-        lvar->name = crr->str;
-        lvar->offset = v->offset + 8;
-        lvar->next = NULL;
-        v->next = lvar;
-        stackSize = lvar->offset;
     }
+    LocalVariable* newLocalVariable = calloc(1, sizeof(LocalVariable));
+    newLocalVariable->name = crr->str;
+    newLocalVariable->offset = prev->offset + 8;
+    newLocalVariable->next = NULL;
+    prev->next = newLocalVariable;
+    stackSize = newLocalVariable->offset;
     crr = crr->next;
     return newNode(NODE_NULL, NULL, NULL);
 }
 
+// declaration = basetype ident ";"
 Node* declaration()
 {
-    Node* node = localVariableDeclaration();
+    Type* type = basetype();
+    Node* node = declarateLocalVariable();
     expect(";");
     return node;
 }
@@ -297,7 +296,7 @@ Node* declaration()
 Node* statement()
 {
     Node* node = NULL;
-    if (consume("int")) {
+    if (peek("int")) {
         node = declaration();
     } else if (consume("return")) {
         node = newNode(NODE_RETURN, expr(), NULL);
@@ -377,7 +376,7 @@ char* expectIdentifier()
 Node* param()
 {
     Type* type = basetype();
-    return localVariableDeclaration();
+    return declarateLocalVariable();
 }
 
 // params   = param ("," param)*
@@ -397,7 +396,7 @@ Node* params()
 // function = basetype ident "(" params? ")" "{" stmt* "}"
 Function* function()
 {
-    localVariables = NULL;
+    localVariablesHead.next = NULL;
     stackSize = 0;
     Function* func = calloc(1, sizeof(Function));
     basetype();
@@ -419,7 +418,7 @@ Function* function()
         tail = tail->next;
     }
     func->node = head.next;
-    func->localVariables = localVariables;
+    func->localVariables = localVariablesHead.next;
     func->stackSize = stackSize;
     return func;
 }

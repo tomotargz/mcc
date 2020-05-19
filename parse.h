@@ -1,16 +1,10 @@
 #ifndef PARSE_H
 #define PARSE_H
 
+#include "type.h"
+#include "localVariable.h"
 #include "node.h"
 #include "tokenize.h"
-
-typedef struct LocalVariable LocalVariable;
-struct LocalVariable {
-    char* name;
-    int offset;
-    Type* type;
-    LocalVariable* next;
-};
 
 typedef struct Function Function;
 struct Function {

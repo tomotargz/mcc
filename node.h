@@ -1,11 +1,14 @@
 #ifndef NODE_H
 #define NODE_H
 
+#include "localVariable.h"
 #include "type.h"
 
 typedef enum {
     NODE_ADDITION,
     NODE_SUBTRACTION,
+    NODE_POINTER_ADDITION,
+    NODE_POINTER_SUBTRACTION,
     NODE_MULTIPLICATION,
     NODE_DIVISION,
     NODE_EQUAL,
@@ -34,7 +37,7 @@ struct Node {
     Node* lhs;
     Node* rhs;
     int val;
-    int offset;
+    LocalVariable* localVariable;
     Type* type;
 
     // if(cond)then;else els;
@@ -56,6 +59,7 @@ struct Node {
 
 Node* newNode(NodeKind kind, Node* lhs, Node* rhs);
 Node* newNodeNum(int val);
-Node* newNodeLocalVariable(int offset);
+Node* newNodeLocalVariable(LocalVariable* localVariable);
+void addType(Node* tree);
 
 #endif

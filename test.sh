@@ -72,5 +72,4 @@ try 6 "int main(){int i;i=0;while(i<5){i=i+1;i=i+1;}return i;}"
 try 2 "int main(){int i;i=0;{i=1;i=2;}return i;}"
 try 7 "int main(){{1+2;2+3;return 3+4;}}"
 
-
 echo OK

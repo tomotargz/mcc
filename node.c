@@ -1,6 +1,9 @@
 #include <stdlib.h>
 
+#include "error.h"
 #include "node.h"
+#include "parse.h"
+#include "type.h"
 
 Node* newNode(NodeKind kind, Node* lhs, Node* rhs)
 {
@@ -19,10 +22,71 @@ Node* newNodeNum(int val)
     return node;
 }
 
-Node* newNodeLocalVariable(int offset)
+Node* newNodeLocalVariable(LocalVariable* localVariable)
 {
     Node* node = calloc(1, sizeof(Node));
     node->kind = NODE_LOCAL_VARIABLE;
-    node->offset = offset;
+    node->localVariable = localVariable;
     return node;
+}
+
+void addType(Node* tree)
+{
+    if (!tree || tree->type) {
+        return;
+    }
+
+    addType(tree->next);
+    addType(tree->lhs);
+    addType(tree->rhs);
+    addType(tree->cond);
+    addType(tree->then);
+    addType(tree->els);
+    addType(tree->body);
+    addType(tree->init);
+    addType(tree->inc);
+
+    for (int i = 0; i < 100 && tree->statements[i]; ++i) {
+        addType(tree->statements[i]);
+    }
+
+    for (int i = 0; i < 10 && tree->args[i]; ++i) {
+        addType(tree->args[i]);
+    }
+
+    static Type intType = { TYPE_INT, NULL };
+    static Type pointerType = { TYPE_INT, NULL };
+    static Type noType = { TYPE_NO, NULL };
+    switch (tree->kind) {
+    case NODE_ADDITION:
+    case NODE_SUBTRACTION:
+    case NODE_MULTIPLICATION:
+    case NODE_DIVISION:
+    case NODE_EQUAL:
+    case NODE_NOT_EQUAL:
+    case NODE_LESS_THAN:
+    case NODE_LESS_OR_EQUAL:
+    case NODE_NUMBER:
+        tree->type = &intType;
+        return;
+    case NODE_POINTER_ADDITION:
+    case NODE_POINTER_SUBTRACTION:
+    case NODE_ASSIGNMENT:
+        tree->type = tree->lhs->type;
+        return;
+    case NODE_LOCAL_VARIABLE:
+        tree->type = tree->localVariable->type;
+        return;
+    case NODE_ADDR:
+        tree->type = calloc(1, sizeof(Type));
+        tree->type->type = TYPE_POINTER;
+        tree->type->pointTo = tree->lhs->type;
+        return;
+    case NODE_DEREF:
+        tree->type = tree->lhs->type->pointTo;
+        return;
+    default:
+        tree->type = &noType;
+        return;
+    }
 }

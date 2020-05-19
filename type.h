@@ -3,7 +3,8 @@
 
 typedef enum TypeKind {
     TYPE_INT,
-    TYPE_POINTER
+    TYPE_POINTER,
+    TYPE_NO
 } TypeKind;
 
 typedef struct Type {

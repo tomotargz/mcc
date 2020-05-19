@@ -31,6 +31,7 @@
 #include "node.h"
 #include "parse.h"
 #include "tokenize.h"
+#include "type.h"
 
 static Token* crr = NULL;
 
@@ -79,15 +80,15 @@ bool peek(char* str)
         && strncmp(crr->str, str, strlen(crr->str)) == 0;
 }
 
-int lvarOffset(char* str)
+LocalVariable* localVariable(char* str)
 {
     for (LocalVariable* v = localVariablesHead.next; v; v = v->next) {
-        if (strcmp(v->name, str) == 0) {
-            return v->offset;
+        if (strncmp(v->name, str, strlen(str)) == 0) {
+            return v;
         }
     }
     error("undefined variable");
-    return 0;
+    return NULL;
 }
 
 Token* consumeIdentifier()
@@ -102,8 +103,7 @@ Token* consumeIdentifier()
 
 Node* identifier()
 {
-    int offset = lvarOffset(crr->str);
-    Node* node = newNodeLocalVariable(offset);
+    Node* node = newNodeLocalVariable(localVariable(crr->str));
     crr = crr->next;
     return node;
 }
@@ -146,8 +146,7 @@ Node* primary()
             return node;
         }
         // Variable
-        int offset = lvarOffset(identifier->str);
-        Node* node = newNodeLocalVariable(offset);
+        Node* node = newNodeLocalVariable(localVariable(identifier->str));
         return node;
     }
 
@@ -186,15 +185,43 @@ Node* mul()
     }
 }
 
+Node* newAdd(Node* lhs, Node* rhs)
+{
+    addType(lhs);
+    addType(rhs);
+    if (lhs->type->type == TYPE_INT && rhs->type->type == TYPE_INT) {
+        return newNode(NODE_ADDITION, lhs, rhs);
+    }
+    if (lhs->type->type == TYPE_POINTER && rhs->type->type == TYPE_INT) {
+        return newNode(NODE_POINTER_ADDITION, lhs, rhs);
+    }
+    error("invalid addition");
+    return NULL;
+}
+
+Node* newSub(Node* lhs, Node* rhs)
+{
+    addType(lhs);
+    addType(rhs);
+    if (lhs->type->type == TYPE_INT && rhs->type->type == TYPE_INT) {
+        return newNode(NODE_SUBTRACTION, lhs, rhs);
+    }
+    if (lhs->type->type == TYPE_POINTER && rhs->type->type == TYPE_INT) {
+        return newNode(NODE_POINTER_SUBTRACTION, lhs, rhs);
+    }
+    error("invalid subtraction");
+    return NULL;
+}
+
 // add = mul ("+" mul | "-" mul)*
 Node* add()
 {
     Node* node = mul();
     for (;;) {
         if (consume("+")) {
-            node = newNode(NODE_ADDITION, node, mul());
+            node = newAdd(node, mul());
         } else if (consume("-")) {
-            node = newNode(NODE_SUBTRACTION, node, mul());
+            node = newSub(node, mul());
         } else {
             return node;
         }

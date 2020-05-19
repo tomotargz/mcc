@@ -13,7 +13,7 @@ void generateAddress(Node* node)
 {
     if (node->kind == NODE_LOCAL_VARIABLE) {
         printf("  mov rax, rbp\n");
-        printf("  sub rax, %d\n", node->offset);
+        printf("  sub rax, %d\n", node->localVariable->offset);
         printf("  push rax\n");
         return;
     }

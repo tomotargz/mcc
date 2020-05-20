@@ -13,5 +13,6 @@ typedef struct Type {
 } Type;
 
 Type* pointerTo(Type* type);
+TypeKind pointee(Type* type);
 
 #endif

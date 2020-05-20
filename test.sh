@@ -3,6 +3,8 @@
 cat <<EOF | gcc -xc -c -o tmp2.o -
 int func1() { return 3; }
 int func2(int a, int b, int c, int d, int e, int f) { return a+b+c+d+e+f; }
+int* array(){static int a[] = {0,1,2,3,4};return a;}
+int** array2d(){static int a[] = {0,1};static int b[] = {1,2};static int c[] = {2,3};static int* d[] = {a,b,c};return d;}
 EOF
 
 try() {
@@ -22,6 +24,10 @@ try() {
     fi
 }
 
+try 2 "int main(){int* a;a = array();return *(a+2);}"
+try 1 "int main(){int* a;a = array();return *(a+2-1);}"
+try 2 "int main(){int** a;a = array2d();return *(*(a+2));}"
+try 1 "int main(){int** a;a = array2d();return *(*(a+2-1));}"
 try 3 "int main(){int a;int* b;b = &a;*b = 3;return a;}"
 try 3 "int add(int a){int r;r = a;return r;}int main(){return add(3);}"
 try 21 "int add(int a,int b,int c,int d,int e,int f){int ret;ret = a+b+c+d+e+f;return ret;}int main(){return add(1,2,3,4,5,6);}"

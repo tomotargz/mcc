@@ -24,6 +24,8 @@ try() {
     fi
 }
 
+try 8 "int main(){int* a;return sizeof(a);}"
+try 4 "int main(){int a;return sizeof(a);}"
 try 2 "int main(){int* a;a = array();return *(a+2);}"
 try 1 "int main(){int* a;a = array();return *(a+2-1);}"
 try 2 "int main(){int** a;a = array2d();return *(*(a+2));}"

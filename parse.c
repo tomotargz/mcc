@@ -16,7 +16,7 @@
 // relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 // add = mul ("+" mul | "-" mul)*
 // mul = unary ("*" unary | "/" unary)*
-// unary = ("+" | "-" | "*" | "&")? unary
+// unary = ("+" | "-" | "*" | "&" | "sizeof")? unary
 //       | primary
 // primary = "(" expr ")" | ident func-args? | num
 // func-args = "(" (assign ("," assign)*)? ")"
@@ -154,7 +154,7 @@ Node* primary()
     return NULL;
 }
 
-// unary = ("+" | "-" | "*" | "&")? unary
+// unary = ("+" | "-" | "*" | "&" | "sizeof")? unary
 //       | primary
 Node* unary()
 {
@@ -166,6 +166,14 @@ Node* unary()
         return newNode(NODE_ADDR, unary(), NULL);
     } else if (consume("*")) {
         return newNode(NODE_DEREF, unary(), NULL);
+    } else if (consume("sizeof")) {
+        Node* node = expr();
+        addType(node);
+        if (node->type->type == TYPE_INT) {
+            return newNodeNum(4);
+        } else {
+            return newNodeNum(8);
+        }
     }
     return primary();
 }

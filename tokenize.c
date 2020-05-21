@@ -26,11 +26,13 @@ void append(int kind)
 char* startsWithReserved(char* str)
 {
     static char* KEYWORD[] = {
-        "return", "if", "else", "while", "for", "int"
+        "return", "if", "else", "while", "for", "int", "sizeof"
     };
     for (int i = 0; i < sizeof(KEYWORD) / sizeof(KEYWORD[0]); ++i) {
         int length = strlen(KEYWORD[i]);
-        if (startsWith(str, KEYWORD[i]) && !isalnum(str[length])) {
+        if (startsWith(str, KEYWORD[i])
+            && !isalnum(str[length])
+            && str[length] != '_') {
             return KEYWORD[i];
         }
     }

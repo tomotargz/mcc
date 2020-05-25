@@ -20,7 +20,7 @@
 //       | primary
 // primary = "(" expr ")" | ident func-args? | num
 // func-args = "(" (assign ("," assign)*)? ")"
-// declaration = basetype ident ("=" expr) ";"
+// declaration = basetype ident ("[" arraySize "]")? ("=" expr)? ";"
 
 #include <ctype.h>
 #include <stdbool.h>
@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "error.h"
+#include "localVariable.h"
 #include "node.h"
 #include "parse.h"
 #include "tokenize.h"
@@ -37,7 +38,6 @@ static Token* crr = NULL;
 
 static LocalVariable localVariablesHead = { "head", 0, NULL };
 static LocalVariable* localVariablesTail = &localVariablesHead;
-static int stackSize = 0;
 
 Node* expr();
 Type* basetype();
@@ -286,7 +286,7 @@ Node* expr()
     return assign();
 }
 
-Node* declarateLocalVariable(Type* type)
+LocalVariable* declarateLocalVariable(Type* type)
 {
     LocalVariable* prev = &localVariablesHead;
     for (LocalVariable* curr = localVariablesHead.next; curr; curr = curr->next, prev = prev->next) {
@@ -296,22 +296,41 @@ Node* declarateLocalVariable(Type* type)
     }
     LocalVariable* newLocalVariable = calloc(1, sizeof(LocalVariable));
     newLocalVariable->name = crr->str;
-    newLocalVariable->offset = prev->offset + 8;
+    if (type->type == TYPE_INT) {
+        newLocalVariable->offset = prev->offset + 4;
+    } else if (type->type == TYPE_POINTER) {
+        newLocalVariable->offset = prev->offset + 8;
+    } else {
+        error("invalid type");
+    }
     newLocalVariable->next = NULL;
     newLocalVariable->type = type;
     prev->next = newLocalVariable;
-    stackSize = newLocalVariable->offset;
     crr = crr->next;
-    return newNode(NODE_NULL, NULL, NULL);
+    return newLocalVariable;
 }
 
-// declaration = basetype ident ";"
+// declaration = basetype ident ("[" arraySize "]")? ";"
 Node* declaration()
 {
     Type* type = basetype();
-    Node* node = declarateLocalVariable(type);
+    LocalVariable* localVariable = declarateLocalVariable(type);
+    if (consume("[")) {
+        Type* array = calloc(1, sizeof(Type));
+        array->type = TYPE_ARRAY;
+        array->pointTo = type;
+        array->arraySize = expectNumber();
+        if (type->type == TYPE_INT) {
+            localVariable->offset += (array->arraySize - 1) * 4;
+        } else if (type->type == TYPE_POINTER) {
+            localVariable->offset += (array->arraySize - 1) * 8;
+        } else {
+            error("invalid type");
+        }
+        expect("]");
+    }
     expect(";");
-    return node;
+    return newNode(NODE_NULL, NULL, NULL);
 }
 
 // stmt = "return" expr ";"
@@ -404,7 +423,8 @@ char* expectIdentifier()
 Node* param()
 {
     Type* type = basetype();
-    return declarateLocalVariable(type);
+    declarateLocalVariable(type);
+    return newNode(NODE_NULL, NULL, NULL);
 }
 
 // params   = param ("," param)*
@@ -421,11 +441,19 @@ Node* params()
     return head.next;
 }
 
+int getStackSize()
+{
+    LocalVariable* tail = &localVariablesHead;
+    while (tail->next) {
+        tail = tail->next;
+    }
+    return tail->offset;
+}
+
 // function = basetype ident "(" params? ")" "{" stmt* "}"
 Function* function()
 {
     localVariablesHead.next = NULL;
-    stackSize = 0;
     Function* func = calloc(1, sizeof(Function));
     basetype();
     if (crr->kind != TOKEN_IDENTIFIER) {
@@ -447,7 +475,7 @@ Function* function()
     }
     func->node = head.next;
     func->localVariables = localVariablesHead.next;
-    func->stackSize = stackSize;
+    func->stackSize = getStackSize();
     return func;
 }
 

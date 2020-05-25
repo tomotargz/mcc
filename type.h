@@ -4,12 +4,14 @@
 typedef enum TypeKind {
     TYPE_INT,
     TYPE_POINTER,
+    TYPE_ARRAY,
     TYPE_NO
 } TypeKind;
 
 typedef struct Type {
     TypeKind type;
     struct Type* pointTo;
+    int arraySize;
 } Type;
 
 Type* pointerTo(Type* type);

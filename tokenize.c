@@ -40,7 +40,7 @@ char* startsWithReserved(char* str)
     static char* PUNCTUATION[] = {
         "==", "!=", "<=", ">=", "<", ">",
         "=", "+", "-", "*", "/",
-        "(", ")", "{", "}",
+        "(", ")", "{", "}", "[", "]",
         ";", ",", "&"
     };
     for (int i = 0; i < sizeof(PUNCTUATION) / sizeof(PUNCTUATION[0]); ++i) {

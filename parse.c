@@ -320,6 +320,7 @@ Node* declaration()
         array->type = TYPE_ARRAY;
         array->pointTo = type;
         array->arraySize = expectNumber();
+        localVariable->type = array;
         if (type->type == TYPE_INT) {
             localVariable->offset += (array->arraySize - 1) * 4;
         } else if (type->type == TYPE_POINTER) {

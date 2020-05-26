@@ -36,6 +36,9 @@ void generate(Node* node)
         return;
     } else if (node->kind == NODE_LOCAL_VARIABLE) {
         generateAddress(node);
+        if (node->localVariable->type->type == TYPE_ARRAY) {
+            return;
+        }
         printf("  pop rax\n");
         printf("  mov rax, [rax]\n");
         printf("  push rax\n");

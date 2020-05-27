@@ -164,7 +164,7 @@ void generate(Node* node)
         break;
     case NODE_POINTER_ADDITION:
         if (pointee(node->lhs->type) == TYPE_INT) {
-            printf("  imul rdi, 4\n");
+            printf("  imul rdi, 8\n");
         } else {
             printf("  imul rdi, 8\n");
         }
@@ -172,7 +172,7 @@ void generate(Node* node)
         break;
     case NODE_POINTER_SUBTRACTION:
         if (pointee(node->lhs->type) == TYPE_INT) {
-            printf("  imul rdi, 4\n");
+            printf("  imul rdi, 8\n");
         } else {
             printf("  imul rdi, 8\n");
         }
@@ -212,6 +212,17 @@ void generate(Node* node)
     printf("  push rax\n");
 }
 
+int size(Node* node)
+{
+    if (node->type->type == TYPE_INT) {
+        return 8;
+    } else if (node->type->type == TYPE_POINTER) {
+        return 8;
+    }
+    error("unexpected type");
+    return 8;
+}
+
 void generateFunction(Function* function)
 {
     printf(".global %s\n", function->name);
@@ -229,14 +240,17 @@ void generateFunction(Function* function)
         "rdi", "rsi", "rdx", "rcx", "r8", "r9"
     };
     int i = 0;
+    int totalParamSize = 0;
     for (; param; param = param->next, ++i) {
-        printf("  sub rsp, 8\n");
+        int paramSize = size(param);
+        totalParamSize += paramSize;
+        printf("  sub rsp, %d\n", paramSize);
         printf("  mov [rsp], %s\n", ARG_REG[i]);
     }
 
     // extend stack for local variable
     printf("# extend stack for local variables\n");
-    printf("  sub rsp, %d\n", function->stackSize - i * 8);
+    printf("  sub rsp, %d\n", function->stackSize - totalParamSize);
 
     // generate body
     printf("# generate body\n");

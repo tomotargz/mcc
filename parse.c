@@ -170,7 +170,7 @@ Node* unary()
         Node* node = expr();
         addType(node);
         if (node->type->type == TYPE_INT) {
-            return newNodeNum(4);
+            return newNodeNum(8);
         } else {
             return newNodeNum(8);
         }
@@ -297,7 +297,7 @@ LocalVariable* declarateLocalVariable(Type* type)
     LocalVariable* newLocalVariable = calloc(1, sizeof(LocalVariable));
     newLocalVariable->name = crr->str;
     if (type->type == TYPE_INT) {
-        newLocalVariable->offset = prev->offset + 4;
+        newLocalVariable->offset = prev->offset + 8;
     } else if (type->type == TYPE_POINTER) {
         newLocalVariable->offset = prev->offset + 8;
     } else {
@@ -322,7 +322,7 @@ Node* declaration()
         array->arraySize = expectNumber();
         localVariable->type = array;
         if (type->type == TYPE_INT) {
-            localVariable->offset += (array->arraySize - 1) * 4;
+            localVariable->offset += (array->arraySize - 1) * 8;
         } else if (type->type == TYPE_POINTER) {
             localVariable->offset += (array->arraySize - 1) * 8;
         } else {
@@ -424,8 +424,10 @@ char* expectIdentifier()
 Node* param()
 {
     Type* type = basetype();
-    declarateLocalVariable(type);
-    return newNode(NODE_NULL, NULL, NULL);
+    LocalVariable* localVariable = declarateLocalVariable(type);
+    Node* node = newNode(NODE_NULL, NULL, NULL);
+    node->type = type;
+    return node;
 }
 
 // params   = param ("," param)*

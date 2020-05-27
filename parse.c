@@ -385,11 +385,13 @@ Node* statement()
         node->body = statement();
     } else if (consume("{")) {
         node = newNode(NODE_BLOCK, NULL, NULL);
-        int i = 0;
-        for (; i < 100 && !consume("}"); ++i) {
-            node->statements[i] = statement();
+        Node dummy = {};
+        Node* tail = &dummy;
+        while (!consume("}")) {
+            tail->next = statement();
+            tail = tail->next;
         }
-        node->statements[i] = NULL;
+        node->statements = dummy.next;
     } else {
         node = expr();
         expect(";");

@@ -106,8 +106,10 @@ void generate(Node* node)
         printf(".Lend%d:\n", t);
         return;
     } else if (node->kind == NODE_BLOCK) {
-        for (int i = 0; node->statements[i]; ++i) {
-            generate(node->statements[i]);
+        for (Node* statement = node->statements;
+             statement;
+             statement = statement->next) {
+            generate(statement);
         }
         return;
     } else if (node->kind == NODE_CALL) {

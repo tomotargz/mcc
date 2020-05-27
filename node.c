@@ -46,8 +46,10 @@ void addType(Node* tree)
     addType(tree->init);
     addType(tree->inc);
 
-    for (int i = 0; i < 100 && tree->statements[i]; ++i) {
-        addType(tree->statements[i]);
+    for (Node* statement = tree->statements;
+         statement;
+         statement = statement->next) {
+        addType(statement);
     }
 
     for (Node* arg = tree->args; arg; arg = arg->next) {

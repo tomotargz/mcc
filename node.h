@@ -50,7 +50,7 @@ struct Node {
     Node* init;
     Node* inc;
 
-    Node* statements[100];
+    Node* statements;
 
     // function
     char* name;

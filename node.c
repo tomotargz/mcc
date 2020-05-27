@@ -80,10 +80,10 @@ void addType(Node* tree)
     case NODE_ADDR:
         tree->type = calloc(1, sizeof(Type));
         tree->type->kind = TYPE_POINTER;
-        tree->type->pointTo = tree->lhs->type;
+        tree->type->pointerTo = tree->lhs->type;
         return;
     case NODE_DEREF:
-        tree->type = tree->lhs->type->pointTo;
+        tree->type = tree->lhs->type->pointerTo;
         return;
     default:
         tree->type = &noType;

@@ -318,7 +318,7 @@ Node* declaration()
     if (consume("[")) {
         Type* array = calloc(1, sizeof(Type));
         array->kind = TYPE_ARRAY;
-        array->pointTo = type;
+        array->arrayOf = type;
         array->arraySize = expectNumber();
         localVariable->type = array;
         if (type->kind == TYPE_INT) {

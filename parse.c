@@ -479,7 +479,7 @@ Function* function()
         tail->next = statement();
         tail = tail->next;
     }
-    func->node = head.next;
+    func->statements = head.next;
     func->localVariables = localVariablesHead.next;
     func->stackSize = getStackSize();
     return func;

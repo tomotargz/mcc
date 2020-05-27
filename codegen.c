@@ -256,8 +256,10 @@ void generateFunction(Function* function)
 
     // generate body
     printf("# generate body\n");
-    for (Node* n = function->node; n; n = n->next) {
-        generate(n);
+    for (Node* statement = function->statements;
+         statement;
+         statement = statement->next) {
+        generate(statement);
     }
 
     // epilogue

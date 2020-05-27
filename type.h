@@ -9,7 +9,7 @@ typedef enum TypeKind {
 } TypeKind;
 
 typedef struct Type {
-    TypeKind type;
+    TypeKind kind;
     struct Type* pointTo;
     int arraySize;
 } Type;

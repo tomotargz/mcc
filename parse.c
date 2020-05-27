@@ -169,7 +169,7 @@ Node* unary()
     } else if (consume("sizeof")) {
         Node* node = expr();
         addType(node);
-        if (node->type->type == TYPE_INT) {
+        if (node->type->kind == TYPE_INT) {
             return newNodeNum(8);
         } else {
             return newNodeNum(8);
@@ -197,10 +197,10 @@ Node* newAdd(Node* lhs, Node* rhs)
 {
     addType(lhs);
     addType(rhs);
-    if (lhs->type->type == TYPE_INT && rhs->type->type == TYPE_INT) {
+    if (lhs->type->kind == TYPE_INT && rhs->type->kind == TYPE_INT) {
         return newNode(NODE_ADDITION, lhs, rhs);
     }
-    if (lhs->type->type == TYPE_POINTER && rhs->type->type == TYPE_INT) {
+    if (lhs->type->kind == TYPE_POINTER && rhs->type->kind == TYPE_INT) {
         return newNode(NODE_POINTER_ADDITION, lhs, rhs);
     }
     error("invalid addition");
@@ -211,10 +211,10 @@ Node* newSub(Node* lhs, Node* rhs)
 {
     addType(lhs);
     addType(rhs);
-    if (lhs->type->type == TYPE_INT && rhs->type->type == TYPE_INT) {
+    if (lhs->type->kind == TYPE_INT && rhs->type->kind == TYPE_INT) {
         return newNode(NODE_SUBTRACTION, lhs, rhs);
     }
-    if (lhs->type->type == TYPE_POINTER && rhs->type->type == TYPE_INT) {
+    if (lhs->type->kind == TYPE_POINTER && rhs->type->kind == TYPE_INT) {
         return newNode(NODE_POINTER_SUBTRACTION, lhs, rhs);
     }
     error("invalid subtraction");
@@ -296,9 +296,9 @@ LocalVariable* declarateLocalVariable(Type* type)
     }
     LocalVariable* newLocalVariable = calloc(1, sizeof(LocalVariable));
     newLocalVariable->name = crr->str;
-    if (type->type == TYPE_INT) {
+    if (type->kind == TYPE_INT) {
         newLocalVariable->offset = prev->offset + 8;
-    } else if (type->type == TYPE_POINTER) {
+    } else if (type->kind == TYPE_POINTER) {
         newLocalVariable->offset = prev->offset + 8;
     } else {
         error("invalid type");
@@ -317,13 +317,13 @@ Node* declaration()
     LocalVariable* localVariable = declarateLocalVariable(type);
     if (consume("[")) {
         Type* array = calloc(1, sizeof(Type));
-        array->type = TYPE_ARRAY;
+        array->kind = TYPE_ARRAY;
         array->pointTo = type;
         array->arraySize = expectNumber();
         localVariable->type = array;
-        if (type->type == TYPE_INT) {
+        if (type->kind == TYPE_INT) {
             localVariable->offset += (array->arraySize - 1) * 8;
-        } else if (type->type == TYPE_POINTER) {
+        } else if (type->kind == TYPE_POINTER) {
             localVariable->offset += (array->arraySize - 1) * 8;
         } else {
             error("invalid type");

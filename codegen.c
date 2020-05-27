@@ -36,7 +36,7 @@ void generate(Node* node)
         return;
     } else if (node->kind == NODE_LOCAL_VARIABLE) {
         generateAddress(node);
-        if (node->localVariable->type->type == TYPE_ARRAY) {
+        if (node->localVariable->type->kind == TYPE_ARRAY) {
             return;
         }
         printf("  pop rax\n");
@@ -214,9 +214,9 @@ void generate(Node* node)
 
 int size(Node* node)
 {
-    if (node->type->type == TYPE_INT) {
+    if (node->type->kind == TYPE_INT) {
         return 8;
-    } else if (node->type->type == TYPE_POINTER) {
+    } else if (node->type->kind == TYPE_POINTER) {
         return 8;
     }
     error("unexpected type");

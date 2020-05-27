@@ -79,7 +79,7 @@ void addType(Node* tree)
         return;
     case NODE_ADDR:
         tree->type = calloc(1, sizeof(Type));
-        tree->type->type = TYPE_POINTER;
+        tree->type->kind = TYPE_POINTER;
         tree->type->pointTo = tree->lhs->type;
         return;
     case NODE_DEREF:

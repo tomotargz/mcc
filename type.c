@@ -5,15 +5,15 @@
 Type* pointerTo(Type* type)
 {
     Type* newType = calloc(1, sizeof(Type));
-    newType->type = TYPE_POINTER;
+    newType->kind = TYPE_POINTER;
     newType->pointTo = type;
     return newType;
 }
 
 TypeKind pointee(Type* type)
 {
-    if (!type || type->type != TYPE_POINTER) {
+    if (!type || type->kind != TYPE_POINTER) {
         error("given type is not a pointer");
     }
-    return type->pointTo->type;
+    return type->pointTo->kind;
 }

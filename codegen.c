@@ -112,16 +112,16 @@ void generate(Node* node)
         return;
     } else if (node->kind == NODE_CALL) {
         int t = tag++;
-        int i = 0;
-        for (; node->args[i] != NULL; ++i) {
-            generate(node->args[i]);
+        int argNum = 0;
+        for (Node* arg = node->args; arg; arg = arg->next) {
+            generate(arg);
+            ++argNum;
         }
-        --i;
         static char* ARG_REG[] = {
             "rdi", "rsi", "rdx", "rcx", "r8", "r9"
         };
-        for (; i >= 0; --i) {
-            printf("  pop %s\n", ARG_REG[i]);
+        for (int i = argNum; i > 0; --i) {
+            printf("  pop %s\n", ARG_REG[i - 1]);
         }
         // 16byte align
         printf("  mov rax, rsp\n");

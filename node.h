@@ -54,7 +54,7 @@ struct Node {
 
     // function
     char* name;
-    Node* args[10];
+    Node* args;
 };
 
 Node* newNode(NodeKind kind, Node* lhs, Node* rhs);

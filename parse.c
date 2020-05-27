@@ -110,13 +110,14 @@ Node* identifier()
 
 void functionArguments(Node* function)
 {
-    int i = 0;
+    Node dummy = {};
+    Node* tail = &dummy;
     while (!consume(")")) {
-        function->args[i] = expr();
+        tail->next = expr();
+        tail = tail->next;
         consume(",");
-        ++i;
     }
-    function->args[i] = NULL;
+    function->args = dummy.next;
 }
 
 // // primary = num

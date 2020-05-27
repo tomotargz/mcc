@@ -50,8 +50,8 @@ void addType(Node* tree)
         addType(tree->statements[i]);
     }
 
-    for (int i = 0; i < 10 && tree->args[i]; ++i) {
-        addType(tree->args[i]);
+    for (Node* arg = tree->args; arg; arg = arg->next) {
+        addType(arg);
     }
 
     static Type intType = { TYPE_INT, NULL };

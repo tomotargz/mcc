@@ -7,20 +7,22 @@
 #include "error.h"
 #include "tokenize.h"
 
-static Token head;
-static Token* tail = &head;
-
 bool startsWith(char* a, char* b)
 {
     return memcmp(a, b, strlen(b)) == 0;
 }
 
-void append(int kind)
+Token* newToken(TokenKind kind)
 {
-    Token* t = calloc(1, sizeof(Token));
-    t->kind = kind;
-    tail->next = t;
-    tail = t;
+    Token* token = calloc(1, sizeof(Token));
+    token->kind = kind;
+    return token;
+}
+
+Token* append(Token* tail, Token* token)
+{
+    tail->next = token;
+    return token;
 }
 
 char* startsWithReserved(char* str)
@@ -54,40 +56,46 @@ char* startsWithReserved(char* str)
 
 Token* tokenize(char* source)
 {
-    char* pos = source;
-    while (*pos) {
-        if (isspace(*pos)) {
-            pos++;
+    Token dummy;
+    Token* tail = &dummy;
+    char* rp = source;
+    while (*rp) {
+        if (isspace(*rp)) {
+            rp++;
             continue;
         }
 
-        char* reserved = startsWithReserved(pos);
+        char* reserved = startsWithReserved(rp);
         if (reserved) {
-            append(TOKEN_RESERVED);
-            tail->str = reserved;
-            pos += strlen(reserved);
+            Token* token = newToken(TOKEN_RESERVED);
+            token->str = reserved;
+            tail = append(tail, token);
+            rp += strlen(reserved);
             continue;
         }
 
-        if (isalpha(*pos) || *pos == '_') {
-            char* start = pos;
-            int len = 0;
-            while (isalnum(*pos) || *pos == '_') {
-                len++;
-                pos++;
+        if (isalpha(*rp) || *rp == '_') {
+            char* start = rp;
+            int length = 0;
+            while (isalnum(*rp) || *rp == '_') {
+                length++;
+                rp++;
             }
-            append(TOKEN_IDENTIFIER);
-            tail->str = strndup(start, len);
+            Token* token = newToken(TOKEN_IDENTIFIER);
+            token->str = strndup(start, length);
+            tail = append(tail, token);
             continue;
         }
 
-        if (isdigit(*pos)) {
-            append(TOKEN_NUMBER);
-            tail->val = strtol(pos, &pos, 10);
+        if (isdigit(*rp)) {
+            Token* token = newToken(TOKEN_NUMBER);
+            token->val = strtol(rp, &rp, 10);
+            tail = append(tail, token);
             continue;
         }
-        error_at(pos, source, "Can't tokenize");
+        error_at(rp, source, "Can't tokenize");
     }
-    append(TOKEN_EOF);
-    return head.next;
+    Token* token = newToken(TOKEN_EOF);
+    tail = append(tail, token);
+    return dummy.next;
 }

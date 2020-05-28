@@ -17,7 +17,8 @@
 // add = mul ("+" mul | "-" mul)*
 // mul = unary ("*" unary | "/" unary)*
 // unary = ("+" | "-" | "*" | "&" | "sizeof")? unary
-//       | primary
+//       | postfix
+// postfix = primary ("[" expr "]")*
 // primary = "(" expr ")" | ident func-args? | num
 // func-args = "(" (assign ("," assign)*)? ")"
 // declaration = basetype ident ("[" arraySize "]")? ("=" expr)? ";"
@@ -41,6 +42,8 @@ static LocalVariable* localVariablesTail = &localVariablesHead;
 
 Node* expr();
 Type* basetype();
+Node* newAdd(Node* lhs, Node* rhs);
+Node* newSub(Node* lhs, Node* rhs);
 
 Token* consume(char* str)
 {
@@ -155,8 +158,21 @@ Node* primary()
     return NULL;
 }
 
+// postfix = primary ("[" expr "]")*
+Node* postfix()
+{
+    Node* node = primary();
+    while (consume("[")) {
+        Node* index = expr();
+        node = newAdd(node, index);
+        node = newNode(NODE_DEREF, node, NULL);
+        expect("]");
+    }
+    return node;
+}
+
 // unary = ("+" | "-" | "*" | "&" | "sizeof")? unary
-//       | primary
+//       | postfix
 Node* unary()
 {
     if (consume("+")) {
@@ -176,7 +192,7 @@ Node* unary()
             return newNodeNum(8);
         }
     }
-    return primary();
+    return postfix();
 }
 
 // mul = unary ("*" unary | "/" unary)*

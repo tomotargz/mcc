@@ -24,6 +24,7 @@ try() {
     fi
 }
 
+try 3 "int main(){int a[10];*a = 1;*(a+1) = 2;return *a + *(a+1);}"
 try 3 "int main(){int a[10];*a = 3;return *a;}"
 try 8 "int main(){int* a;return sizeof(a);}"
 try 8 "int main(){int a;return sizeof(a);}"

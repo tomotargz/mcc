@@ -85,6 +85,10 @@ void addType(Node* tree)
         tree->type->pointerTo = tree->lhs->type;
         return;
     case NODE_DEREF:
+        if (tree->lhs->type->kind == TYPE_ARRAY) {
+            tree->type = tree->lhs->type->arrayOf;
+            return;
+        }
         tree->type = tree->lhs->type->pointerTo;
         return;
     default:

@@ -15,7 +15,6 @@ typedef struct Type {
     int arraySize;
 } Type;
 
-Type* pointerTo(Type* type);
-TypeKind pointee(Type* type);
+Type* newPointer(Type* to);
 
 #endif

@@ -201,7 +201,8 @@ Node* newAdd(Node* lhs, Node* rhs)
     if (lhs->type->kind == TYPE_INT && rhs->type->kind == TYPE_INT) {
         return newNode(NODE_ADDITION, lhs, rhs);
     }
-    if (lhs->type->kind == TYPE_POINTER && rhs->type->kind == TYPE_INT) {
+    if ((lhs->type->kind == TYPE_POINTER || lhs->type->kind == TYPE_ARRAY)
+        && rhs->type->kind == TYPE_INT) {
         return newNode(NODE_POINTER_ADDITION, lhs, rhs);
     }
     error("invalid addition");
@@ -215,7 +216,8 @@ Node* newSub(Node* lhs, Node* rhs)
     if (lhs->type->kind == TYPE_INT && rhs->type->kind == TYPE_INT) {
         return newNode(NODE_SUBTRACTION, lhs, rhs);
     }
-    if (lhs->type->kind == TYPE_POINTER && rhs->type->kind == TYPE_INT) {
+    if ((lhs->type->kind == TYPE_POINTER || lhs->type->kind == TYPE_ARRAY)
+        && rhs->type->kind == TYPE_INT) {
         return newNode(NODE_POINTER_SUBTRACTION, lhs, rhs);
     }
     error("invalid subtraction");
@@ -408,7 +410,7 @@ Type* basetype()
 
     Type* type = &INT_TYPE;
     while (consume("*")) {
-        type = pointerTo(type);
+        type = newPointer(type);
     }
     return type;
 }

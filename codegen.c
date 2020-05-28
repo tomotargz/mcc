@@ -165,19 +165,13 @@ void generate(Node* node)
         printf("  sub rax, rdi\n");
         break;
     case NODE_POINTER_ADDITION:
-        if (pointee(node->lhs->type) == TYPE_INT) {
-            printf("  imul rdi, 8\n");
-        } else {
-            printf("  imul rdi, 8\n");
-        }
+        printf("  imul rdi, 8\n");
+        printf("  imul rdi, 8\n");
         printf("  add rax, rdi\n");
         break;
     case NODE_POINTER_SUBTRACTION:
-        if (pointee(node->lhs->type) == TYPE_INT) {
-            printf("  imul rdi, 8\n");
-        } else {
-            printf("  imul rdi, 8\n");
-        }
+        printf("  imul rdi, 8\n");
+        printf("  imul rdi, 8\n");
         printf("  sub rax, rdi\n");
         break;
     case NODE_MULTIPLICATION:

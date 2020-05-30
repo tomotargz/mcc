@@ -24,7 +24,7 @@ try() {
     fi
 }
 
-# try 3 "int global; int main(){global = 3; return global;}"
+try 3 "int ga; int* gb; int main(){int a; a = 3; return a;}"
 try 3 "int main(){int y0[10];int y1[10];int* x[2];x[0] = y0;x[1] = y1;x[1][3] = 3;return x[1][3];}"
 try 3 "int main(){int a[10];a[1] = 3;return a[1];}"
 try 3 "int main(){int a[10];*a = 1;*(a+1) = 2;return *a + *(a+1);}"

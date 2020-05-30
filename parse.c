@@ -475,16 +475,11 @@ int getStackSize()
 }
 
 // function = basetype ident "(" params? ")" "{" stmt* "}"
-Function* function()
+Function* function(Type* type, char* name)
 {
     localVariablesHead.next = NULL;
     Function* func = calloc(1, sizeof(Function));
-    basetype();
-    if (rp->kind != TOKEN_IDENTIFIER) {
-        error("invalid token");
-    }
-    func->name = expectIdentifier();
-    expect("(");
+    func->name = name;
     if (!consume(")")) {
         func->params = params();
         expect(")");
@@ -503,18 +498,36 @@ Function* function()
     return func;
 }
 
+Variable* globalVariable()
+{
+    expect(";");
+    return calloc(1, sizeof(Variable));
+}
+
 // program = (globalVariable | function)*
 Program* program()
 {
-    Program* program = calloc(1, sizeof(Program));
-    Function head = {};
-    Function* tail = &head;
+    Function dummyFunction = {};
+    Function* functionTail = &dummyFunction;
+    Variable dummyGlobalVariable = {};
+    Variable* globalVariableTail = &dummyGlobalVariable;
+
     while (rp->kind != TOKEN_EOF) {
-        tail->next = function();
-        tail = tail->next;
+        Type* type = basetype();
+        char* name = expectIdentifier();
+        if (consume("(")) {
+            functionTail->next = function(type, name);
+            functionTail = functionTail->next;
+        } else {
+            globalVariableTail->next = globalVariable();
+            globalVariableTail = globalVariableTail->next;
+        }
     }
-    program->functions = head.next;
-    return program;
+
+    Program* p = calloc(1, sizeof(Program));
+    p->functions = dummyFunction.next;
+    p->globalVariables = dummyGlobalVariable.next;
+    return p;
 }
 
 Program* parse(Token* tokens)

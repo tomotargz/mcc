@@ -1,4 +1,4 @@
-// program = function*
+// program = (globalVariable | function)*
 // function = basetype ident "(" params? ")" "{" stmt* "}"
 // basetype = "int" "*"*
 // params   = param ("," param)*
@@ -35,10 +35,10 @@
 #include "tokenize.h"
 #include "type.h"
 
-static Token* crr = NULL;
+static Token* rp = NULL;
 
-static LocalVariable localVariablesHead = { "head", 0, NULL };
-static LocalVariable* localVariablesTail = &localVariablesHead;
+static Variable localVariablesHead = { "head", 0, NULL };
+static Variable* localVariablesTail = &localVariablesHead;
 
 Node* expr();
 Type* basetype();
@@ -47,45 +47,45 @@ Node* newSub(Node* lhs, Node* rhs);
 
 Token* consume(char* str)
 {
-    if (crr->kind != TOKEN_RESERVED
-        || strlen(crr->str) != strlen(str)
-        || strncmp(crr->str, str, strlen(crr->str))) {
+    if (rp->kind != TOKEN_RESERVED
+        || strlen(rp->str) != strlen(str)
+        || strncmp(rp->str, str, strlen(rp->str))) {
         return NULL;
     }
-    Token* result = crr;
-    crr = crr->next;
+    Token* result = rp;
+    rp = rp->next;
     return result;
 }
 
 void expect(char* str)
 {
-    if (crr->kind != TOKEN_RESERVED
-        || strlen(crr->str) != strlen(str)
-        || strncmp(crr->str, str, strlen(crr->str))) {
+    if (rp->kind != TOKEN_RESERVED
+        || strlen(rp->str) != strlen(str)
+        || strncmp(rp->str, str, strlen(rp->str))) {
         error("unexpected token");
     }
-    crr = crr->next;
+    rp = rp->next;
 }
 
 int expectNumber()
 {
-    if (crr->kind != TOKEN_NUMBER)
+    if (rp->kind != TOKEN_NUMBER)
         error("unexpected non number token");
-    int val = crr->val;
-    crr = crr->next;
+    int val = rp->val;
+    rp = rp->next;
     return val;
 }
 
 bool peek(char* str)
 {
-    return crr->kind == TOKEN_RESERVED
-        && strlen(crr->str) == strlen(str)
-        && strncmp(crr->str, str, strlen(crr->str)) == 0;
+    return rp->kind == TOKEN_RESERVED
+        && strlen(rp->str) == strlen(str)
+        && strncmp(rp->str, str, strlen(rp->str)) == 0;
 }
 
-LocalVariable* localVariable(char* str)
+Variable* localVariable(char* str)
 {
-    for (LocalVariable* v = localVariablesHead.next; v; v = v->next) {
+    for (Variable* v = localVariablesHead.next; v; v = v->next) {
         if (strncmp(v->name, str, strlen(str)) == 0) {
             return v;
         }
@@ -96,9 +96,9 @@ LocalVariable* localVariable(char* str)
 
 Token* consumeIdentifier()
 {
-    if (crr->kind == TOKEN_IDENTIFIER) {
-        Token* identifier = crr;
-        crr = crr->next;
+    if (rp->kind == TOKEN_IDENTIFIER) {
+        Token* identifier = rp;
+        rp = rp->next;
         return identifier;
     }
     return NULL;
@@ -106,8 +106,8 @@ Token* consumeIdentifier()
 
 Node* identifier()
 {
-    Node* node = newNodeLocalVariable(localVariable(crr->str));
-    crr = crr->next;
+    Node* node = newNodeLocalVariable(localVariable(rp->str));
+    rp = rp->next;
     return node;
 }
 
@@ -130,7 +130,7 @@ void functionArguments(Node* function)
 // primary = "(" expr ")" | ident func-args? | num
 Node* primary()
 {
-    if (crr->kind == TOKEN_NUMBER) {
+    if (rp->kind == TOKEN_NUMBER) {
         return newNodeNum(expectNumber());
     }
 
@@ -305,16 +305,16 @@ Node* expr()
     return assign();
 }
 
-LocalVariable* declarateLocalVariable(Type* type)
+Variable* declarateLocalVariable(Type* type)
 {
-    LocalVariable* prev = &localVariablesHead;
-    for (LocalVariable* curr = localVariablesHead.next; curr; curr = curr->next, prev = prev->next) {
-        if (strcmp(curr->name, crr->str) == 0) {
+    Variable* prev = &localVariablesHead;
+    for (Variable* curr = localVariablesHead.next; curr; curr = curr->next, prev = prev->next) {
+        if (strcmp(curr->name, rp->str) == 0) {
             error("duplicated declaration");
         }
     }
-    LocalVariable* newLocalVariable = calloc(1, sizeof(LocalVariable));
-    newLocalVariable->name = crr->str;
+    Variable* newLocalVariable = calloc(1, sizeof(Variable));
+    newLocalVariable->name = rp->str;
     if (type->kind == TYPE_INT) {
         newLocalVariable->offset = prev->offset + 8;
     } else if (type->kind == TYPE_POINTER) {
@@ -325,7 +325,7 @@ LocalVariable* declarateLocalVariable(Type* type)
     newLocalVariable->next = NULL;
     newLocalVariable->type = type;
     prev->next = newLocalVariable;
-    crr = crr->next;
+    rp = rp->next;
     return newLocalVariable;
 }
 
@@ -333,7 +333,7 @@ LocalVariable* declarateLocalVariable(Type* type)
 Node* declaration()
 {
     Type* type = basetype();
-    LocalVariable* localVariable = declarateLocalVariable(type);
+    Variable* localVariable = declarateLocalVariable(type);
     if (consume("[")) {
         Type* array = calloc(1, sizeof(Type));
         array->kind = TYPE_ARRAY;
@@ -433,11 +433,11 @@ Type* basetype()
 
 char* expectIdentifier()
 {
-    if (crr->kind != TOKEN_IDENTIFIER) {
+    if (rp->kind != TOKEN_IDENTIFIER) {
         error("invalid token");
     }
-    char* name = crr->str;
-    crr = crr->next;
+    char* name = rp->str;
+    rp = rp->next;
     return name;
 }
 
@@ -445,7 +445,7 @@ char* expectIdentifier()
 Node* param()
 {
     Type* type = basetype();
-    LocalVariable* localVariable = declarateLocalVariable(type);
+    Variable* localVariable = declarateLocalVariable(type);
     Node* node = newNode(NODE_NULL, NULL, NULL);
     node->type = type;
     return node;
@@ -467,7 +467,7 @@ Node* params()
 
 int getStackSize()
 {
-    LocalVariable* tail = &localVariablesHead;
+    Variable* tail = &localVariablesHead;
     while (tail->next) {
         tail = tail->next;
     }
@@ -480,7 +480,7 @@ Function* function()
     localVariablesHead.next = NULL;
     Function* func = calloc(1, sizeof(Function));
     basetype();
-    if (crr->kind != TOKEN_IDENTIFIER) {
+    if (rp->kind != TOKEN_IDENTIFIER) {
         error("invalid token");
     }
     func->name = expectIdentifier();
@@ -503,20 +503,22 @@ Function* function()
     return func;
 }
 
-// program = function*
-Function* program()
+// program = (globalVariable | function)*
+Program* program()
 {
+    Program* program = calloc(1, sizeof(Program));
     Function head = {};
     Function* tail = &head;
-    while (crr->kind != TOKEN_EOF) {
+    while (rp->kind != TOKEN_EOF) {
         tail->next = function();
         tail = tail->next;
     }
-    return head.next;
+    program->functions = head.next;
+    return program;
 }
 
-Function* parse(Token* tokens)
+Program* parse(Token* tokens)
 {
-    crr = tokens;
+    rp = tokens;
     return program();
 }

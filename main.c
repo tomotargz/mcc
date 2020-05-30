@@ -10,7 +10,7 @@ int main(int argc, char** argv)
 
     char* source = argv[1];
     Token* tokens = tokenize(source);
-    Function* functions = parse(tokens);
-    generateFunctions(functions);
+    Program* program = parse(tokens);
+    generateFunctions(program->functions);
     return 0;
 }

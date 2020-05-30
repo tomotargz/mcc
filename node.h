@@ -37,7 +37,7 @@ struct Node {
     Node* lhs;
     Node* rhs;
     int val;
-    LocalVariable* localVariable;
+    Variable* localVariable;
     Type* type;
 
     // if(cond)then;else els;
@@ -59,7 +59,7 @@ struct Node {
 
 Node* newNode(NodeKind kind, Node* lhs, Node* rhs);
 Node* newNodeNum(int val);
-Node* newNodeLocalVariable(LocalVariable* localVariable);
+Node* newNodeLocalVariable(Variable* localVariable);
 void addType(Node* tree);
 
 #endif

@@ -12,10 +12,15 @@ struct Function {
     char* name;
     Node* params;
     Node* statements;
-    LocalVariable* localVariables;
+    Variable* localVariables;
     int stackSize;
 };
 
-Function* parse(Token* tokens);
+typedef struct {
+    Variable* globalVariables;
+    Function* functions;
+} Program;
+
+Program* parse(Token* tokens);
 
 #endif

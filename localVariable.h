@@ -3,12 +3,12 @@
 
 #include "type.h"
 
-typedef struct LocalVariable LocalVariable;
-struct LocalVariable {
+typedef struct Variable Variable;
+struct Variable {
     char* name;
     int offset;
     Type* type;
-    LocalVariable* next;
+    Variable* next;
 };
 
 #endif

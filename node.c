@@ -22,7 +22,7 @@ Node* newNodeNum(int val)
     return node;
 }
 
-Node* newNodeLocalVariable(LocalVariable* localVariable)
+Node* newNodeLocalVariable(Variable* localVariable)
 {
     Node* node = calloc(1, sizeof(Node));
     node->kind = NODE_LOCAL_VARIABLE;

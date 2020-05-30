@@ -82,7 +82,8 @@ Token* tokenize(char* source)
                 rp++;
             }
             Token* token = newToken(TOKEN_IDENTIFIER);
-            token->str = strndup(start, length);
+            token->str = calloc(length, sizeof(char));
+            strncpy(token->str, start, length);
             tail = append(tail, token);
             continue;
         }

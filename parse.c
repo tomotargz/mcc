@@ -426,7 +426,7 @@ Type* basetype()
 
     Type* type = &INT_TYPE;
     while (consume("*")) {
-        type = newPointer(type);
+        type = pointerTo(type);
     }
     return type;
 }
@@ -521,6 +521,12 @@ Program* program()
         if (consume("(")) {
             functionTail->next = function(type, name);
             functionTail = functionTail->next;
+        } else if (consume("[")) {
+            int size = expectNumber();
+            type = arrayOf(type, size);
+            declarateGlobalVariable(type, name);
+            expect("]");
+            expect(";");
         } else {
             declarateGlobalVariable(type, name);
             expect(";");

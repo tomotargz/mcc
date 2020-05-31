@@ -15,6 +15,7 @@ typedef struct Type {
     int arraySize;
 } Type;
 
-Type* newPointer(Type* to);
+Type* pointerTo(Type* to);
+Type* arrayOf(Type* type, int size);
 
 #endif

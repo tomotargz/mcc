@@ -77,6 +77,16 @@ int expectNumber()
     return val;
 }
 
+char* expectIdentifier()
+{
+    if (rp->kind != TOKEN_IDENTIFIER) {
+        error("invalid token");
+    }
+    char* name = rp->str;
+    rp = rp->next;
+    return name;
+}
+
 bool peek(char* str)
 {
     return rp->kind == TOKEN_RESERVED
@@ -306,48 +316,37 @@ Node* expr()
     return assign();
 }
 
-Variable* declarateLocalVariable(Type* type)
+Variable* declarateLocalVariable(Type* type, char* name)
 {
-    Variable* prev = &localVariablesHead;
-    for (Variable* curr = localVariablesHead.next; curr; curr = curr->next, prev = prev->next) {
-        if (strcmp(curr->name, rp->str) == 0) {
-            error("duplicated declaration");
+    for (Variable* v = localVariablesHead.next; v; v = v->next) {
+        if (strcmp(v->name, name) == 0) {
+            error("duplicated declaration of a local variable named %s", name);
+            return NULL;
         }
     }
-    Variable* newLocalVariable = calloc(1, sizeof(Variable));
-    newLocalVariable->name = rp->str;
-    if (type->kind == TYPE_INT) {
-        newLocalVariable->offset = prev->offset + 8;
-    } else if (type->kind == TYPE_POINTER) {
-        newLocalVariable->offset = prev->offset + 8;
-    } else {
-        error("invalid type");
-    }
-    newLocalVariable->next = NULL;
-    newLocalVariable->type = type;
-    prev->next = newLocalVariable;
-    rp = rp->next;
-    return newLocalVariable;
+    Variable* v = calloc(1, sizeof(Variable));
+    v->name = name;
+    v->type = type;
+    v->isGlobal = false;
+    v->offset = localVariablesTail->offset + 8;
+    localVariablesTail->next = v;
+    localVariablesTail = localVariablesTail->next;
+    return v;
 }
 
 // declaration = basetype ident ("[" arraySize "]")? ";"
 Node* declaration()
 {
     Type* type = basetype();
-    Variable* localVariable = declarateLocalVariable(type);
+    char* name = expectIdentifier();
+    Variable* v = declarateLocalVariable(type, name);
     if (consume("[")) {
         Type* array = calloc(1, sizeof(Type));
         array->kind = TYPE_ARRAY;
         array->arrayOf = type;
         array->arraySize = expectNumber();
-        localVariable->type = array;
-        if (type->kind == TYPE_INT) {
-            localVariable->offset += (array->arraySize - 1) * 8;
-        } else if (type->kind == TYPE_POINTER) {
-            localVariable->offset += (array->arraySize - 1) * 8;
-        } else {
-            error("invalid type");
-        }
+        v->type = array;
+        v->offset += (array->arraySize - 1) * 8;
         expect("]");
     }
     expect(";");
@@ -432,21 +431,12 @@ Type* basetype()
     return type;
 }
 
-char* expectIdentifier()
-{
-    if (rp->kind != TOKEN_IDENTIFIER) {
-        error("invalid token");
-    }
-    char* name = rp->str;
-    rp = rp->next;
-    return name;
-}
-
 // param    = basetype ident
 Node* param()
 {
     Type* type = basetype();
-    Variable* localVariable = declarateLocalVariable(type);
+    char* name = expectIdentifier();
+    Variable* localVariable = declarateLocalVariable(type, name);
     Node* node = newNode(NODE_NULL, NULL, NULL);
     node->type = type;
     return node;

@@ -38,6 +38,8 @@ static Token* rp = NULL;
 
 static Variable localVariablesHead = { "head", 0, NULL };
 static Variable* localVariablesTail = &localVariablesHead;
+static Variable globalVariablesHead = { "head", 0, NULL };
+static Variable* globalVariablesTail = &localVariablesHead;
 
 Node* expr();
 Type* basetype();
@@ -497,10 +499,22 @@ Function* function(Type* type, char* name)
     return func;
 }
 
-Variable* globalVariable()
+Variable* declarateGlobalVariable(Type* type, char* name)
 {
-    expect(";");
-    return calloc(1, sizeof(Variable));
+    for (Variable* v = globalVariablesHead.next; v; v = v->next) {
+        if (strcmp(v->name, name) == 0) {
+            error("duplicated declaration of a global variable named %s", name);
+            return NULL;
+        }
+    }
+    Variable* v = calloc(1, sizeof(Variable));
+    v->name = name;
+    v->type = type;
+    v->isGlobal = true;
+    v->offset = globalVariablesTail->offset + 8;
+    globalVariablesTail->next = v;
+    globalVariablesTail = globalVariablesTail->next;
+    return v;
 }
 
 // program = (globalVariable | function)*
@@ -518,8 +532,8 @@ Program* program()
             functionTail->next = function(type, name);
             functionTail = functionTail->next;
         } else {
-            globalVariableTail->next = globalVariable();
-            globalVariableTail = globalVariableTail->next;
+            declarateGlobalVariable(type, name);
+            expect(";");
         }
     }
 

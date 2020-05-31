@@ -29,7 +29,6 @@
 #include <string.h>
 
 #include "error.h"
-#include "localVariable.h"
 #include "node.h"
 #include "parse.h"
 #include "tokenize.h"

@@ -1,5 +1,5 @@
-#ifndef LOCAL_VARIABLE_H
-#define LOCAL_VARIABLE_H
+#ifndef VARIABLE_H
+#define VARIABLE_H
 
 #include "type.h"
 

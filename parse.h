@@ -1,7 +1,7 @@
 #ifndef PARSE_H
 #define PARSE_H
 
-#include "localVariable.h"
+#include "variable.h"
 #include "node.h"
 #include "tokenize.h"
 #include "type.h"

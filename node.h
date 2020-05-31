@@ -1,7 +1,7 @@
 #ifndef NODE_H
 #define NODE_H
 
-#include "localVariable.h"
+#include "variable.h"
 #include "type.h"
 
 typedef enum {

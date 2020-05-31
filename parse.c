@@ -83,7 +83,7 @@ bool peek(char* str)
         && strncmp(rp->str, str, strlen(rp->str)) == 0;
 }
 
-Variable* localVariable(char* str)
+Variable* variable(char* str)
 {
     for (Variable* v = localVariablesHead.next; v; v = v->next) {
         if (strncmp(v->name, str, strlen(str)) == 0) {
@@ -106,7 +106,7 @@ Token* consumeIdentifier()
 
 Node* identifier()
 {
-    Node* node = newNodeLocalVariable(localVariable(rp->str));
+    Node* node = newNodeVariable(variable(rp->str));
     rp = rp->next;
     return node;
 }
@@ -150,7 +150,7 @@ Node* primary()
             return node;
         }
         // Variable
-        Node* node = newNodeLocalVariable(localVariable(identifier->str));
+        Node* node = newNodeVariable(variable(identifier->str));
         return node;
     }
 

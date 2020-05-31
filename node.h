@@ -17,7 +17,7 @@ typedef enum {
     NODE_LESS_OR_EQUAL,
     NODE_NUMBER,
     NODE_ASSIGNMENT,
-    NODE_LOCAL_VARIABLE,
+    NODE_VARIABLE,
     NODE_CONDITION,
     NODE_IF,
     NODE_WHILE,
@@ -37,7 +37,7 @@ struct Node {
     Node* lhs;
     Node* rhs;
     int val;
-    Variable* localVariable;
+    Variable* variable;
     Type* type;
 
     // if(cond)then;else els;
@@ -59,7 +59,7 @@ struct Node {
 
 Node* newNode(NodeKind kind, Node* lhs, Node* rhs);
 Node* newNodeNum(int val);
-Node* newNodeLocalVariable(Variable* localVariable);
+Node* newNodeVariable(Variable* variable);
 void addType(Node* tree);
 
 #endif

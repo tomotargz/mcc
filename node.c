@@ -22,11 +22,11 @@ Node* newNodeNum(int val)
     return node;
 }
 
-Node* newNodeLocalVariable(Variable* localVariable)
+Node* newNodeVariable(Variable* variable)
 {
     Node* node = calloc(1, sizeof(Node));
-    node->kind = NODE_LOCAL_VARIABLE;
-    node->localVariable = localVariable;
+    node->kind = NODE_VARIABLE;
+    node->variable = variable;
     return node;
 }
 
@@ -76,8 +76,8 @@ void addType(Node* tree)
     case NODE_ASSIGNMENT:
         tree->type = tree->lhs->type;
         return;
-    case NODE_LOCAL_VARIABLE:
-        tree->type = tree->localVariable->type;
+    case NODE_VARIABLE:
+        tree->type = tree->variable->type;
         return;
     case NODE_ADDR:
         tree->type = calloc(1, sizeof(Type));

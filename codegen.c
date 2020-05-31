@@ -11,9 +11,9 @@ static void generate(Node* node);
 // push the local variable's address to the stack
 void generateAddress(Node* node)
 {
-    if (node->kind == NODE_LOCAL_VARIABLE) {
+    if (node->kind == NODE_VARIABLE) {
         printf("  mov rax, rbp\n");
-        printf("  sub rax, %d\n", node->localVariable->offset);
+        printf("  sub rax, %d\n", node->variable->offset);
         printf("  push rax\n");
         return;
     }
@@ -34,9 +34,9 @@ void generate(Node* node)
     } else if (node->kind == NODE_NUMBER) {
         printf("  push %d\n", node->val);
         return;
-    } else if (node->kind == NODE_LOCAL_VARIABLE) {
+    } else if (node->kind == NODE_VARIABLE) {
         generateAddress(node);
-        if (node->localVariable->type->kind == TYPE_ARRAY) {
+        if (node->variable->type->kind == TYPE_ARRAY) {
             return;
         }
         printf("  pop rax\n");

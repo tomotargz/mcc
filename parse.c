@@ -523,13 +523,12 @@ Program* program()
         if (consume("(")) {
             functionTail->next = function(type, name);
             functionTail = functionTail->next;
-        } else if (consume("[")) {
-            int size = expectNumber();
-            type = arrayOf(type, size);
-            declarateGlobalVariable(type, name);
-            expect("]");
-            expect(";");
         } else {
+            if (consume("[")) {
+                int size = expectNumber();
+                type = arrayOf(type, size);
+                expect("]");
+            }
             declarateGlobalVariable(type, name);
             expect(";");
         }

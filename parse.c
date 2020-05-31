@@ -516,8 +516,6 @@ Program* program()
 {
     Function dummyFunction = {};
     Function* functionTail = &dummyFunction;
-    Variable dummyGlobalVariable = {};
-    Variable* globalVariableTail = &dummyGlobalVariable;
 
     while (rp->kind != TOKEN_EOF) {
         Type* type = basetype();
@@ -539,7 +537,7 @@ Program* program()
 
     Program* p = calloc(1, sizeof(Program));
     p->functions = dummyFunction.next;
-    p->globalVariables = dummyGlobalVariable.next;
+    p->globalVariables = globalVariablesHead.next;
     return p;
 }
 

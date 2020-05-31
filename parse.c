@@ -328,7 +328,11 @@ Variable* declarateLocalVariable(Type* type, char* name)
     v->name = name;
     v->type = type;
     v->isGlobal = false;
-    v->offset = localVariablesTail->offset + 8;
+    if (type->kind == TYPE_ARRAY) {
+        v->offset = localVariablesTail->offset + type->arraySize * 8;
+    } else {
+        v->offset = localVariablesTail->offset + 8;
+    }
     localVariablesTail->next = v;
     localVariablesTail = localVariablesTail->next;
     return v;
@@ -339,16 +343,12 @@ Node* declaration()
 {
     Type* type = basetype();
     char* name = expectIdentifier();
-    Variable* v = declarateLocalVariable(type, name);
     if (consume("[")) {
-        Type* array = calloc(1, sizeof(Type));
-        array->kind = TYPE_ARRAY;
-        array->arrayOf = type;
-        array->arraySize = expectNumber();
-        v->type = array;
-        v->offset += (array->arraySize - 1) * 8;
+        int size = expectNumber();
+        type = arrayOf(type, size);
         expect("]");
     }
+    Variable* v = declarateLocalVariable(type, name);
     expect(";");
     return newNode(NODE_NULL, NULL, NULL);
 }
@@ -501,7 +501,11 @@ Variable* declarateGlobalVariable(Type* type, char* name)
     v->name = name;
     v->type = type;
     v->isGlobal = true;
-    v->offset = globalVariablesTail->offset + 8;
+    if (type->kind == TYPE_ARRAY) {
+        v->offset = globalVariablesTail->offset + type->arraySize * 8;
+    } else {
+        v->offset = globalVariablesTail->offset + 8;
+    }
     globalVariablesTail->next = v;
     globalVariablesTail = globalVariablesTail->next;
     return v;

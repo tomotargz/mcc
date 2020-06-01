@@ -25,7 +25,11 @@ Node* newNodeNum(int val)
 Node* newNodeVariable(Variable* variable)
 {
     Node* node = calloc(1, sizeof(Node));
-    node->kind = NODE_VARIABLE;
+    if (variable->isGlobal) {
+        node->kind = NODE_GLOBAL_VARIABLE;
+    } else {
+        node->kind = NODE_LOCAL_VARIABLE;
+    }
     node->variable = variable;
     return node;
 }
@@ -76,7 +80,8 @@ void addType(Node* tree)
     case NODE_ASSIGNMENT:
         tree->type = tree->lhs->type;
         return;
-    case NODE_VARIABLE:
+    case NODE_GLOBAL_VARIABLE:
+    case NODE_LOCAL_VARIABLE:
         tree->type = tree->variable->type;
         return;
     case NODE_ADDR:

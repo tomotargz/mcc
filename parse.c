@@ -506,11 +506,6 @@ Variable* declarateGlobalVariable(Type* type, char* name)
     v->name = name;
     v->type = type;
     v->isGlobal = true;
-    if (type->kind == TYPE_ARRAY) {
-        v->offset = globalVariablesTail->offset + type->arraySize * 8;
-    } else {
-        v->offset = globalVariablesTail->offset + 8;
-    }
     globalVariablesTail->next = v;
     globalVariablesTail = globalVariablesTail->next;
     return v;

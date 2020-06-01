@@ -63,40 +63,39 @@ void addType(Node* tree)
     static Type intType = { TYPE_INT, NULL };
     static Type pointerType = { TYPE_INT, NULL };
     static Type noType = { TYPE_NO, NULL };
-    switch (tree->kind) {
-    case NODE_ADDITION:
-    case NODE_SUBTRACTION:
-    case NODE_MULTIPLICATION:
-    case NODE_DIVISION:
-    case NODE_EQUAL:
-    case NODE_NOT_EQUAL:
-    case NODE_LESS_THAN:
-    case NODE_LESS_OR_EQUAL:
-    case NODE_NUMBER:
+    if (tree->kind == NODE_ADDITION
+        || tree->kind == NODE_SUBTRACTION
+        || tree->kind == NODE_MULTIPLICATION
+        || tree->kind == NODE_DIVISION
+        || tree->kind == NODE_EQUAL
+        || tree->kind == NODE_NOT_EQUAL
+        || tree->kind == NODE_LESS_THAN
+        || tree->kind == NODE_LESS_OR_EQUAL
+        || tree->kind == NODE_NUMBER) {
         tree->type = &intType;
         return;
-    case NODE_POINTER_ADDITION:
-    case NODE_POINTER_SUBTRACTION:
-    case NODE_ASSIGNMENT:
+    } else if (tree->kind == NODE_POINTER_ADDITION
+        || tree->kind == NODE_POINTER_SUBTRACTION
+        || tree->kind == NODE_ASSIGNMENT) {
         tree->type = tree->lhs->type;
         return;
-    case NODE_GLOBAL_VARIABLE:
-    case NODE_LOCAL_VARIABLE:
+    } else if (tree->kind == NODE_GLOBAL_VARIABLE
+        || tree->kind == NODE_LOCAL_VARIABLE) {
         tree->type = tree->variable->type;
         return;
-    case NODE_ADDR:
+    } else if (tree->kind == NODE_ADDR) {
         tree->type = calloc(1, sizeof(Type));
         tree->type->kind = TYPE_POINTER;
         tree->type->pointerTo = tree->lhs->type;
         return;
-    case NODE_DEREF:
+    } else if (tree->kind == NODE_DEREF) {
         if (tree->lhs->type->kind == TYPE_ARRAY) {
             tree->type = tree->lhs->type->arrayOf;
             return;
         }
         tree->type = tree->lhs->type->pointerTo;
         return;
-    default:
+    } else {
         tree->type = &noType;
         return;
     }

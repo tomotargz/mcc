@@ -39,7 +39,7 @@ static Token* rp = NULL;
 static Variable localVariablesHead = { "head", 0, NULL };
 static Variable* localVariablesTail = &localVariablesHead;
 static Variable globalVariablesHead = { "head", 0, NULL };
-static Variable* globalVariablesTail = &localVariablesHead;
+static Variable* globalVariablesTail = &globalVariablesHead;
 
 Node* expr();
 Type* basetype();
@@ -97,6 +97,11 @@ bool peek(char* str)
 Variable* variable(char* str)
 {
     for (Variable* v = localVariablesHead.next; v; v = v->next) {
+        if (strncmp(v->name, str, strlen(str)) == 0) {
+            return v;
+        }
+    }
+    for (Variable* v = globalVariablesHead.next; v; v = v->next) {
         if (strncmp(v->name, str, strlen(str)) == 0) {
             return v;
         }

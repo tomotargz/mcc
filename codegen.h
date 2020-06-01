@@ -3,6 +3,6 @@
 
 #include "parse.h"
 
-void generateFunctions(Function* functions);
+void generateCode(Program* program);
 
 #endif

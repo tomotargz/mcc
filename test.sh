@@ -1,5 +1,4 @@
 #!/bin/bash
-
 cat <<EOF | gcc -xc -c -o tmp2.o -
 int func1() { return 3; }
 int func2(int a, int b, int c, int d, int e, int f) { return a+b+c+d+e+f; }
@@ -12,7 +11,7 @@ try() {
     input="$2"
 
     ./mcc "$input" > tmp.s
-    gcc -O0 -o tmp tmp.s tmp2.o
+    gcc -static -O0 -o tmp tmp.s tmp2.o
     ./tmp
     actual="$?"
 
@@ -24,6 +23,9 @@ try() {
     fi
 }
 
+tyy 3 "int a;int assignToGlobal(int num){a = num;}int main(){int a;a=3;assignToGlobal(5);return a;}"
+try 3 "int a[10];int main(){a[1] = 3; return a[1];}"
+try 3 "int a;int main(){a = 3; return a;}"
 try 3 "int ga; int* gb; int gc[3];int main(){int a; a = 3; return a;}"
 try 3 "int main(){int y0[10];int y1[10];int* x[2];x[0] = y0;x[1] = y1;x[1][3] = 3;return x[1][3];}"
 try 3 "int main(){int a[10];a[1] = 3;return a[1];}"

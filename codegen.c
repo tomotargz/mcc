@@ -12,10 +12,15 @@ static void generate(Node* node);
 void generateAddress(Node* node)
 {
     if (node->kind == NODE_VARIABLE) {
-        printf("  mov rax, rbp\n");
-        printf("  sub rax, %d\n", node->variable->offset);
-        printf("  push rax\n");
-        return;
+        if (node->variable->isGlobal) {
+            printf("  push offset %s\n", node->variable->name);
+            return;
+        } else {
+            printf("  mov rax, rbp\n");
+            printf("  sub rax, %d\n", node->variable->offset);
+            printf("  push rax\n");
+            return;
+        }
     }
 
     if (node->kind == NODE_DEREF) {
@@ -264,11 +269,25 @@ void generateFunction(Function* function)
     printf("  ret\n");
 }
 
-void generateFunctions(Function* functions)
+void generateGlobalVariable(Variable* variable)
+{
+    printf("%s:\n", variable->name);
+    if (variable->type->kind == TYPE_ARRAY) {
+        printf("  .zero %d\n", variable->type->arraySize * 8);
+    } else {
+        printf("  .zero %d\n", 8);
+    }
+}
+
+void generateCode(Program* program)
 {
     printf(".intel_syntax noprefix\n");
-
-    for (Function* function = functions; function; function = function->next) {
-        generateFunction(function);
+    printf(".data\n");
+    for (Variable* v = program->globalVariables; v; v = v->next) {
+        generateGlobalVariable(v);
+    }
+    printf(".text\n");
+    for (Function* f = program->functions; f; f = f->next) {
+        generateFunction(f);
     }
 }

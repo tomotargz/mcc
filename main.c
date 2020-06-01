@@ -11,6 +11,6 @@ int main(int argc, char** argv)
     char* source = argv[1];
     Token* tokens = tokenize(source);
     Program* program = parse(tokens);
-    generateFunctions(program->functions);
+    generateCode(program);
     return 0;
 }

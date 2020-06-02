@@ -474,6 +474,7 @@ int getStackSize()
 Function* function(Type* type, char* name)
 {
     localVariablesHead.next = NULL;
+    localVariablesTail = &localVariablesHead;
     Function* func = calloc(1, sizeof(Function));
     func->name = name;
     if (!consume(")")) {

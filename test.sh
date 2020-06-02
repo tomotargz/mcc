@@ -23,7 +23,7 @@ try() {
     fi
 }
 
-tyy 3 "int a;int assignToGlobal(int num){a = num;}int main(){int a;a=3;assignToGlobal(5);return a;}"
+try 3 "int a;int assignToGlobal(int num){a = num;}int main(){int a;a=3;assignToGlobal(5);return a;}"
 try 3 "int a[10];int main(){a[1] = 3; return a[1];}"
 try 3 "int a;int main(){a = 3; return a;}"
 try 3 "int ga; int* gb; int gc[3];int main(){int a; a = 3; return a;}"

@@ -23,6 +23,8 @@ try() {
     fi
 }
 
+try 3 "int main(){char a;a=3;return a;}"
+try 3 "int main(){char a[10];a[3]=3;return a[3];}"
 try 3 "int a;int assignToGlobal(int num){a = num;}int main(){int a;a=3;assignToGlobal(5);return a;}"
 try 3 "int a[10];int main(){a[1] = 3; return a[1];}"
 try 3 "int a;int main(){a = 3; return a;}"

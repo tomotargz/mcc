@@ -1,6 +1,6 @@
 // program = (globalVariable | function)*
 // function = basetype ident "(" params? ")" "{" stmt* "}"
-// basetype = "int" "*"*
+// basetype = ("int" | "char") "*"*
 // params   = param ("," param)*
 // param    = basetype ident
 // stmt = "return" expr ";"
@@ -202,11 +202,7 @@ Node* unary()
     } else if (consume("sizeof")) {
         Node* node = expr();
         addType(node);
-        if (node->type->kind == TYPE_INT) {
-            return newNodeNum(8);
-        } else {
-            return newNodeNum(8);
-        }
+        return newNodeNum(8);
     }
     return postfix();
 }
@@ -230,11 +226,14 @@ Node* newAdd(Node* lhs, Node* rhs)
 {
     addType(lhs);
     addType(rhs);
-    if (lhs->type->kind == TYPE_INT && rhs->type->kind == TYPE_INT) {
+    TypeKind lType = lhs->type->kind;
+    TypeKind rType = rhs->type->kind;
+    if ((lType == TYPE_INT || lType == TYPE_CHAR)
+        && (rType == TYPE_INT || rType == TYPE_CHAR)) {
         return newNode(NODE_ADDITION, lhs, rhs);
     }
-    if ((lhs->type->kind == TYPE_POINTER || lhs->type->kind == TYPE_ARRAY)
-        && rhs->type->kind == TYPE_INT) {
+    if ((lType == TYPE_POINTER || lType == TYPE_ARRAY)
+        && (rType == TYPE_INT || rType == TYPE_CHAR)) {
         return newNode(NODE_POINTER_ADDITION, lhs, rhs);
     }
     error("invalid addition");
@@ -245,11 +244,14 @@ Node* newSub(Node* lhs, Node* rhs)
 {
     addType(lhs);
     addType(rhs);
-    if (lhs->type->kind == TYPE_INT && rhs->type->kind == TYPE_INT) {
+    TypeKind lType = lhs->type->kind;
+    TypeKind rType = rhs->type->kind;
+    if ((lType == TYPE_INT || lType == TYPE_CHAR)
+        && (rType == TYPE_INT || rType == TYPE_CHAR)) {
         return newNode(NODE_SUBTRACTION, lhs, rhs);
     }
-    if ((lhs->type->kind == TYPE_POINTER || lhs->type->kind == TYPE_ARRAY)
-        && rhs->type->kind == TYPE_INT) {
+    if ((lType == TYPE_POINTER || lType == TYPE_ARRAY)
+        && (rType == TYPE_INT || rType == TYPE_CHAR)) {
         return newNode(NODE_POINTER_SUBTRACTION, lhs, rhs);
     }
     error("invalid subtraction");
@@ -368,7 +370,7 @@ Node* declaration()
 Node* statement()
 {
     Node* node = NULL;
-    if (peek("int")) {
+    if (peek("int") || peek("char")) {
         node = declaration();
     } else if (consume("return")) {
         node = newNode(NODE_RETURN, expr(), NULL);
@@ -422,14 +424,18 @@ Node* statement()
     return node;
 }
 
-Type INT_TYPE = { TYPE_INT, NULL };
-
-// basetype = "int" "*"*
+// basetype = ("int" | "char") "*"*
 Type* basetype()
 {
-    expect("int");
-
-    Type* type = &INT_TYPE;
+    Type* type;
+    if (consume("int")) {
+        type = &INT_TYPE;
+    } else if (consume("char")) {
+        type = &CHAR_TYPE;
+    } else {
+        error("unexpected basetype");
+        return NULL;
+    }
     while (consume("*")) {
         type = pointerTo(type);
     }

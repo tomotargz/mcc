@@ -1,8 +1,11 @@
 #ifndef TYPE_H
 #define TYPE_H
 
+#include <stddef.h>
+
 typedef enum TypeKind {
     TYPE_INT,
+    TYPE_CHAR,
     TYPE_POINTER,
     TYPE_ARRAY,
     TYPE_NO
@@ -14,6 +17,9 @@ typedef struct Type {
     struct Type* arrayOf;
     int arraySize;
 } Type;
+
+static Type INT_TYPE = {TYPE_INT, NULL, NULL, 0};
+static Type CHAR_TYPE = {TYPE_CHAR, NULL, NULL, 0};
 
 Type* pointerTo(Type* to);
 Type* arrayOf(Type* type, int size);

@@ -203,7 +203,10 @@ void generate(Node* node)
 
 int size(Node* node)
 {
+    // return 8 regardless of type temporary
     if (node->type->kind == TYPE_INT) {
+        return 8;
+    } else if (node->type->kind == TYPE_INT) {
         return 8;
     } else if (node->type->kind == TYPE_POINTER) {
         return 8;

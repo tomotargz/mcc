@@ -187,6 +187,19 @@ Node* postfix()
     return node;
 }
 
+static int size(Type* type)
+{
+    if (type->kind == TYPE_INT) {
+        return 4;
+    } else if (type->kind == TYPE_POINTER) {
+        return 8;
+    } else if (type->kind == TYPE_ARRAY) {
+        return size(type->arrayOf) * type->arraySize;
+    }
+    error("invalid type");
+    return 0;
+}
+
 // unary = ("+" | "-" | "*" | "&" | "sizeof")? unary
 //       | postfix
 Node* unary()
@@ -202,7 +215,7 @@ Node* unary()
     } else if (consume("sizeof")) {
         Node* node = expr();
         addType(node);
-        return newNodeNum(8);
+        return newNodeNum(size(node->type));
     }
     return postfix();
 }

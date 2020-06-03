@@ -41,12 +41,12 @@ static Variable* localVariablesTail = &localVariablesHead;
 static Variable globalVariablesHead = { "head", 0, NULL };
 static Variable* globalVariablesTail = &globalVariablesHead;
 
-Node* expr();
-Type* basetype();
-Node* newAdd(Node* lhs, Node* rhs);
-Node* newSub(Node* lhs, Node* rhs);
+static Node* expr();
+static Type* basetype();
+static Node* newAdd(Node* lhs, Node* rhs);
+static Node* newSub(Node* lhs, Node* rhs);
 
-Token* consume(char* str)
+static Token* consume(char* str)
 {
     if (rp->kind != TOKEN_RESERVED
         || strlen(rp->str) != strlen(str)
@@ -58,7 +58,7 @@ Token* consume(char* str)
     return result;
 }
 
-void expect(char* str)
+static void expect(char* str)
 {
     if (rp->kind != TOKEN_RESERVED
         || strlen(rp->str) != strlen(str)
@@ -68,7 +68,7 @@ void expect(char* str)
     rp = rp->next;
 }
 
-int expectNumber()
+static int expectNumber()
 {
     if (rp->kind != TOKEN_NUMBER)
         error("unexpected non number token");
@@ -77,7 +77,7 @@ int expectNumber()
     return val;
 }
 
-char* expectIdentifier()
+static char* expectIdentifier()
 {
     if (rp->kind != TOKEN_IDENTIFIER) {
         error("invalid token");
@@ -87,14 +87,14 @@ char* expectIdentifier()
     return name;
 }
 
-bool peek(char* str)
+static bool peek(char* str)
 {
     return rp->kind == TOKEN_RESERVED
         && strlen(rp->str) == strlen(str)
         && strncmp(rp->str, str, strlen(rp->str)) == 0;
 }
 
-Variable* variable(char* str)
+static Variable* variable(char* str)
 {
     for (Variable* v = localVariablesHead.next; v; v = v->next) {
         if (strncmp(v->name, str, strlen(str)) == 0) {
@@ -110,7 +110,7 @@ Variable* variable(char* str)
     return NULL;
 }
 
-Token* consumeIdentifier()
+static Token* consumeIdentifier()
 {
     if (rp->kind == TOKEN_IDENTIFIER) {
         Token* identifier = rp;
@@ -120,14 +120,14 @@ Token* consumeIdentifier()
     return NULL;
 }
 
-Node* identifier()
+static Node* identifier()
 {
     Node* node = newNodeVariable(variable(rp->str));
     rp = rp->next;
     return node;
 }
 
-void functionArguments(Node* function)
+static void functionArguments(Node* function)
 {
     Node dummy = {};
     Node* tail = &dummy;
@@ -144,7 +144,7 @@ void functionArguments(Node* function)
 // // | identifier
 // // | call
 // primary = "(" expr ")" | ident func-args? | num
-Node* primary()
+static Node* primary()
 {
     if (rp->kind == TOKEN_NUMBER) {
         return newNodeNum(expectNumber());
@@ -175,7 +175,7 @@ Node* primary()
 }
 
 // postfix = primary ("[" expr "]")*
-Node* postfix()
+static Node* postfix()
 {
     Node* node = primary();
     while (consume("[")) {
@@ -202,7 +202,7 @@ static int size(Type* type)
 
 // unary = ("+" | "-" | "*" | "&" | "sizeof")? unary
 //       | postfix
-Node* unary()
+static Node* unary()
 {
     if (consume("+")) {
         return unary();
@@ -221,7 +221,7 @@ Node* unary()
 }
 
 // mul = unary ("*" unary | "/" unary)*
-Node* mul()
+static Node* mul()
 {
     Node* node = unary();
     for (;;) {
@@ -235,7 +235,7 @@ Node* mul()
     }
 }
 
-Node* newAdd(Node* lhs, Node* rhs)
+static Node* newAdd(Node* lhs, Node* rhs)
 {
     addType(lhs);
     addType(rhs);
@@ -253,7 +253,7 @@ Node* newAdd(Node* lhs, Node* rhs)
     return NULL;
 }
 
-Node* newSub(Node* lhs, Node* rhs)
+static Node* newSub(Node* lhs, Node* rhs)
 {
     addType(lhs);
     addType(rhs);
@@ -272,7 +272,7 @@ Node* newSub(Node* lhs, Node* rhs)
 }
 
 // add = mul ("+" mul | "-" mul)*
-Node* add()
+static Node* add()
 {
     Node* node = mul();
     for (;;) {
@@ -287,7 +287,7 @@ Node* add()
 }
 
 // relational = add ("<" add | "<=" add | ">" add | ">=" add)*
-Node* relational()
+static Node* relational()
 {
     Node* node = add();
     for (;;) {
@@ -306,7 +306,7 @@ Node* relational()
 }
 
 // equality = relational ("==" relational | "!=" relational)*
-Node* equality()
+static Node* equality()
 {
     Node* node = relational();
     for (;;) {
@@ -321,7 +321,7 @@ Node* equality()
 }
 
 // assign = equality ("=" assign)?
-Node* assign()
+static Node* assign()
 {
     Node* node = equality();
     if (consume("=")) {
@@ -331,12 +331,12 @@ Node* assign()
 }
 
 // expr = assign
-Node* expr()
+static Node* expr()
 {
     return assign();
 }
 
-Variable* declarateLocalVariable(Type* type, char* name)
+static Variable* declarateLocalVariable(Type* type, char* name)
 {
     for (Variable* v = localVariablesHead.next; v; v = v->next) {
         if (strcmp(v->name, name) == 0) {
@@ -359,7 +359,7 @@ Variable* declarateLocalVariable(Type* type, char* name)
 }
 
 // declaration = basetype ident ("[" arraySize "]")? ";"
-Node* declaration()
+static Node* declaration()
 {
     Type* type = basetype();
     char* name = expectIdentifier();
@@ -380,7 +380,7 @@ Node* declaration()
 //       | "{" stmt* "}"
 //       | declaration
 //       | expr ";"
-Node* statement()
+static Node* statement()
 {
     Node* node = NULL;
     if (peek("int") || peek("char")) {
@@ -438,7 +438,7 @@ Node* statement()
 }
 
 // basetype = ("int" | "char") "*"*
-Type* basetype()
+static Type* basetype()
 {
     Type* type;
     if (consume("int")) {
@@ -456,7 +456,7 @@ Type* basetype()
 }
 
 // param    = basetype ident
-Node* param()
+static Node* param()
 {
     Type* type = basetype();
     char* name = expectIdentifier();
@@ -467,7 +467,7 @@ Node* param()
 }
 
 // params   = param ("," param)*
-Node* params()
+static Node* params()
 {
     Node head = {};
     Node* tail = &head;
@@ -480,7 +480,7 @@ Node* params()
     return head.next;
 }
 
-int getStackSize()
+static int getStackSize()
 {
     Variable* tail = &localVariablesHead;
     while (tail->next) {
@@ -490,7 +490,7 @@ int getStackSize()
 }
 
 // function = basetype ident "(" params? ")" "{" stmt* "}"
-Function* function(Type* type, char* name)
+static Function* function(Type* type, char* name)
 {
     localVariablesHead.next = NULL;
     localVariablesTail = &localVariablesHead;
@@ -514,7 +514,7 @@ Function* function(Type* type, char* name)
     return func;
 }
 
-Variable* declarateGlobalVariable(Type* type, char* name)
+static Variable* declarateGlobalVariable(Type* type, char* name)
 {
     for (Variable* v = globalVariablesHead.next; v; v = v->next) {
         if (strcmp(v->name, name) == 0) {
@@ -532,7 +532,7 @@ Variable* declarateGlobalVariable(Type* type, char* name)
 }
 
 // program = (globalVariable | function)*
-Program* program()
+static Program* program()
 {
     Function dummyFunction = {};
     Function* functionTail = &dummyFunction;

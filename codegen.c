@@ -9,7 +9,7 @@ static int tag = 0;
 static void generate(Node* node);
 
 // push the local variable's address to the stack
-void generateAddress(Node* node)
+static void generateAddress(Node* node)
 {
     if (node->kind == NODE_LOCAL_VARIABLE) {
         printf("  mov rax, rbp\n");
@@ -32,7 +32,7 @@ void generateAddress(Node* node)
 }
 
 // generate code that pushes the evaluated value to the top of the stack
-void generate(Node* node)
+static void generate(Node* node)
 {
     if (node->kind == NODE_NULL) {
         return;
@@ -201,7 +201,7 @@ void generate(Node* node)
     printf("  push rax\n");
 }
 
-int size(Node* node)
+static int size(Node* node)
 {
     // return 8 regardless of type temporary
     if (node->type->kind == TYPE_INT) {
@@ -215,7 +215,7 @@ int size(Node* node)
     return 8;
 }
 
-void generateFunction(Function* function)
+static void generateFunction(Function* function)
 {
     printf(".global %s\n", function->name);
     printf("%s:\n", function->name);
@@ -260,7 +260,7 @@ void generateFunction(Function* function)
     printf("  ret\n");
 }
 
-void generateGlobalVariable(Variable* variable)
+static void generateGlobalVariable(Variable* variable)
 {
     printf("%s:\n", variable->name);
     if (variable->type->kind == TYPE_ARRAY) {

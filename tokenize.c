@@ -7,25 +7,25 @@
 #include "error.h"
 #include "tokenize.h"
 
-bool startsWith(char* a, char* b)
+static bool startsWith(char* a, char* b)
 {
     return memcmp(a, b, strlen(b)) == 0;
 }
 
-Token* newToken(TokenKind kind)
+static Token* newToken(TokenKind kind)
 {
     Token* token = calloc(1, sizeof(Token));
     token->kind = kind;
     return token;
 }
 
-Token* append(Token* tail, Token* token)
+static Token* append(Token* tail, Token* token)
 {
     tail->next = token;
     return token;
 }
 
-char* startsWithReserved(char* str)
+static char* startsWithReserved(char* str)
 {
     static char* KEYWORD[] = {
         "return", "if", "else", "while", "for", "int", "char", "sizeof"

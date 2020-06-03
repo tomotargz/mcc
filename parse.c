@@ -187,19 +187,6 @@ static Node* postfix()
     return node;
 }
 
-static int size(Type* type)
-{
-    if (type->kind == TYPE_INT) {
-        return 4;
-    } else if (type->kind == TYPE_POINTER) {
-        return 8;
-    } else if (type->kind == TYPE_ARRAY) {
-        return size(type->arrayOf) * type->arraySize;
-    }
-    error("invalid type");
-    return 0;
-}
-
 // unary = ("+" | "-" | "*" | "&" | "sizeof")? unary
 //       | postfix
 static Node* unary()
@@ -348,11 +335,7 @@ static Variable* declarateLocalVariable(Type* type, char* name)
     v->name = name;
     v->type = type;
     v->isGlobal = false;
-    if (type->kind == TYPE_ARRAY) {
-        v->offset = localVariablesTail->offset + type->arraySize * 8;
-    } else {
-        v->offset = localVariablesTail->offset + 8;
-    }
+    v->offset = localVariablesTail->offset + size(type);
     localVariablesTail->next = v;
     localVariablesTail = localVariablesTail->next;
     return v;
@@ -511,6 +494,7 @@ static Function* function(Type* type, char* name)
     func->statements = head.next;
     func->localVariables = localVariablesHead.next;
     func->stackSize = getStackSize();
+    addType(func->statements);
     return func;
 }
 

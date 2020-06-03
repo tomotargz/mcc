@@ -18,3 +18,18 @@ Type* arrayOf(Type* type, int size)
     array->arraySize = size;
     return array;
 }
+
+int size(Type* type)
+{
+    if (type->kind == TYPE_INT) {
+        return 4;
+    } else if (type->kind == TYPE_POINTER) {
+        return 8;
+    } else if (type->kind == TYPE_ARRAY) {
+        return size(type->arrayOf) * type->arraySize;
+    } else if (type->kind == TYPE_CHAR) {
+        return 1;
+    }
+    error("invalid type");
+    return 0;
+}

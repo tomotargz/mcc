@@ -23,5 +23,6 @@ static Type CHAR_TYPE = {TYPE_CHAR, NULL, NULL, 0};
 
 Type* pointerTo(Type* to);
 Type* arrayOf(Type* type, int size);
+int size(Type* type);
 
 #endif

@@ -168,12 +168,18 @@ static void generate(Node* node)
     } else if (node->kind == NODE_SUBTRACTION) {
         printf("  sub rax, rdi\n");
     } else if (node->kind == NODE_POINTER_ADDITION) {
-        printf("  imul rdi, 8\n");
-        printf("  imul rdi, 8\n");
+        if (node->type->kind == TYPE_ARRAY) {
+            printf("  imul rdi, %d\n", size(node->type->arrayOf));
+        } else {
+            printf("  imul rdi, %d\n", size(node->type->pointerTo));
+        }
         printf("  add rax, rdi\n");
     } else if (node->kind == NODE_POINTER_SUBTRACTION) {
-        printf("  imul rdi, 8\n");
-        printf("  imul rdi, 8\n");
+        if (node->type->kind == TYPE_ARRAY) {
+            printf("  imul rdi, %d\n", size(node->type->arrayOf));
+        } else {
+            printf("  imul rdi, %d\n", size(node->type->pointerTo));
+        }
         printf("  sub rax, rdi\n");
     } else if (node->kind == NODE_MULTIPLICATION) {
         printf("  imul rax, rdi\n");
@@ -201,18 +207,27 @@ static void generate(Node* node)
     printf("  push rax\n");
 }
 
-static int size(Node* node)
+static char* parameterRegister(int size, int index)
 {
-    // return 8 regardless of type temporary
-    if (node->type->kind == TYPE_INT) {
-        return 8;
-    } else if (node->type->kind == TYPE_INT) {
-        return 8;
-    } else if (node->type->kind == TYPE_POINTER) {
-        return 8;
+    static char* ARG_REG1[] = {
+        "al", "sil", "dl", "cl", "r8b", "r9b"
+    };
+    static char* ARG_REG4[] = {
+        "edi", "esi", "edx", "ecx", "r8d", "r9d"
+    };
+    static char* ARG_REG8[] = {
+        "rdi", "rsi", "rdx", "rcx", "r8", "r9"
+    };
+    if (size == 1) {
+        return ARG_REG1[index];
+    } else if (size == 4) {
+        return ARG_REG4[index];
+    } else if (size == 8) {
+        return ARG_REG8[index];
+    } else {
+        error("invalid size");
     }
-    error("unexpected type");
-    return 8;
+    return NULL;
 }
 
 static void generateFunction(Function* function)
@@ -228,16 +243,13 @@ static void generateFunction(Function* function)
     // copy params to stack
     printf("# push params to stack\n");
     Node* param = function->params;
-    static char* ARG_REG[] = {
-        "rdi", "rsi", "rdx", "rcx", "r8", "r9"
-    };
     int i = 0;
     int totalParamSize = 0;
     for (; param; param = param->next, ++i) {
-        int paramSize = size(param);
+        int paramSize = size(param->type);
         totalParamSize += paramSize;
         printf("  sub rsp, %d\n", paramSize);
-        printf("  mov [rsp], %s\n", ARG_REG[i]);
+        printf("  mov [rsp], %s\n", parameterRegister(size(param->type), i));
     }
 
     // extend stack for local variable

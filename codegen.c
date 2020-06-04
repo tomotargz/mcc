@@ -31,6 +31,23 @@ static void generateAddress(Node* node)
     error("invalid node");
 }
 
+// Change the top of stack from address to value
+static void load(Type* type)
+{
+    printf("  pop rax\n");
+    int byte = size(type);
+    if (byte == 1) {
+        printf("  movsx rax, byte ptr [rax]\n");
+    } else if (byte == 2) {
+        printf("  movsx rax, word ptr [rax]\n");
+    } else if (byte == 4) {
+        printf("  movsx rax, dword ptr [rax]\n");
+    } else if (byte == 8) {
+        printf("  mov rax, [rax]\n");
+    }
+    printf("  push rax\n");
+}
+
 // generate code that pushes the evaluated value to the top of the stack
 static void generate(Node* node)
 {
@@ -45,9 +62,7 @@ static void generate(Node* node)
         if (node->variable->type->kind == TYPE_ARRAY) {
             return;
         }
-        printf("  pop rax\n");
-        printf("  mov rax, [rax]\n");
-        printf("  push rax\n");
+        load(node->type);
         return;
     } else if (node->kind == NODE_ASSIGNMENT) {
         generateAddress(node->lhs);
@@ -151,9 +166,7 @@ static void generate(Node* node)
         return;
     } else if (node->kind == NODE_DEREF) {
         generate(node->lhs);
-        printf("  pop rax\n");
-        printf("  mov rax, [rax]\n");
-        printf("  push rax\n");
+        load(node->type);
         return;
     }
 
@@ -275,11 +288,7 @@ static void generateFunction(Function* function)
 static void generateGlobalVariable(Variable* variable)
 {
     printf("%s:\n", variable->name);
-    if (variable->type->kind == TYPE_ARRAY) {
-        printf("  .zero %d\n", variable->type->arraySize * 8);
-    } else {
-        printf("  .zero %d\n", 8);
-    }
+    printf("  .zero %d\n", size(variable->type));
 }
 
 void generateCode(Program* program)

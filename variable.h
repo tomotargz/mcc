@@ -10,6 +10,7 @@ struct Variable {
     int offset;
     Type* type;
     bool isGlobal;
+    char* string;
     Variable* next;
 };
 

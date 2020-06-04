@@ -19,12 +19,13 @@
 // unary = ("+" | "-" | "*" | "&" | "sizeof")? unary
 //       | postfix
 // postfix = primary ("[" expr "]")*
-// primary = "(" expr ")" | ident func-args? | num
+// primary = "(" expr ")" | ident func-args? | num | string
 // func-args = "(" (assign ("," assign)*)? ")"
 // declaration = basetype ident ("[" arraySize "]")? ("=" expr)? ";"
 
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -45,6 +46,7 @@ static Node* expr();
 static Type* basetype();
 static Node* newAdd(Node* lhs, Node* rhs);
 static Node* newSub(Node* lhs, Node* rhs);
+static Variable* declarateGlobalVariable(Type* type, char* name);
 
 static Token* consume(char* str)
 {
@@ -139,6 +141,14 @@ static void functionArguments(Node* function)
     function->args = dummy.next;
 }
 
+static char* stringLabel()
+{
+    static int tag = 0;
+    char* label = calloc(20, sizeof(char));
+    sprintf(label, "str.literal.%d", tag++);
+    return label;
+}
+
 // // primary = num
 // // | "(" expr ")"
 // // | identifier
@@ -167,6 +177,16 @@ static Node* primary()
         }
         // Variable
         Node* node = newNodeVariable(variable(identifier->str));
+        return node;
+    }
+
+    if (rp->kind == TOKEN_STRING) {
+        char* label = stringLabel();
+        Type* type = arrayOf(&CHAR_TYPE, strlen(rp->str));
+        declarateGlobalVariable(type, label);
+        globalVariablesTail->string = rp->str;
+        Node* node = newNodeVariable(variable(label));
+        rp = rp->next;
         return node;
     }
 

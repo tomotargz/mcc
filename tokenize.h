@@ -5,6 +5,7 @@ typedef enum {
     TOKEN_RESERVED,
     TOKEN_IDENTIFIER,
     TOKEN_NUMBER,
+    TOKEN_STRING,
     TOKEN_EOF
 } TokenKind;
 

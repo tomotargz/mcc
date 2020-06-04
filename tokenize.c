@@ -94,6 +94,20 @@ Token* tokenize(char* source)
             tail = append(tail, token);
             continue;
         }
+
+        if (*rp == '"') {
+            rp++;
+            int length = 0;
+            while (*(rp + length) != '"') {
+                length++;
+            }
+            Token* token = newToken(TOKEN_STRING);
+            token->str = calloc(length, sizeof(char));
+            strncpy(token->str, rp, length);
+            rp += length + 1;
+            tail = append(tail, token);
+            continue;
+        }
         error_at(rp, source, "Can't tokenize");
     }
     Token* token = newToken(TOKEN_EOF);

@@ -302,7 +302,13 @@ static void generateFunction(Function* function)
 static void generateGlobalVariable(Variable* variable)
 {
     printf("%s:\n", variable->name);
-    printf("  .zero %d\n", size(variable->type));
+    if (variable->string) {
+        for (char* c = variable->string; *c; c++) {
+            printf("  .byte %d\n", *c);
+        }
+    } else {
+        printf("  .zero %d\n", size(variable->type));
+    }
 }
 
 void generateCode(Program* program)

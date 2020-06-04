@@ -31,6 +31,23 @@ static void generateAddress(Node* node)
     error("invalid node");
 }
 
+static void store(Type* type)
+{
+    printf("  pop rdi\n");
+    printf("  pop rax\n");
+    int byte = size(type);
+    if (byte == 1) {
+        printf("  mov [rax], dil\n");
+    } else if (byte == 2) {
+        printf("  mov [rax], di\n");
+    } else if (byte == 4) {
+        printf("  mov [rax], edi\n");
+    } else if (byte == 8) {
+        printf("  mov [rax], rdi\n");
+    }
+    printf("  push rdi\n");
+}
+
 // Change the top of stack from address to value
 static void load(Type* type)
 {
@@ -67,10 +84,7 @@ static void generate(Node* node)
     } else if (node->kind == NODE_ASSIGNMENT) {
         generateAddress(node->lhs);
         generate(node->rhs);
-        printf("  pop rdi\n");
-        printf("  pop rax\n");
-        printf("  mov [rax], rdi\n");
-        printf("  push rdi\n");
+        store(node->type);
         return;
     } else if (node->kind == NODE_RETURN) {
         generate(node->lhs);

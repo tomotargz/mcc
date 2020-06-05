@@ -60,6 +60,15 @@ Token* tokenize(char* source)
     Token* tail = &dummy;
     char* rp = source;
     while (*rp) {
+        if (startsWith(rp, "/*")) {
+            rp += 2;
+            while (!startsWith(rp, "*/")) {
+                rp++;
+            }
+            rp += 2;
+            continue;
+        }
+
         if (isspace(*rp)) {
             rp++;
             continue;

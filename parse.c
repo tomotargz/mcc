@@ -19,7 +19,11 @@
 // unary = ("+" | "-" | "*" | "&" | "sizeof")? unary
 //       | postfix
 // postfix = primary ("[" expr "]")*
-// primary = "(" expr ")" | ident func-args? | num | string
+// primary = "(" "{" expressionStatement "}" ")"
+//       | "(" expr ")"
+//       | ident func-args?
+//       | num
+//       | string
 // func-args = "(" (assign ("," assign)*)? ")"
 // declaration = basetype ident ("[" arraySize "]")? ("=" expr)? ";"
 
@@ -47,6 +51,7 @@ static Type* basetype();
 static Node* newAdd(Node* lhs, Node* rhs);
 static Node* newSub(Node* lhs, Node* rhs);
 static Variable* declarateGlobalVariable(Type* type, char* name);
+static Node* statement();
 
 static Token* consume(char* str)
 {
@@ -149,21 +154,38 @@ static char* stringLabel()
     return label;
 }
 
-// // primary = num
-// // | "(" expr ")"
-// // | identifier
-// // | call
-// primary = "(" expr ")" | ident func-args? | num
+static Node* expressionStatement()
+{
+    Node* node = newNode(NODE_BLOCK, NULL, NULL);
+    Node dummy = {};
+    Node* tail = &dummy;
+    while (!consume("}")) {
+        tail->next = statement();
+        tail = tail->next;
+    }
+    node->statements = dummy.next;
+    expect(")");
+    return node;
+}
+
+// primary = "(" "{" expressionStatement "}" ")"
+//       | "(" expr ")"
+//       | ident func-args?
+//       | num
+//       | string
 static Node* primary()
 {
-    if (rp->kind == TOKEN_NUMBER) {
-        return newNodeNum(expectNumber());
-    }
-
     if (consume("(")) {
+        if (consume("{")) {
+            return expressionStatement();
+        }
         Node* node = expr();
         expect(")");
         return node;
+    }
+
+    if (rp->kind == TOKEN_NUMBER) {
+        return newNodeNum(expectNumber());
     }
 
     Token* identifier = consumeIdentifier();

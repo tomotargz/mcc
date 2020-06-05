@@ -25,6 +25,7 @@ try() {
     fi
 }
 
+try 3 "int main(){return ({int a;a=3;a;});}"
 try 3 "int main(){return /*comment*/ 3;}"
 try 3 "int main(){myPrintf(\"my first printf\");return 3;}"
 try 105 "int main(){char* s;s = \"string\";return s[3];}"

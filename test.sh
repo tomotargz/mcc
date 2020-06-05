@@ -1,9 +1,11 @@
 #!/bin/bash
 cat <<EOF | gcc -xc -c -o tmp2.o -
+#include <stdio.h>
 int func1() { return 3; }
 int func2(int a, int b, int c, int d, int e, int f) { return a+b+c+d+e+f; }
 int* array(){static int a[] = {0,1,2,3,4};return a;}
 int** array2d(){static int a[] = {0,1};static int b[] = {1,2};static int c[] = {2,3};static int* d[] = {a,b,c};return d;}
+void myPrintf(char* str){printf("%s\n",str);}
 EOF
 
 try() {
@@ -23,6 +25,7 @@ try() {
     fi
 }
 
+try 3 "int main(){myPrintf(\"my first printf\");return 3;}"
 try 105 "int main(){char* s;s = \"string\";return s[3];}"
 try 105 "int main(){return \"string\"[3];}"
 try 3 "int main(){char a;char b;a=1;b=2;return (a+b);}"

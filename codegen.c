@@ -160,6 +160,9 @@ static void generate(Node* node)
         for (int i = argNum; i > 0; --i) {
             printf("  pop %s\n", ARG_REG[i - 1]);
         }
+        // Tell function that takes variadic arguments that there are no float
+        // arguments
+        printf("  mov al, 0\n");
         // 16byte align
         printf("  mov rax, rsp\n");
         printf("  and rax, 15\n");

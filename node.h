@@ -28,6 +28,7 @@ typedef enum {
     NODE_CALL,
     NODE_ADDR,
     NODE_DEREF,
+    NODE_STATEMENT_EXPRESSION,
     NODE_NULL,
 } NodeKind;
 

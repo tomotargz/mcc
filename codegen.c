@@ -70,6 +70,10 @@ static void generate(Node* node)
 {
     if (node->kind == NODE_NULL) {
         return;
+    } else if (node->kind == NODE_STATEMENT_EXPRESSION) {
+        generate(node->lhs);
+        printf("  add rsp, 8\n");
+        return;
     } else if (node->kind == NODE_NUMBER) {
         printf("  push %d\n", node->val);
         return;

@@ -6,10 +6,11 @@
 // stmt = "return" expr ";"
 //       | "if" "(" expr ")" stmt ("else" stmt)?
 //       | "while" "(" expr ")" stmt
-//       | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//       | "for" "(" stmtExpr? ";" expr? ";" stmtExpr? ")" stmt
 //       | "{" stmt* "}"
 //       | declaration
-//       | expr ";"
+//       | stmtExpr ";"
+// stmtExpr = expr
 // expr = assign
 // assign = equality ("=" assign)?
 // equality = relational ("==" relational | "!=" relational)*
@@ -398,13 +399,19 @@ static Node* declaration()
     return newNode(NODE_NULL, NULL, NULL);
 }
 
+// stmtExpr = expr
+static Node* statementExpression()
+{
+    return newNode(NODE_STATEMENT_EXPRESSION, expr(), NULL);
+}
+
 // stmt = "return" expr ";"
 //       | "if" "(" expr ")" stmt ("else" stmt)?
 //       | "while" "(" expr ")" stmt
-//       | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//       | "for" "(" stmtExpr? ";" expr? ";" stmtExpr? ")" stmt
 //       | "{" stmt* "}"
 //       | declaration
-//       | expr ";"
+//       | stmtExpr ";"
 static Node* statement()
 {
     Node* node = NULL;
@@ -434,7 +441,7 @@ static Node* statement()
         node = newNode(NODE_FOR, NULL, NULL);
         expect("(");
         if (!consume(";")) {
-            node->init = expr();
+            node->init = statementExpression();
             expect(";");
         }
         if (!consume(";")) {
@@ -442,7 +449,7 @@ static Node* statement()
             expect(";");
         }
         if (!consume(")")) {
-            node->inc = expr();
+            node->inc = statementExpression();
             expect(")");
         }
         node->body = statement();
@@ -456,7 +463,7 @@ static Node* statement()
         }
         node->statements = dummy.next;
     } else {
-        node = expr();
+        node = statementExpression();
         expect(";");
     }
     return node;

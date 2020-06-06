@@ -8,6 +8,6 @@ int assertEq(int expected, int actual)
 
 int main()
 {
-    assertEq(1,({int aaaa;aaaa = 2;aaaa;}));
+    assertEq(1, ({int a;a = 1;a; }));
     return 3;
 }

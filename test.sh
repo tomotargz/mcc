@@ -8,25 +8,15 @@ int** array2d(){static int a[] = {0,1};static int b[] = {1,2};static int c[] = {
 void myPrintf(char* str){printf("%s\n",str);}
 EOF
 
-try() {
-    expected="$1"
-    input="$2"
+test() {
+    input="$1"
 
     ./mcc "$input" > tmp.s
     gcc -static -O0 -o tmp tmp.s tmp2.o
     ./tmp
-    actual="$?"
-
-    if [ "$actual" = "$expected" ]; then
-        echo "$input => $actual"
-    else
-        echo "$input => $expected expectd, but got $actual"
-        exit 1
-    fi
 }
 
-try 3 "test/test.c"
-echo OK
+test "test/test.c"
 exit 0
 
 try 3 "int main(){return ({int a;a=3;a;});}"

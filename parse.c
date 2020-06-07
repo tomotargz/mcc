@@ -159,11 +159,17 @@ static Node* expressionStatement()
 {
     Node* node = newNode(NODE_BLOCK, NULL, NULL);
     Node dummy = {};
-    Node* tail = &dummy;
+    Node* prev = NULL;
+    Node* curr = &dummy;
     while (!consume("}")) {
-        tail->next = statement();
-        tail = tail->next;
+        curr->next = statement();
+        prev = curr;
+        curr = curr->next;
     }
+    if (curr->kind != NODE_STATEMENT_EXPRESSION) {
+        error("expression statement must end with statement expression");
+    }
+    prev->next = curr->lhs;
     node->statements = dummy.next;
     expect(")");
     return node;

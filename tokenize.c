@@ -54,6 +54,29 @@ static char* startsWithReserved(char* str)
     return NULL;
 }
 
+char* decodeEscape(char* str)
+{
+    char* r = str;
+    char* w = str;
+    while (*r) {
+        if (*r == '\\') {
+            if (*(r + 1) == 'n') {
+                *w = '\n';
+            } else {
+                error("unsupported escape character");
+            }
+            w++;
+            r += 2;
+            continue;
+        }
+        *w = *r;
+        r++;
+        w++;
+    }
+    *w = '\0';
+    return str;
+}
+
 Token* tokenize(char* source)
 {
     Token dummy;
@@ -111,8 +134,10 @@ Token* tokenize(char* source)
                 length++;
             }
             Token* token = newToken(TOKEN_STRING);
-            token->str = calloc(length, sizeof(char));
-            strncpy(token->str, rp, length);
+            char* str = calloc(length, sizeof(char));
+            strncpy(str, rp, length);
+            str = decodeEscape(str);
+            token->str = str;
             rp += length + 1;
             tail = append(tail, token);
             continue;

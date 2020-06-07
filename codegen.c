@@ -5,6 +5,7 @@
 #include "parse.h"
 
 static int tag = 0;
+static char* functionName;
 
 static void generate(Node* node);
 
@@ -93,9 +94,7 @@ static void generate(Node* node)
     } else if (node->kind == NODE_RETURN) {
         generate(node->lhs);
         printf("  pop rax\n");
-        printf("  mov rsp, rbp\n");
-        printf("  pop rbp\n");
-        printf("  ret\n");
+        printf("  jmp .L.return.%s\n", functionName);
         return;
     } else if (node->kind == NODE_IF) {
         int t = tag++;
@@ -266,6 +265,7 @@ static char* parameterRegister(int size, int index)
 
 static void generateFunction(Function* function)
 {
+    functionName = function->name;
     printf(".global %s\n", function->name);
     printf("%s:\n", function->name);
 

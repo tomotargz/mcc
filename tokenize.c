@@ -134,7 +134,7 @@ Token* tokenize(char* source)
                 length++;
             }
             Token* token = newToken(TOKEN_STRING);
-            char* str = calloc(length, sizeof(char));
+            char* str = calloc(length + 1, sizeof(char));
             strncpy(str, rp, length);
             str = decodeEscape(str);
             token->str = str;

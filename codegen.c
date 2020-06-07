@@ -313,6 +313,7 @@ static void generateGlobalVariable(Variable* variable)
         for (char* c = variable->string; *c; c++) {
             printf("  .byte %d\n", *c);
         }
+        printf("  .byte 0\n");
     } else {
         printf("  .zero %d\n", size(variable->type));
     }

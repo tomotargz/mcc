@@ -104,12 +104,7 @@ static bool peek(char* str)
 
 static Variable* variable(char* str)
 {
-    for (VariableList* l = localVariables; l; l = l->next) {
-        if (strncmp(l->variable->name, str, strlen(str)) == 0) {
-            return l->variable;
-        }
-    }
-    for (VariableList* l = globalVariables; l; l = l->next) {
+    for (VariableList* l = scope; l; l = l->next) {
         if (strncmp(l->variable->name, str, strlen(str)) == 0) {
             return l->variable;
         }
@@ -374,12 +369,6 @@ static Node* expr()
 
 static Variable* declarateLocalVariable(Type* type, char* name)
 {
-    for (VariableList* list = localVariables; list; list = list->next) {
-        if (strcmp(list->variable->name, name) == 0) {
-            error("duplicated declaration of a local variable named %s", name);
-            return NULL;
-        }
-    }
     Variable* v = calloc(1, sizeof(Variable));
     v->name = name;
     v->type = type;
@@ -393,6 +382,10 @@ static Variable* declarateLocalVariable(Type* type, char* name)
     l->variable = v;
     l->next = localVariables;
     localVariables = l;
+    VariableList* ls = calloc(1, sizeof(VariableList));
+    ls->variable = v;
+    ls->next = scope;
+    scope = ls;
     return v;
 }
 
@@ -414,7 +407,10 @@ static Node* declaration()
 // stmtExpr = expr
 static Node* statementExpression()
 {
-    return newNode(NODE_STATEMENT_EXPRESSION, expr(), NULL);
+    VariableList* currentScope = scope;
+    Node* node = newNode(NODE_STATEMENT_EXPRESSION, expr(), NULL);
+    scope = currentScope;
+    return node;
 }
 
 // stmt = "return" expr ";"
@@ -466,6 +462,7 @@ static Node* statement()
         }
         node->body = statement();
     } else if (consume("{")) {
+        VariableList* currentScope = scope;
         node = newNode(NODE_BLOCK, NULL, NULL);
         Node dummy = {};
         Node* tail = &dummy;
@@ -474,6 +471,7 @@ static Node* statement()
             tail = tail->next;
         }
         node->statements = dummy.next;
+        scope = currentScope;
     } else {
         node = statementExpression();
         expect(";");
@@ -528,6 +526,7 @@ static Node* params()
 static Function* function(Type* type, char* name)
 {
     localVariables = NULL;
+    VariableList* currentScope = scope;
     Function* func = calloc(1, sizeof(Function));
     func->name = name;
     if (!consume(")")) {
@@ -546,17 +545,12 @@ static Function* function(Type* type, char* name)
     func->localVariables = localVariables;
     func->stackSize = localVariables->variable->offset;
     addType(func->statements);
+    scope = currentScope;
     return func;
 }
 
 static Variable* declarateGlobalVariable(Type* type, char* name)
 {
-    for (VariableList* list = globalVariables; list; list = list->next) {
-        if (strcmp(list->variable->name, name) == 0) {
-            error("duplicated declaration of a global variable named %s", name);
-            return NULL;
-        }
-    }
     Variable* v = calloc(1, sizeof(Variable));
     v->name = name;
     v->type = type;
@@ -565,6 +559,10 @@ static Variable* declarateGlobalVariable(Type* type, char* name)
     l->variable = v;
     l->next = globalVariables;
     globalVariables = l;
+    VariableList* ls = calloc(1, sizeof(VariableList));
+    ls->variable = v;
+    ls->next = scope;
+    scope = ls;
     return v;
 }
 

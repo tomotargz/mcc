@@ -17,7 +17,7 @@ int main()
     assertEq(3, ({int a;a = 3;a; }), "int a;a = 3;a;");
     assertEq(105, ({ "string"[3]; }), "\"string\"[3];");
     assertEq(105, ({char* s;s = "string";s[3]; }), "char* s;s = \"string\";s[3];");
-/*    assertEq(3, ({char a;char b;a = 1;b = 2;a + b; }), "char a;char b; a = 1; b = 2; a + b;");*/
+    assertEq(3, ({char a;char b;a = 1;b = 2;a + b; }), "char a;char b; a = 1; b = 2; a + b;");
     printf("OK\n");
     return 0;
 }

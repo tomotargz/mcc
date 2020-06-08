@@ -323,8 +323,8 @@ void generateCode(Program* program)
 {
     printf(".intel_syntax noprefix\n");
     printf(".data\n");
-    for (Variable* v = program->globalVariables; v; v = v->next) {
-        generateGlobalVariable(v);
+    for (VariableList* list = program->globalVariables; list; list = list->next) {
+        generateGlobalVariable(list->variable);
     }
     printf(".text\n");
     for (Function* f = program->functions; f; f = f->next) {

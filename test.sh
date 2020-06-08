@@ -19,11 +19,6 @@ test() {
 test "test/test.c"
 exit 0
 
-try 3 "int main(){return ({int a;a=3;a;});}"
-try 3 "int main(){return /*comment*/ 3;}"
-try 3 "int main(){myPrintf(\"my first printf\");return 3;}"
-try 105 "int main(){char* s;s = \"string\";return s[3];}"
-try 105 "int main(){return \"string\"[3];}"
 try 3 "int main(){char a;char b;a=1;b=2;return (a+b);}"
 try 3 "int main(){char c[2]; c[0] = -1;c[1] = 4;return c[0] + c[1];}"
 try 3 "int main(){char c[2]; c[0] = 1;c[1] = 2;return c[0] + c[1];}"

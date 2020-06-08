@@ -18,8 +18,8 @@ typedef struct Type {
     int arraySize;
 } Type;
 
-static Type INT_TYPE = {TYPE_INT, NULL, NULL, 0};
-static Type CHAR_TYPE = {TYPE_CHAR, NULL, NULL, 0};
+static Type INT_TYPE = { TYPE_INT, NULL, NULL, 0 };
+static Type CHAR_TYPE = { TYPE_CHAR, NULL, NULL, 0 };
 
 Type* pointerTo(Type* to);
 Type* arrayOf(Type* type, int size);

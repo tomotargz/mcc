@@ -1,10 +1,10 @@
 #ifndef PARSE_H
 #define PARSE_H
 
-#include "variable.h"
 #include "node.h"
 #include "tokenize.h"
 #include "type.h"
+#include "variable.h"
 
 typedef struct Function Function;
 struct Function {
@@ -12,12 +12,12 @@ struct Function {
     char* name;
     Node* params;
     Node* statements;
-    Variable* localVariables;
+    VariableList* localVariables;
     int stackSize;
 };
 
 typedef struct {
-    Variable* globalVariables;
+    VariableList* globalVariables;
     Function* functions;
 } Program;
 

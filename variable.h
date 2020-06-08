@@ -1,8 +1,8 @@
 #ifndef VARIABLE_H
 #define VARIABLE_H
 
-#include <stdbool.h>
 #include "type.h"
+#include <stdbool.h>
 
 typedef struct Variable Variable;
 struct Variable {
@@ -11,7 +11,11 @@ struct Variable {
     Type* type;
     bool isGlobal;
     char* string;
-    Variable* next;
 };
+
+typedef struct VariableList {
+    struct VariableList* next;
+    Variable* variable;
+} VariableList;
 
 #endif

@@ -39,13 +39,13 @@
 #include "parse.h"
 #include "tokenize.h"
 #include "type.h"
+#include "variable.h"
 
 static Token* rp = NULL;
 
-static Variable localVariablesHead = { "head", 0, NULL };
-static Variable* localVariablesTail = &localVariablesHead;
-static Variable globalVariablesHead = { "head", 0, NULL };
-static Variable* globalVariablesTail = &globalVariablesHead;
+static VariableList* globalVariables;
+static VariableList* localVariables;
+static VariableList* scope;
 
 static Node* expr();
 static Type* basetype();
@@ -104,14 +104,14 @@ static bool peek(char* str)
 
 static Variable* variable(char* str)
 {
-    for (Variable* v = localVariablesHead.next; v; v = v->next) {
-        if (strncmp(v->name, str, strlen(str)) == 0) {
-            return v;
+    for (VariableList* l = localVariables; l; l = l->next) {
+        if (strncmp(l->variable->name, str, strlen(str)) == 0) {
+            return l->variable;
         }
     }
-    for (Variable* v = globalVariablesHead.next; v; v = v->next) {
-        if (strncmp(v->name, str, strlen(str)) == 0) {
-            return v;
+    for (VariableList* l = globalVariables; l; l = l->next) {
+        if (strncmp(l->variable->name, str, strlen(str)) == 0) {
+            return l->variable;
         }
     }
     error("undefined variable");
@@ -213,7 +213,7 @@ static Node* primary()
         char* label = stringLabel();
         Type* type = arrayOf(&CHAR_TYPE, strlen(rp->str));
         declarateGlobalVariable(type, label);
-        globalVariablesTail->string = rp->str;
+        globalVariables->variable->string = rp->str;
         Node* node = newNodeVariable(variable(label));
         rp = rp->next;
         return node;
@@ -374,8 +374,8 @@ static Node* expr()
 
 static Variable* declarateLocalVariable(Type* type, char* name)
 {
-    for (Variable* v = localVariablesHead.next; v; v = v->next) {
-        if (strcmp(v->name, name) == 0) {
+    for (VariableList* list = localVariables; list; list = list->next) {
+        if (strcmp(list->variable->name, name) == 0) {
             error("duplicated declaration of a local variable named %s", name);
             return NULL;
         }
@@ -384,9 +384,15 @@ static Variable* declarateLocalVariable(Type* type, char* name)
     v->name = name;
     v->type = type;
     v->isGlobal = false;
-    v->offset = localVariablesTail->offset + size(type);
-    localVariablesTail->next = v;
-    localVariablesTail = localVariablesTail->next;
+    if (localVariables) {
+        v->offset = localVariables->variable->offset + size(type);
+    } else {
+        v->offset = size(type);
+    }
+    VariableList* l = calloc(1, sizeof(VariableList));
+    l->variable = v;
+    l->next = localVariables;
+    localVariables = l;
     return v;
 }
 
@@ -518,20 +524,10 @@ static Node* params()
     return head.next;
 }
 
-static int getStackSize()
-{
-    Variable* tail = &localVariablesHead;
-    while (tail->next) {
-        tail = tail->next;
-    }
-    return tail->offset;
-}
-
 // function = basetype ident "(" params? ")" "{" stmt* "}"
 static Function* function(Type* type, char* name)
 {
-    localVariablesHead.next = NULL;
-    localVariablesTail = &localVariablesHead;
+    localVariables = NULL;
     Function* func = calloc(1, sizeof(Function));
     func->name = name;
     if (!consume(")")) {
@@ -547,16 +543,16 @@ static Function* function(Type* type, char* name)
         tail = tail->next;
     }
     func->statements = head.next;
-    func->localVariables = localVariablesHead.next;
-    func->stackSize = getStackSize();
+    func->localVariables = localVariables;
+    func->stackSize = localVariables->variable->offset;
     addType(func->statements);
     return func;
 }
 
 static Variable* declarateGlobalVariable(Type* type, char* name)
 {
-    for (Variable* v = globalVariablesHead.next; v; v = v->next) {
-        if (strcmp(v->name, name) == 0) {
+    for (VariableList* list = globalVariables; list; list = list->next) {
+        if (strcmp(list->variable->name, name) == 0) {
             error("duplicated declaration of a global variable named %s", name);
             return NULL;
         }
@@ -565,8 +561,10 @@ static Variable* declarateGlobalVariable(Type* type, char* name)
     v->name = name;
     v->type = type;
     v->isGlobal = true;
-    globalVariablesTail->next = v;
-    globalVariablesTail = globalVariablesTail->next;
+    VariableList* l = calloc(1, sizeof(VariableList));
+    l->variable = v;
+    l->next = globalVariables;
+    globalVariables = l;
     return v;
 }
 
@@ -595,7 +593,7 @@ static Program* program()
 
     Program* p = calloc(1, sizeof(Program));
     p->functions = dummyFunction.next;
-    p->globalVariables = globalVariablesHead.next;
+    p->globalVariables = globalVariables;
     return p;
 }
 

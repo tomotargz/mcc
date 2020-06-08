@@ -12,7 +12,8 @@ int assertEq(int expected, int actual, char* code)
 
 int main()
 {
-    assertEq(3, ({int a;a = 3;a; }), "({int a;a = 3;a; })");
+    assertEq(3, ({int a;a = 3;a; }), "int a;a = 3;a;");
+    assertEq(105, ({ "string"[3]; }), "\"string\"[3];");
     printf("OK\n");
     return 0;
 }

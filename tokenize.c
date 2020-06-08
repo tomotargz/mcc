@@ -54,6 +54,20 @@ static char* startsWithReserved(char* str)
     return NULL;
 }
 
+char* extractStringLiteral(char* src)
+{
+    int length = 0;
+    char* rp = src;
+    while (!(*rp == '"' && *(rp - 1) != '\\')) {
+        length++;
+        rp++;
+    }
+    char* str = calloc(length + 1, sizeof(char));
+    strncpy(str, src, length);
+    str[length] = '\0';
+    return str;
+}
+
 char* decodeEscape(char* str)
 {
     char* r = str;
@@ -62,6 +76,8 @@ char* decodeEscape(char* str)
         if (*r == '\\') {
             if (*(r + 1) == 'n') {
                 *w = '\n';
+            } else if (*(r + 1) == '"') {
+                *w = '"';
             } else {
                 error("unsupported escape character");
             }
@@ -129,16 +145,11 @@ Token* tokenize(char* source)
 
         if (*rp == '"') {
             rp++;
-            int length = 0;
-            while (*(rp + length) != '"') {
-                length++;
-            }
-            Token* token = newToken(TOKEN_STRING);
-            char* str = calloc(length + 1, sizeof(char));
-            strncpy(str, rp, length);
+            char* str = extractStringLiteral(rp);
+            rp += strlen(str) + 1;
             str = decodeEscape(str);
+            Token* token = newToken(TOKEN_STRING);
             token->str = str;
-            rp += length + 1;
             tail = append(tail, token);
             continue;
         }

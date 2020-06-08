@@ -543,7 +543,11 @@ static Function* function(Type* type, char* name)
     }
     func->statements = head.next;
     func->localVariables = localVariables;
-    func->stackSize = localVariables->variable->offset;
+    if (localVariables) {
+        func->stackSize = localVariables->variable->offset;
+    } else {
+        func->stackSize = 0;
+    }
     addType(func->statements);
     scope = currentScope;
     return func;

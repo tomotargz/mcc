@@ -127,6 +127,8 @@ int main()
         assertEq(3, a, "");
     }
 
+    assertEq(105, ({char* a = "string"; a[3]; }), "char* a = \"string\"; a[3]; }");
+
     printf("OK\n");
     return 0;
 }

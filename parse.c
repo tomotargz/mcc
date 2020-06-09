@@ -1,32 +1,32 @@
 // program = (globalVariable | function)*
-// function = basetype ident "(" params? ")" "{" stmt* "}"
+// function = basetype identifier "(" parameters? ")" "{" statement* "}"
 // basetype = ("int" | "char") "*"*
-// params   = param ("," param)*
-// param    = basetype ident
-// stmt = "return" expr ";"
-//       | "if" "(" expr ")" stmt ("else" stmt)?
-//       | "while" "(" expr ")" stmt
-//       | "for" "(" stmtExpr? ";" expr? ";" stmtExpr? ")" stmt
-//       | "{" stmt* "}"
-//       | declaration
-//       | stmtExpr ";"
-// stmtExpr = expr
-// expr = assign
+// parameters = parameter ("," parameter)*
+// parameter = basetype identifier
+// statement = "return" expression ";"
+//           | "if" "(" expression ")" statement ("else" statement)?
+//           | "while" "(" expression ")" statement
+//           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" statementExpression? ")" statement
+//           | "{" statement* "}"
+//           | localVariable ";"
+//           | statementExpression ";"
+// statementExpression = expression
+// expression = assign
 // assign = equality ("=" assign)?
 // equality = relational ("==" relational | "!=" relational)*
 // relational = add ("<" add | "<=" add | ">" add | ">=" add)*
-// add = mul ("+" mul | "-" mul)*
-// mul = unary ("*" unary | "/" unary)*
+// add = multiplication ("+" multiplication | "-" multiplication)*
+// multiplication = unary ("*" unary | "/" unary)*
 // unary = ("+" | "-" | "*" | "&" | "sizeof")? unary
 //       | postfix
-// postfix = primary ("[" expr "]")*
+// postfix = primary ("[" expression "]")*
 // primary = "(" "{" expressionStatement "}" ")"
-//       | "(" expr ")"
-//       | ident func-args?
-//       | num
-//       | string
-// func-args = "(" (assign ("," assign)*)? ")"
-// declaration = basetype ident ("[" arraySize "]")? ("=" expr)? ";"
+//         | "(" expression ")"
+//         | identifier arguments?
+//         | number
+//         | string
+// arguments = "(" (expression ("," expression)*)? ")"
+// localVariable = basetype identifier ("[" arraySize "]")? ("=" expression)?
 
 #include <ctype.h>
 #include <stdbool.h>
@@ -47,7 +47,7 @@ static VariableList* globalVariables;
 static VariableList* localVariables;
 static VariableList* scope;
 
-static Node* expr();
+static Node* expression();
 static Type* basetype();
 static Node* newAdd(Node* lhs, Node* rhs);
 static Node* newSub(Node* lhs, Node* rhs);
@@ -130,12 +130,13 @@ static Node* identifier()
     return node;
 }
 
-static void functionArguments(Node* function)
+// arguments = "(" (expression ("," expression)*)? ")"
+static void arguments(Node* function)
 {
     Node dummy = {};
     Node* tail = &dummy;
     while (!consume(")")) {
-        tail->next = expr();
+        tail->next = expression();
         tail = tail->next;
         consume(",");
     }
@@ -152,6 +153,7 @@ static char* stringLabel()
 
 static Node* expressionStatement()
 {
+    VariableList* currentScope = scope;
     Node* node = newNode(NODE_BLOCK, NULL, NULL);
     Node dummy = {};
     Node* prev = NULL;
@@ -167,21 +169,23 @@ static Node* expressionStatement()
     prev->next = curr->lhs;
     node->statements = dummy.next;
     expect(")");
+    scope = currentScope;
     return node;
 }
 
 // primary = "(" "{" expressionStatement "}" ")"
-//       | "(" expr ")"
-//       | ident func-args?
-//       | num
-//       | string
+//         | "(" expression ")"
+//         | identifier arguments?
+//         | number
+//         | string
 static Node* primary()
 {
     if (consume("(")) {
         if (consume("{")) {
-            return expressionStatement();
+            Node* node = expressionStatement();
+            return node;
         }
-        Node* node = expr();
+        Node* node = expression();
         expect(")");
         return node;
     }
@@ -196,7 +200,7 @@ static Node* primary()
         if (consume("(")) {
             Node* node = newNode(NODE_CALL, NULL, NULL);
             node->name = identifier->str;
-            functionArguments(node);
+            arguments(node);
             return node;
         }
         // Variable
@@ -218,12 +222,12 @@ static Node* primary()
     return NULL;
 }
 
-// postfix = primary ("[" expr "]")*
+// postfix = primary ("[" expression "]")*
 static Node* postfix()
 {
     Node* node = primary();
     while (consume("[")) {
-        Node* index = expr();
+        Node* index = expression();
         node = newAdd(node, index);
         node = newNode(NODE_DEREF, node, NULL);
         expect("]");
@@ -244,14 +248,14 @@ static Node* unary()
     } else if (consume("*")) {
         return newNode(NODE_DEREF, unary(), NULL);
     } else if (consume("sizeof")) {
-        Node* node = expr();
+        Node* node = expression();
         addType(node);
         return newNodeNum(size(node->type));
     }
     return postfix();
 }
 
-// mul = unary ("*" unary | "/" unary)*
+// multiplication = unary ("*" unary | "/" unary)*
 static Node* mul()
 {
     Node* node = unary();
@@ -302,7 +306,7 @@ static Node* newSub(Node* lhs, Node* rhs)
     return NULL;
 }
 
-// add = mul ("+" mul | "-" mul)*
+// add = multiplication ("+" multiplication | "-" multiplication)*
 static Node* add()
 {
     Node* node = mul();
@@ -361,8 +365,8 @@ static Node* assign()
     return node;
 }
 
-// expr = assign
-static Node* expr()
+// expression = assign
+static Node* expression()
 {
     return assign();
 }
@@ -390,7 +394,7 @@ static Variable* declarateLocalVariable(Type* type, char* name)
 }
 
 // declaration = basetype ident ("[" arraySize "]")? ("=" expr)? ";"
-static Node* declaration()
+static Node* localVariable()
 {
     Type* type = basetype();
     char* name = expectIdentifier();
@@ -402,41 +406,45 @@ static Node* declaration()
     Variable* v = declarateLocalVariable(type, name);
     if (consume("=")) {
         Node* node = newNodeVariable(v);
-        node = newNode(NODE_ASSIGNMENT, node, expr());
+        node = newNode(NODE_ASSIGNMENT, node, expression());
         node = newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
         return node;
     }
     return newNode(NODE_NULL, NULL, NULL);
 }
 
-// stmtExpr = declaration | expr
+// statementExpression = expression
 static Node* statementExpression()
 {
-    if (peek("int") || peek("char")) {
-        return declaration();
-    }
-    VariableList* currentScope = scope;
-    Node* node = newNode(NODE_STATEMENT_EXPRESSION, expr(), NULL);
-    scope = currentScope;
+    Node* node = newNode(NODE_STATEMENT_EXPRESSION, expression(), NULL);
     return node;
 }
 
-// stmt = "return" expr ";"
-//       | "if" "(" expr ")" stmt ("else" stmt)?
-//       | "while" "(" expr ")" stmt
-//       | "for" "(" stmtExpr? ";" expr? ";" stmtExpr? ")" stmt
-//       | "{" stmt* "}"
-//       | stmtExpr ";"
+bool isTypeName()
+{
+    return peek("int") || peek("char");
+}
+
+// statement = "return" expression ";"
+//           | "if" "(" expression ")" statement ("else" statement)?
+//           | "while" "(" expression ")" statement
+//           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" statementExpression? ")" statement
+//           | "{" statement* "}"
+//           | localVariable ";"
+//           | statementExpression ";"
 static Node* statement()
 {
     Node* node = NULL;
-    if (consume("return")) {
-        node = newNode(NODE_RETURN, expr(), NULL);
+    if (isTypeName()) {
+        node = localVariable();
+        expect(";");
+    } else if (consume("return")) {
+        node = newNode(NODE_RETURN, expression(), NULL);
         expect(";");
     } else if (consume("if")) {
         node = newNode(NODE_IF, NULL, NULL);
         expect("(");
-        node->cond = expr();
+        node->cond = expression();
         expect(")");
         node->then = statement();
         if (consume("else")) {
@@ -447,18 +455,22 @@ static Node* statement()
     } else if (consume("while")) {
         node = newNode(NODE_WHILE, NULL, NULL);
         expect("(");
-        node->cond = expr();
+        node->cond = expression();
         expect(")");
         node->body = statement();
     } else if (consume("for")) {
         node = newNode(NODE_FOR, NULL, NULL);
         expect("(");
         if (!consume(";")) {
-            node->init = statementExpression();
+            if (isTypeName()) {
+                node->init = localVariable();
+            } else {
+                node->init = statementExpression();
+            }
             expect(";");
         }
         if (!consume(";")) {
-            node->cond = expr();
+            node->cond = expression();
             expect(";");
         }
         if (!consume(")")) {
@@ -502,8 +514,8 @@ static Type* basetype()
     return type;
 }
 
-// param    = basetype ident
-static Node* param()
+// parameter = basetype identifier
+static Node* parameter()
 {
     Type* type = basetype();
     char* name = expectIdentifier();
@@ -513,21 +525,21 @@ static Node* param()
     return node;
 }
 
-// params   = param ("," param)*
-static Node* params()
+// parameters = parameter ("," parameter)*
+static Node* parameters()
 {
     Node head = {};
     Node* tail = &head;
-    tail->next = param();
+    tail->next = parameter();
     tail = tail->next;
     while (consume(",")) {
-        tail->next = param();
+        tail->next = parameter();
         tail = tail->next;
     }
     return head.next;
 }
 
-// function = basetype ident "(" params? ")" "{" stmt* "}"
+// function = basetype identifier "(" parameters? ")" "{" statement* "}"
 static Function* function(Type* type, char* name)
 {
     localVariables = NULL;
@@ -535,7 +547,7 @@ static Function* function(Type* type, char* name)
     Function* func = calloc(1, sizeof(Function));
     func->name = name;
     if (!consume(")")) {
-        func->params = params();
+        func->params = parameters();
         expect(")");
     }
     expect("{");

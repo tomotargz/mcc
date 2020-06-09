@@ -389,7 +389,7 @@ static Variable* declarateLocalVariable(Type* type, char* name)
     return v;
 }
 
-// declaration = basetype ident ("[" arraySize "]")? ";"
+// declaration = basetype ident ("[" arraySize "]")? ("=" expr)? ";"
 static Node* declaration()
 {
     Type* type = basetype();
@@ -400,13 +400,21 @@ static Node* declaration()
         expect("]");
     }
     Variable* v = declarateLocalVariable(type, name);
-    expect(";");
+    if (consume("=")) {
+        Node* node = newNodeVariable(v);
+        node = newNode(NODE_ASSIGNMENT, node, expr());
+        node = newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
+        return node;
+    }
     return newNode(NODE_NULL, NULL, NULL);
 }
 
-// stmtExpr = expr
+// stmtExpr = declaration | expr
 static Node* statementExpression()
 {
+    if (peek("int") || peek("char")) {
+        return declaration();
+    }
     VariableList* currentScope = scope;
     Node* node = newNode(NODE_STATEMENT_EXPRESSION, expr(), NULL);
     scope = currentScope;
@@ -418,14 +426,11 @@ static Node* statementExpression()
 //       | "while" "(" expr ")" stmt
 //       | "for" "(" stmtExpr? ";" expr? ";" stmtExpr? ")" stmt
 //       | "{" stmt* "}"
-//       | declaration
 //       | stmtExpr ";"
 static Node* statement()
 {
     Node* node = NULL;
-    if (peek("int") || peek("char")) {
-        node = declaration();
-    } else if (consume("return")) {
+    if (consume("return")) {
         node = newNode(NODE_RETURN, expr(), NULL);
         expect(";");
     } else if (consume("if")) {

@@ -118,6 +118,15 @@ int main()
     assertEq(3, ({ga = 3;ga; }), "ga = 3;ga;");
     assertEq(5, ({int ga;ga = 5;ga; }), "ga = 5;ga;");
 
+    assertEq(3, ({int a = 3;a; }), "int a = 3;a;");
+    {
+        int a = 0;
+        for (int i = 0; i <= 3; i = i + 1) {
+            a = i;
+        }
+        assertEq(3, a, "");
+    }
+
     printf("OK\n");
     return 0;
 }

@@ -108,6 +108,14 @@ Token* tokenize(char* source)
             continue;
         }
 
+        if (startsWith(rp, "//")) {
+            while (*rp != '\n') {
+                rp++;
+            }
+            rp++;
+            continue;
+        }
+
         if (isspace(*rp)) {
             rp++;
             continue;

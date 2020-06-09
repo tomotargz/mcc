@@ -24,6 +24,7 @@ int funcWith6Args(int a, int b, int c, int d, int e, int f)
 int ga;
 
 /* block comment */
+// line comment
 
 int main()
 {

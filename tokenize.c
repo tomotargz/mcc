@@ -12,10 +12,11 @@ static bool startsWith(char* a, char* b)
     return memcmp(a, b, strlen(b)) == 0;
 }
 
-static Token* newToken(TokenKind kind)
+static Token* newToken(TokenKind kind, char* pos)
 {
     Token* token = calloc(1, sizeof(Token));
     token->kind = kind;
+    token->pos = pos;
     return token;
 }
 
@@ -123,7 +124,7 @@ Token* tokenize(char* source, char* file)
 
         char* reserved = startsWithReserved(rp);
         if (reserved) {
-            Token* token = newToken(TOKEN_RESERVED);
+            Token* token = newToken(TOKEN_RESERVED, rp);
             token->str = reserved;
             tail = append(tail, token);
             rp += strlen(reserved);
@@ -131,13 +132,13 @@ Token* tokenize(char* source, char* file)
         }
 
         if (isalpha(*rp) || *rp == '_') {
+            Token* token = newToken(TOKEN_IDENTIFIER, rp);
             char* start = rp;
             int length = 0;
             while (isalnum(*rp) || *rp == '_') {
                 length++;
                 rp++;
             }
-            Token* token = newToken(TOKEN_IDENTIFIER);
             token->str = calloc(length, sizeof(char));
             strncpy(token->str, start, length);
             tail = append(tail, token);
@@ -145,25 +146,25 @@ Token* tokenize(char* source, char* file)
         }
 
         if (isdigit(*rp)) {
-            Token* token = newToken(TOKEN_NUMBER);
+            Token* token = newToken(TOKEN_NUMBER, rp);
             token->val = strtol(rp, &rp, 10);
             tail = append(tail, token);
             continue;
         }
 
         if (*rp == '"') {
+            Token* token = newToken(TOKEN_STRING, rp);
             rp++;
             char* str = extractStringLiteral(rp);
             rp += strlen(str) + 1;
             str = decodeEscape(str);
-            Token* token = newToken(TOKEN_STRING);
             token->str = str;
             tail = append(tail, token);
             continue;
         }
         error_at(rp, source, file, "Can't tokenize");
     }
-    Token* token = newToken(TOKEN_EOF);
+    Token* token = newToken(TOKEN_EOF, rp);
     tail = append(tail, token);
     return dummy.next;
 }

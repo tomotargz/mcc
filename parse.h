@@ -21,6 +21,6 @@ typedef struct {
     Function* functions;
 } Program;
 
-Program* parse(Token* tokens);
+Program* parse(Token* tokens, char* source, char* fileName);
 
 #endif

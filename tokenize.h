@@ -12,8 +12,9 @@ typedef enum {
 typedef struct Token Token;
 struct Token {
     TokenKind kind;
-    char* str;
     int val;
+    char* str;
+    char* pos;
     Token* next;
 };
 

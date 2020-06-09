@@ -32,7 +32,7 @@ int main(int argc, char** argv)
     char* path = argv[1];
     char* source = openFile(path);
     Token* tokens = tokenize(source, path);
-    Program* program = parse(tokens);
+    Program* program = parse(tokens, source, path);
     generateCode(program);
     return 0;
 }

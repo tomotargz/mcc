@@ -41,6 +41,8 @@
 #include "type.h"
 #include "variable.h"
 
+static char* src;
+static char* file;
 static Token* rp = NULL;
 
 static VariableList* globalVariables;
@@ -71,7 +73,7 @@ static void expect(char* str)
     if (rp->kind != TOKEN_RESERVED
         || strlen(rp->str) != strlen(str)
         || strncmp(rp->str, str, strlen(rp->str))) {
-        error("unexpected token");
+        error_at(rp->pos, src, file, "unexpected token");
     }
     rp = rp->next;
 }
@@ -79,7 +81,7 @@ static void expect(char* str)
 static int expectNumber()
 {
     if (rp->kind != TOKEN_NUMBER)
-        error("unexpected non number token");
+        error_at(rp->pos, src, file, "unexpected non number token");
     int val = rp->val;
     rp = rp->next;
     return val;
@@ -88,7 +90,7 @@ static int expectNumber()
 static char* expectIdentifier()
 {
     if (rp->kind != TOKEN_IDENTIFIER) {
-        error("invalid token");
+        error_at(rp->pos, src, file, "unexpected non identifier token");
     }
     char* name = rp->str;
     rp = rp->next;
@@ -109,7 +111,7 @@ static Variable* variable(char* str)
             return l->variable;
         }
     }
-    error("undefined variable");
+    error_at(rp->pos, src, file, "undefined variable");
     return NULL;
 }
 
@@ -164,7 +166,7 @@ static Node* expressionStatement()
         curr = curr->next;
     }
     if (curr->kind != NODE_STATEMENT_EXPRESSION) {
-        error("expression statement must end with statement expression");
+        error_at(rp->pos, src, file, "expression statement must end with statement expression");
     }
     prev->next = curr->lhs;
     node->statements = dummy.next;
@@ -218,7 +220,7 @@ static Node* primary()
         return node;
     }
 
-    error("invalid token.");
+    error_at(rp->pos, src, file, "invalid token.");
     return NULL;
 }
 
@@ -284,7 +286,7 @@ static Node* newAdd(Node* lhs, Node* rhs)
         && (rType == TYPE_INT || rType == TYPE_CHAR)) {
         return newNode(NODE_POINTER_ADDITION, lhs, rhs);
     }
-    error("invalid addition");
+    error_at(rp->pos, src, file, "invalid addition");
     return NULL;
 }
 
@@ -302,7 +304,7 @@ static Node* newSub(Node* lhs, Node* rhs)
         && (rType == TYPE_INT || rType == TYPE_CHAR)) {
         return newNode(NODE_POINTER_SUBTRACTION, lhs, rhs);
     }
-    error("invalid subtraction");
+    error_at(rp->pos, src, file, "invalid subtraction");
     return NULL;
 }
 
@@ -505,7 +507,7 @@ static Type* basetype()
     } else if (consume("char")) {
         type = &CHAR_TYPE;
     } else {
-        error("unexpected basetype");
+        error_at(rp->pos, src, file, "unexpected basetype");
         return NULL;
     }
     while (consume("*")) {
@@ -616,8 +618,10 @@ static Program* program()
     return p;
 }
 
-Program* parse(Token* tokens)
+Program* parse(Token* tokens, char* source, char* fileName)
 {
     rp = tokens;
+    src = source;
+    file = fileName;
     return program();
 }

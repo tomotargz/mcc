@@ -93,7 +93,7 @@ char* decodeEscape(char* str)
     return str;
 }
 
-Token* tokenize(char* source)
+Token* tokenize(char* source, char* file)
 {
     Token dummy;
     Token* tail = &dummy;
@@ -161,7 +161,7 @@ Token* tokenize(char* source)
             tail = append(tail, token);
             continue;
         }
-        error_at(rp, source, "Can't tokenize");
+        error_at(rp, source, file, "Can't tokenize");
     }
     Token* token = newToken(TOKEN_EOF);
     tail = append(tail, token);

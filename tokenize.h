@@ -17,6 +17,6 @@ struct Token {
     Token* next;
 };
 
-Token* tokenize(char* source);
+Token* tokenize(char* source, char* fileName);
 
 #endif

@@ -31,7 +31,7 @@ int main(int argc, char** argv)
 
     char* path = argv[1];
     char* source = openFile(path);
-    Token* tokens = tokenize(source);
+    Token* tokens = tokenize(source, path);
     Program* program = parse(tokens);
     generateCode(program);
     return 0;

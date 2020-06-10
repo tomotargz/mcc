@@ -27,6 +27,7 @@
 //         | string
 // arguments = "(" (expression ("," expression)*)? ")"
 // localVariable = basetype identifier ("[" arraySize "]")? ("=" expression)?
+// localVariableInitializer = expression | "{" (expression ("," expression)*)? "}"
 
 #include <ctype.h>
 #include <stdbool.h>
@@ -395,23 +396,56 @@ static Variable* declarateLocalVariable(Type* type, char* name)
     return v;
 }
 
+// localVariableInitializer = expression | "{" (expression ("," expression)*)? "}"
 static Node* localVariableInitializer(Variable* v)
 {
+    if (v->type->kind == TYPE_ARRAY) {
+        expect("{");
+        Node* block = newNode(NODE_BLOCK, NULL, NULL);
+        int i = 0;
+        for (; !consume("}"); i++) {
+            Node* node = newNodeVariable(v);
+            node = newAdd(node, newNodeNum(i));
+            node = newNode(NODE_DEREF, node, NULL);
+            node = newNode(NODE_ASSIGNMENT, node, expression());
+            node = newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
+            node->next = block->statements;
+            block->statements = node;
+            consume(",");
+        }
+        if (v->type->arraySize == 0) {
+            v->type->arraySize = i;
+            return block;
+        }
+        for (; i < v->type->arraySize; i++) {
+            Node* node = newNodeVariable(v);
+            node = newAdd(node, newNodeNum(i));
+            node = newNode(NODE_DEREF, node, NULL);
+            node = newNode(NODE_ASSIGNMENT, node, newNodeNum(0));
+            node = newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
+            node->next = block->statements;
+            block->statements = node;
+        }
+        return block;
+    }
     Node* node = newNodeVariable(v);
     node = newNode(NODE_ASSIGNMENT, node, expression());
     node = newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
     return node;
 }
 
-// declaration = basetype ident ("[" arraySize "]")? ("=" localVariableInitializer)? ";"
+// declaration = basetype ident ("[" arraySize? "]")? ("=" localVariableInitializer)? ";"
 static Node* localVariable()
 {
     Type* type = basetype();
     char* name = expectIdentifier();
     if (consume("[")) {
-        int size = expectNumber();
-        type = arrayOf(type, size);
-        expect("]");
+        if (consume("]")) {
+            type = arrayOf(type, 0);
+        } else {
+            type = arrayOf(type, expectNumber());
+            expect("]");
+        }
     }
     Variable* v = declarateLocalVariable(type, name);
     if (consume("=")) {

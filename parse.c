@@ -395,7 +395,15 @@ static Variable* declarateLocalVariable(Type* type, char* name)
     return v;
 }
 
-// declaration = basetype ident ("[" arraySize "]")? ("=" expr)? ";"
+static Node* localVariableInitializer(Variable* v)
+{
+    Node* node = newNodeVariable(v);
+    node = newNode(NODE_ASSIGNMENT, node, expression());
+    node = newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
+    return node;
+}
+
+// declaration = basetype ident ("[" arraySize "]")? ("=" localVariableInitializer)? ";"
 static Node* localVariable()
 {
     Type* type = basetype();
@@ -407,10 +415,7 @@ static Node* localVariable()
     }
     Variable* v = declarateLocalVariable(type, name);
     if (consume("=")) {
-        Node* node = newNodeVariable(v);
-        node = newNode(NODE_ASSIGNMENT, node, expression());
-        node = newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
-        return node;
+        return localVariableInitializer(v);
     }
     return newNode(NODE_NULL, NULL, NULL);
 }

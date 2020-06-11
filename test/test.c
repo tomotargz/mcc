@@ -21,7 +21,16 @@ int funcWith6Args(int a, int b, int c, int d, int e, int f)
     return a + b + c + d + e + f;
 }
 
-int ga;
+int g1;
+int g2 = 3;
+char g3 = 3;
+char* g4 = "string";
+int* g5 = &g2;
+
+// int gc[3] = { 1, 2, 3 };
+// int gd[3] = { 1 };
+// int ge[] = { 1, 2, 3 };
+// char* gs = "string";
 
 /* block comment */
 // line comment
@@ -115,7 +124,7 @@ int main()
     assertEq(3, ({int a[10];*(a+1)=3;*(a+1); }), "int a[10];*(a+1)=3;*(a+1);");
     assertEq(3, ({int a[10];a[3]=3;a[3]; }), "int a[10];a[3]=3;a[3];");
 
-    assertEq(3, ({ga = 3;ga; }), "ga = 3;ga;");
+    assertEq(3, ({g1 = 3;g1; }), "g1 = 3;g1;");
     assertEq(5, ({int ga;ga = 5;ga; }), "ga = 5;ga;");
 
     assertEq(3, ({int a = 3;a; }), "int a = 3;a;");
@@ -132,6 +141,12 @@ int main()
     assertEq(0, ({int a[5] = {}; a[3]; }), "int a[5] = {}; a[3];");
     assertEq(3, ({int a[] = {1,2,3}; a[2]; }), "int a[] = {1,2,3}; a[2];");
     assertEq(12, ({int a[] = {1,2,3}; sizeof(a); }), "int a[] = {1,2,3}; sizeof(a);");
+
+    assertEq(3, ({ g2; }), "g2");
+    assertEq(3, ({ g3; }), "g3");
+    assertEq(105, ({ *(g4 + 3); }), "*(g4 + 3);");
+    assertEq(105, ({ g4[3]; }), "g4[3];");
+    assertEq(3, ({ *g5; }), "*g5;");
 
     printf("OK\n");
     return 0;

@@ -1,4 +1,5 @@
 // program = (globalVariable | function)*
+// globalVariable = basetype identifier ("[" arraySize "]")? ("=" expression)?
 // function = basetype identifier "(" parameters? ")" "{" statement* "}"
 // basetype = ("int" | "char") "*"*
 // parameters = parameter ("," parameter)*
@@ -67,6 +68,16 @@ static Token* consume(char* str)
     Token* result = rp;
     rp = rp->next;
     return result;
+}
+
+static char* consumeString()
+{
+    if (rp->kind == TOKEN_STRING) {
+        char* string = rp->str;
+        rp = rp->next;
+        return string;
+    }
+    return NULL;
 }
 
 static void expect(char* str)
@@ -628,6 +639,27 @@ static Variable* declarateGlobalVariable(Type* type, char* name)
     return v;
 }
 
+// globalVariableInitializer = number
+static void globalVariableInitializer(Variable* v)
+{
+    v->initialValue = calloc(1, sizeof(InitialValue));
+    char* str = consumeString();
+    if (str) {
+        char* label = stringLabel();
+        Type* type = arrayOf(&CHAR_TYPE, strlen(str));
+        declarateGlobalVariable(type, label);
+        globalVariables->variable->string = str;
+        v->initialValue->label = label;
+        return;
+    }
+    if (consume("&")) {
+        char* label = expectIdentifier();
+        v->initialValue->label = label;
+        return;
+    }
+    v->initialValue->value = expectNumber();
+}
+
 // program = (globalVariable | function)*
 static Program* program()
 {
@@ -642,11 +674,17 @@ static Program* program()
             functionTail = functionTail->next;
         } else {
             if (consume("[")) {
-                int size = expectNumber();
-                type = arrayOf(type, size);
-                expect("]");
+                if (consume("]")) {
+                    type = arrayOf(type, 0);
+                } else {
+                    type = arrayOf(type, expectNumber());
+                    expect("]");
+                }
             }
-            declarateGlobalVariable(type, name);
+            Variable* v = declarateGlobalVariable(type, name);
+            if (consume("=")) {
+                globalVariableInitializer(v);
+            }
             expect(";");
         }
     }

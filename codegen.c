@@ -309,14 +309,33 @@ static void generateFunction(Function* function)
 static void generateGlobalVariable(Variable* variable)
 {
     printf("%s:\n", variable->name);
+
     if (variable->string) {
         for (char* c = variable->string; *c; c++) {
             printf("  .byte %d\n", *c);
         }
         printf("  .byte 0\n");
-    } else {
-        printf("  .zero %d\n", size(variable->type));
+        return;
     }
+
+    InitialValue* initialValue = variable->initialValue;
+    if (initialValue) {
+        if (initialValue->label) {
+            printf("  .quad %s\n", initialValue->label);
+            return;
+        }
+        int byte = size(variable->type);
+        if (byte == 1) {
+            printf("  .byte %d\n", initialValue->value);
+        } else if (byte == 4) {
+            printf("  .long %d\n", initialValue->value);
+        } else {
+            error("invalid global variable");
+        }
+        return;
+    }
+
+    printf("  .zero %d\n", size(variable->type));
 }
 
 void generateCode(Program* program)

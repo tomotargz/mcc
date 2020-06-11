@@ -4,6 +4,11 @@
 #include "type.h"
 #include <stdbool.h>
 
+typedef struct InitialValue {
+    int value;
+    char* label;
+} InitialValue;
+
 typedef struct Variable Variable;
 struct Variable {
     char* name;
@@ -11,6 +16,7 @@ struct Variable {
     Type* type;
     bool isGlobal;
     char* string;
+    InitialValue* initialValue;
 };
 
 typedef struct VariableList {

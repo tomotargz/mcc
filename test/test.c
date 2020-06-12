@@ -137,6 +137,8 @@ int main()
     }
 
     assertEq(105, ({char* a = "string"; a[3]; }), "char* a = \"string\"; a[3]; }");
+    assertEq(105, ({char a[] = "string"; a[3]; }), "char a[] = \"string\"; a[3]; }");
+    assertEq(7, ({char a[] = "string"; sizeof(a); }), "char a[] = \"string\"; sizeof(a); }");
     assertEq(3, ({int a[3] = {1,2,3}; a[2]; }), "int a[3] = {1,2,3}; a[2];");
     assertEq(0, ({int a[5] = {}; a[3]; }), "int a[5] = {}; a[3];");
     assertEq(3, ({int a[] = {1,2,3}; a[2]; }), "int a[] = {1,2,3}; a[2];");

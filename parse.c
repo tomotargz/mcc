@@ -412,19 +412,43 @@ static Variable* declarateLocalVariable(Type* type, char* name)
 static Node* localVariableInitializer(Variable* v)
 {
     if (v->type->kind == TYPE_ARRAY) {
-        expect("{");
-        Node* block = newNode(NODE_BLOCK, NULL, NULL);
         int i = 0;
-        for (; !consume("}"); i++) {
+        Node* block = newNode(NODE_BLOCK, NULL, NULL);
+
+        char* str = consumeString();
+        if (str) {
+            int len = strlen(str);
+            for (; i < len; i++) {
+                Node* node = newNodeVariable(v);
+                node = newAdd(node, newNodeNum(i));
+                node = newNode(NODE_DEREF, node, NULL);
+                node = newNode(NODE_ASSIGNMENT, node, newNodeNum(str[i]));
+                node = newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
+                node->next = block->statements;
+                block->statements = node;
+            }
+            i++;
             Node* node = newNodeVariable(v);
             node = newAdd(node, newNodeNum(i));
             node = newNode(NODE_DEREF, node, NULL);
-            node = newNode(NODE_ASSIGNMENT, node, expression());
+            node = newNode(NODE_ASSIGNMENT, node, newNodeNum('\0'));
             node = newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
             node->next = block->statements;
             block->statements = node;
-            consume(",");
+        } else {
+            expect("{");
+            for (; !consume("}"); i++) {
+                Node* node = newNodeVariable(v);
+                node = newAdd(node, newNodeNum(i));
+                node = newNode(NODE_DEREF, node, NULL);
+                node = newNode(NODE_ASSIGNMENT, node, expression());
+                node = newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
+                node->next = block->statements;
+                block->statements = node;
+                consume(",");
+            }
         }
+
         if (v->type->arraySize == 0) {
             v->type->arraySize = i;
             return block;

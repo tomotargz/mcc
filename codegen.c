@@ -306,6 +306,29 @@ static void generateFunction(Function* function)
     printf("  ret\n");
 }
 
+static bool initializeGlobalVariable(Variable* v)
+{
+    if (!v->initialValue) {
+        return false;
+    }
+
+    if (v->initialValue->label) {
+        printf("  .quad %s\n", v->initialValue->label);
+        return true;
+    }
+
+    int byte = size(v->type);
+    if (byte == 1) {
+        printf("  .byte %d\n", v->initialValue->value);
+    } else if (byte == 4) {
+        printf("  .long %d\n", v->initialValue->value);
+    } else {
+        error("invalid global variable");
+    }
+
+    return true;
+}
+
 static void generateGlobalVariable(Variable* variable)
 {
     printf("%s:\n", variable->name);
@@ -318,23 +341,9 @@ static void generateGlobalVariable(Variable* variable)
         return;
     }
 
-    InitialValue* initialValue = variable->initialValue;
-    if (initialValue) {
-        if (initialValue->label) {
-            printf("  .quad %s\n", initialValue->label);
-            return;
-        }
-        int byte = size(variable->type);
-        if (byte == 1) {
-            printf("  .byte %d\n", initialValue->value);
-        } else if (byte == 4) {
-            printf("  .long %d\n", initialValue->value);
-        } else {
-            error("invalid global variable");
-        }
+    if (initializeGlobalVariable(variable)) {
         return;
     }
-
     printf("  .zero %d\n", size(variable->type));
 }
 

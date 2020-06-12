@@ -26,9 +26,8 @@ int g2 = 3;
 char g3 = 3;
 char* g4 = "string";
 int* g5 = &g2;
-
-// int gc[3] = { 1, 2, 3 };
-// int gd[3] = { 1 };
+// int g6[3] = { 1, 2, 3 };
+// int g7[3] = { 1 };
 // int ge[] = { 1, 2, 3 };
 // char* gs = "string";
 

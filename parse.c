@@ -119,7 +119,8 @@ static bool peek(char* str)
 static Variable* variable(char* str)
 {
     for (VariableList* l = scope; l; l = l->next) {
-        if (strncmp(l->variable->name, str, strlen(str)) == 0) {
+        if (strlen(str) == strlen(l->variable->name)
+            && strncmp(str, l->variable->name, strlen(str)) == 0) {
             return l->variable;
         }
     }
@@ -645,11 +646,23 @@ static void globalVariableInitializer(Variable* v)
     v->initialValue = calloc(1, sizeof(InitialValue));
     char* str = consumeString();
     if (str) {
-        char* label = stringLabel();
-        Type* type = arrayOf(&CHAR_TYPE, strlen(str));
-        declarateGlobalVariable(type, label);
-        globalVariables->variable->string = str;
-        v->initialValue->label = label;
+        if (v->type->kind == TYPE_POINTER
+            && v->type->pointerTo->kind == TYPE_CHAR) {
+            char* label = stringLabel();
+            Type* type = arrayOf(&CHAR_TYPE, strlen(str));
+            declarateGlobalVariable(type, label);
+            globalVariables->variable->string = str;
+            v->initialValue->label = label;
+            return;
+        } else if (v->type->kind == TYPE_ARRAY
+            && v->type->arrayOf->kind == TYPE_CHAR) {
+            v->initialValue->string = str;
+            if (v->type->arraySize == 0) {
+                v->type->arraySize = strlen(str) + 1;
+            }
+            return;
+        }
+        error("hoge");
         return;
     }
     if (consume("&")) {
@@ -657,7 +670,33 @@ static void globalVariableInitializer(Variable* v)
         v->initialValue->label = label;
         return;
     }
-    v->initialValue->value = expectNumber();
+    if (consume("{")) {
+        int i = 0;
+        ValueList dummy;
+        ValueList* tail = &dummy;
+        while (!consume("}")) {
+            ValueList* val = calloc(1, sizeof(ValueList));
+            val->value = expectNumber();
+            tail->next = val;
+            tail = val;
+            consume(",");
+            ++i;
+        }
+        if (v->type->arraySize == 0) {
+            v->type->arraySize = i;
+        }
+        for (; i < v->type->arraySize; i++) {
+            ValueList* val = calloc(1, sizeof(ValueList));
+            val->value = 0;
+            tail->next = val;
+            tail = val;
+        }
+        v->initialValue->valueList = dummy.next;
+        return;
+    }
+    ValueList* l = calloc(1, sizeof(ValueList));
+    l->value = expectNumber();
+    v->initialValue->valueList = l;
 }
 
 // program = (globalVariable | function)*

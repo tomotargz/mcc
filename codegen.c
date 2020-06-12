@@ -3,6 +3,7 @@
 #include "codegen.h"
 #include "error.h"
 #include "parse.h"
+#include "variable.h"
 
 static int tag = 0;
 static char* functionName;
@@ -306,6 +307,22 @@ static void generateFunction(Function* function)
     printf("  ret\n");
 }
 
+static char* dataType(Type* t)
+{
+    if (t->kind == TYPE_ARRAY) {
+        return dataType(t->arrayOf);
+    }
+    if (t->kind == TYPE_CHAR) {
+        return "byte";
+    } else if (t->kind == TYPE_INT) {
+        return "long";
+    } else if (t->kind == TYPE_POINTER) {
+        return "quad";
+    }
+    error("invalid type");
+    return NULL;
+}
+
 static bool initializeGlobalVariable(Variable* v)
 {
     if (!v->initialValue) {
@@ -317,15 +334,16 @@ static bool initializeGlobalVariable(Variable* v)
         return true;
     }
 
-    int byte = size(v->type);
-    if (byte == 1) {
-        printf("  .byte %d\n", v->initialValue->value);
-    } else if (byte == 4) {
-        printf("  .long %d\n", v->initialValue->value);
-    } else {
-        error("invalid global variable");
+    if (v->initialValue->string) {
+        printf("  .string \"%s\"\n", v->initialValue->string);
+        return true;
     }
 
+    ValueList* val = v->initialValue->valueList;
+    while (val) {
+        printf("  .%s %d\n", dataType(v->type), val->value);
+        val = val->next;
+    }
     return true;
 }
 

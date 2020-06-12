@@ -4,9 +4,15 @@
 #include "type.h"
 #include <stdbool.h>
 
-typedef struct InitialValue {
+typedef struct ValueList {
+    struct ValueList* next;
     int value;
+} ValueList;
+
+typedef struct InitialValue {
+    ValueList* valueList;
     char* label;
+    char* string;
 } InitialValue;
 
 typedef struct Variable Variable;

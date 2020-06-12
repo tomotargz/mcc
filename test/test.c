@@ -26,10 +26,11 @@ int g2 = 3;
 char g3 = 3;
 char* g4 = "string";
 int* g5 = &g2;
-// int g6[3] = { 1, 2, 3 };
-// int g7[3] = { 1 };
-// int ge[] = { 1, 2, 3 };
-// char* gs = "string";
+int g6[3] = { 1, 2, 3 };
+int g7[3] = { 1 };
+int g8[] = { 1, 2, 3 };
+char g9[] = "string";
+char g10[7] = "string";
 
 /* block comment */
 // line comment
@@ -146,6 +147,15 @@ int main()
     assertEq(105, ({ *(g4 + 3); }), "*(g4 + 3);");
     assertEq(105, ({ g4[3]; }), "g4[3];");
     assertEq(3, ({ *g5; }), "*g5;");
+
+    assertEq(3, ({ g6[2]; }), "g6[2];");
+    assertEq(0, ({ g7[2]; }), "g7[2];");
+    assertEq(3, ({ g8[2]; }), "g8[3];");
+    assertEq(12, ({ sizeof(g8); }), "sizeof(g8);");
+    assertEq(105, ({ g9[3]; }), "g9[3];");
+    assertEq(7, ({ sizeof(g9); }), "sizeof(g9);");
+    assertEq(105, ({ g10[3]; }), "g10[3];");
+    assertEq(7, ({ sizeof(g10); }), "sizeof(g10);");
 
     printf("OK\n");
     return 0;

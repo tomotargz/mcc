@@ -663,7 +663,7 @@ static void globalVariableInitializer(Variable* v)
         if (v->type->kind == TYPE_POINTER
             && v->type->pointerTo->kind == TYPE_CHAR) {
             char* label = stringLabel();
-            Type* type = arrayOf(&CHAR_TYPE, strlen(str));
+            Type* type = arrayOf(&CHAR_TYPE, strlen(str) + 1);
             declarateGlobalVariable(type, label);
             globalVariables->variable->string = str;
             v->initialValue->label = label;

@@ -408,57 +408,47 @@ static Variable* declarateLocalVariable(Type* type, char* name)
     return v;
 }
 
+static Node* assginToArray(Variable* array, int index, Node* value)
+{
+    Node* node = newNodeVariable(array);
+    node = newAdd(node, newNodeNum(index));
+    node = newNode(NODE_DEREF, node, NULL);
+    node = newNode(NODE_ASSIGNMENT, node, value);
+    return newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
+}
+
 // localVariableInitializer = expression | "{" (expression ("," expression)*)? "}"
 static Node* localVariableInitializer(Variable* v)
 {
     if (v->type->kind == TYPE_ARRAY) {
         int i = 0;
         Node* block = newNode(NODE_BLOCK, NULL, NULL);
-
         char* str = consumeString();
         if (str) {
             int len = strlen(str);
             for (; i < len; i++) {
-                Node* node = newNodeVariable(v);
-                node = newAdd(node, newNodeNum(i));
-                node = newNode(NODE_DEREF, node, NULL);
-                node = newNode(NODE_ASSIGNMENT, node, newNodeNum(str[i]));
-                node = newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
+                Node* node = assginToArray(v, i, newNodeNum(str[i]));
                 node->next = block->statements;
                 block->statements = node;
             }
-            i++;
-            Node* node = newNodeVariable(v);
-            node = newAdd(node, newNodeNum(i));
-            node = newNode(NODE_DEREF, node, NULL);
-            node = newNode(NODE_ASSIGNMENT, node, newNodeNum('\0'));
-            node = newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
+            Node* node = assginToArray(v, i++, newNodeNum('\0'));
             node->next = block->statements;
             block->statements = node;
         } else {
             expect("{");
             for (; !consume("}"); i++) {
-                Node* node = newNodeVariable(v);
-                node = newAdd(node, newNodeNum(i));
-                node = newNode(NODE_DEREF, node, NULL);
-                node = newNode(NODE_ASSIGNMENT, node, expression());
-                node = newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
+                Node* node = assginToArray(v, i, expression());
                 node->next = block->statements;
                 block->statements = node;
                 consume(",");
             }
         }
-
         if (v->type->arraySize == 0) {
             v->type->arraySize = i;
             return block;
         }
         for (; i < v->type->arraySize; i++) {
-            Node* node = newNodeVariable(v);
-            node = newAdd(node, newNodeNum(i));
-            node = newNode(NODE_DEREF, node, NULL);
-            node = newNode(NODE_ASSIGNMENT, node, newNodeNum(0));
-            node = newNode(NODE_STATEMENT_EXPRESSION, node, NULL);
+            Node* node = assginToArray(v, i, newNodeNum(0));
             node->next = block->statements;
             block->statements = node;
         }

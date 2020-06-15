@@ -55,7 +55,7 @@ static Node* expression();
 static Type* basetype();
 static Node* newAdd(Node* lhs, Node* rhs);
 static Node* newSub(Node* lhs, Node* rhs);
-static Variable* declarateGlobalVariable(Type* type, char* name);
+static Variable* declareGlobalVariable(Type* type, char* name);
 static Node* statement();
 
 static Token* consume(char* str)
@@ -226,7 +226,7 @@ static Node* primary()
     if (rp->kind == TOKEN_STRING) {
         char* label = stringLabel();
         Type* type = arrayOf(&CHAR_TYPE, strlen(rp->str));
-        declarateGlobalVariable(type, label);
+        declareGlobalVariable(type, label);
         globalVariables->variable->string = rp->str;
         Node* node = newNodeVariable(variable(label));
         rp = rp->next;
@@ -386,7 +386,7 @@ static Node* expression()
     return assign();
 }
 
-static Variable* declarateLocalVariable(Type* type, char* name)
+static Variable* declareLocalVariable(Type* type, char* name)
 {
     Variable* v = calloc(1, sizeof(Variable));
     v->name = name;
@@ -473,7 +473,7 @@ static Node* localVariable()
             expect("]");
         }
     }
-    Variable* v = declarateLocalVariable(type, name);
+    Variable* v = declareLocalVariable(type, name);
     if (consume("=")) {
         return localVariableInitializer(v);
     }
@@ -586,7 +586,7 @@ static Node* parameter()
 {
     Type* type = basetype();
     char* name = expectIdentifier();
-    Variable* localVariable = declarateLocalVariable(type, name);
+    Variable* localVariable = declareLocalVariable(type, name);
     Node* node = newNode(NODE_NULL, NULL, NULL);
     node->type = type;
     return node;
@@ -637,7 +637,7 @@ static Function* function(Type* type, char* name)
     return func;
 }
 
-static Variable* declarateGlobalVariable(Type* type, char* name)
+static Variable* declareGlobalVariable(Type* type, char* name)
 {
     Variable* v = calloc(1, sizeof(Variable));
     v->name = name;
@@ -664,7 +664,7 @@ static void globalVariableInitializer(Variable* v)
             && v->type->pointerTo->kind == TYPE_CHAR) {
             char* label = stringLabel();
             Type* type = arrayOf(&CHAR_TYPE, strlen(str) + 1);
-            declarateGlobalVariable(type, label);
+            declareGlobalVariable(type, label);
             globalVariables->variable->string = str;
             v->initialValue->label = label;
             return;
@@ -734,7 +734,7 @@ static Program* program()
                     expect("]");
                 }
             }
-            Variable* v = declarateGlobalVariable(type, name);
+            Variable* v = declareGlobalVariable(type, name);
             if (consume("=")) {
                 globalVariableInitializer(v);
             }

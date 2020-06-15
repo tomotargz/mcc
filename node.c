@@ -30,7 +30,9 @@ Node* newNodeVariable(Variable* variable)
     } else {
         node->kind = NODE_LOCAL_VARIABLE;
     }
-    node->variable = variable;
+    node->name = variable->name;
+    node->offset = variable->offset;
+    node->type = variable->type;
     return node;
 }
 
@@ -78,10 +80,6 @@ void addType(Node* tree)
         || tree->kind == NODE_POINTER_SUBTRACTION
         || tree->kind == NODE_ASSIGNMENT) {
         tree->type = tree->lhs->type;
-        return;
-    } else if (tree->kind == NODE_GLOBAL_VARIABLE
-        || tree->kind == NODE_LOCAL_VARIABLE) {
-        tree->type = tree->variable->type;
         return;
     } else if (tree->kind == NODE_ADDR) {
         tree->type = calloc(1, sizeof(Type));

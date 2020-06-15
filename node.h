@@ -1,8 +1,8 @@
 #ifndef NODE_H
 #define NODE_H
 
-#include "variable.h"
 #include "type.h"
+#include "variable.h"
 
 typedef enum {
     NODE_ADDITION,
@@ -39,8 +39,8 @@ struct Node {
     Node* lhs;
     Node* rhs;
     int val;
-    Variable* variable;
     Type* type;
+    int offset;
 
     // if(cond)then;else els;
     // while(cond)body;

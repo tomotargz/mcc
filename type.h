@@ -40,5 +40,6 @@ static Type NO_TYPE = { TYPE_NO, 0, NULL, NULL, 0, NULL };
 Type* pointerTo(Type* to);
 Type* arrayOf(Type* type, int size);
 int size(Type* type);
+int alignOffset(int offset, int align);
 
 #endif

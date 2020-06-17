@@ -599,6 +599,7 @@ static Type* basetype()
         expect("{");
         type = calloc(1, sizeof(Type));
         type->kind = TYPE_STRUCT;
+        int align = 0;
         while (!consume("}")) {
             Member* m = calloc(1, sizeof(Member));
             m->type = basetype();
@@ -607,11 +608,15 @@ static Type* basetype()
             if (!type->members) {
                 m->offset = size(m->type);
             } else {
-                m->offset = type->members->offset + size(m->type);
+                m->offset = alignOffset(type->members->offset, m->type->align) + size(m->type);
             }
             m->next = type->members;
             type->members = m;
+            if (align < m->type->align) {
+                align = m->type->align;
+            }
         }
+        type->align = align;
     } else {
         error_at(rp->pos, src, file, "unexpected basetype");
         return NULL;

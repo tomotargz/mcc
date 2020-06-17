@@ -32,12 +32,20 @@ int size(Type* type)
     } else if (type->kind == TYPE_CHAR) {
         return 1;
     } else if (type->kind == TYPE_STRUCT) {
-        int s = 0;
-        for (Member* m = type->members; m; m = m->next) {
-            s += size(m->type);
-        }
-        return s;
+        return alignOffset(type->members->offset, type->align);
     }
     error("invalid type");
     return 0;
+}
+
+int alignOffset(int offset, int align)
+{
+    if (align <= 0) {
+        error("invalid align");
+    }
+    int diff = offset % align;
+    if (diff) {
+        return offset + align - diff;
+    }
+    return offset;
 }

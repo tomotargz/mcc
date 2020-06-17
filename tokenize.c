@@ -29,7 +29,7 @@ static Token* append(Token* tail, Token* token)
 static char* startsWithReserved(char* str)
 {
     static char* KEYWORD[] = {
-        "return", "if", "else", "while", "for", "int", "char", "sizeof"
+        "return", "if", "else", "while", "for", "int", "char", "sizeof", "struct"
     };
     for (int i = 0; i < sizeof(KEYWORD) / sizeof(KEYWORD[0]); ++i) {
         int length = strlen(KEYWORD[i]);
@@ -44,7 +44,7 @@ static char* startsWithReserved(char* str)
         "==", "!=", "<=", ">=", "<", ">",
         "=", "+", "-", "*", "/",
         "(", ")", "{", "}", "[", "]",
-        ";", ",", "&"
+        ";", ",", "&", "."
     };
     for (int i = 0; i < sizeof(PUNCTUATION) / sizeof(PUNCTUATION[0]); ++i) {
         int length = strlen(PUNCTUATION[i]);

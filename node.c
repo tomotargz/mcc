@@ -93,6 +93,8 @@ void addType(Node* tree)
         }
         tree->type = tree->lhs->type->pointerTo;
         return;
+    } else if (tree->kind == NODE_MEMBER) {
+        tree->type = tree->member->type;
     } else {
         tree->type = &noType;
         return;

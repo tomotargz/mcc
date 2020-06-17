@@ -8,14 +8,25 @@ typedef enum TypeKind {
     TYPE_CHAR,
     TYPE_POINTER,
     TYPE_ARRAY,
+    TYPE_STRUCT,
     TYPE_NO
 } TypeKind;
+
+typedef struct Type Type;
+
+typedef struct Member {
+    Type* type;
+    char* name;
+    int offset;
+    struct Member* next;
+} Member;
 
 typedef struct Type {
     TypeKind kind;
     struct Type* pointerTo;
     struct Type* arrayOf;
     int arraySize;
+    Member* members;
 } Type;
 
 static Type INT_TYPE = { TYPE_INT, NULL, NULL, 0 };

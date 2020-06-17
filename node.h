@@ -29,6 +29,7 @@ typedef enum {
     NODE_ADDR,
     NODE_DEREF,
     NODE_STATEMENT_EXPRESSION,
+    NODE_MEMBER,
     NODE_NULL,
 } NodeKind;
 
@@ -57,6 +58,9 @@ struct Node {
     // function
     char* name;
     Node* args;
+
+    // struct member
+    Member* member;
 };
 
 Node* newNode(NodeKind kind, Node* lhs, Node* rhs);

@@ -159,6 +159,13 @@ int main()
     assertEq(105, ({ g10[3]; }), "g10[3];");
     assertEq(7, ({ sizeof(g10); }), "sizeof(g10);");
 
+    assertEq(3, ({struct {int a;int b;}s; 3; }), "struct {int a;int b;}s; 3;");
+    assertEq(3, ({struct {int a;int b;}s; s.a = 3; s.a; }), "struct {int a;int b;}s; s.a = 3; s.a;");
+    assertEq(3, ({struct {int a;int b;} s[4]; s[3].a = 3; s[3].a; }), "struct {int a;int b;} s[4]; s[3].a = 3; s[3].a;");
+    assertEq(8, ({struct {int a;int b;} s; sizeof(s); }), "struct {int a;int b;} s; sizeof(s);");
+    assertEq(24, ({struct {int a;int b;} s[3]; sizeof(s); }), "struct {int a;int b;} s[3]; sizeof(s);");
+    assertEq(3, ({struct {struct{int a; int b;}internal; int c;} s; s.internal.a = 3;s.internal.a; }), "struct {struct{int a; int b;}internal; int c;} s; s.internal.a = 3;s.internal.a;");
+
     printf("OK\n");
     return 0;
 }

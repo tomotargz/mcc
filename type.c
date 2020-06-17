@@ -29,6 +29,12 @@ int size(Type* type)
         return size(type->arrayOf) * type->arraySize;
     } else if (type->kind == TYPE_CHAR) {
         return 1;
+    } else if (type->kind == TYPE_STRUCT) {
+        int s = 0;
+        for (Member* m = type->members; m; m = m->next) {
+            s += size(m->type);
+        }
+        return s;
     }
     error("invalid type");
     return 0;

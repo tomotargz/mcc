@@ -20,7 +20,7 @@
 // multiplication = unary ("*" unary | "/" unary)*
 // unary = ("+" | "-" | "*" | "&" | "sizeof")? unary
 //       | postfix
-// postfix = primary ("[" expression "]")*
+// postfix = primary ("[" expression "]" | "." identifier)*
 // primary = "(" "{" expressionStatement "}" ")"
 //         | "(" expression ")"
 //         | identifier arguments?
@@ -237,15 +237,39 @@ static Node* primary()
     return NULL;
 }
 
-// postfix = primary ("[" expression "]")*
+static Member* findMember(Type* type, char* name)
+{
+    if (type->kind != TYPE_STRUCT) {
+        error("attempt to find a member from non struct type");
+    }
+    for (Member* m = type->members; m; m = m->next) {
+        if (strlen(m->name) == strlen(name)
+            && strcmp(m->name, name) == 0) {
+            return m;
+        }
+    }
+    error("no such member");
+    return NULL;
+}
+
+// postfix = primary ("[" expression "]" | "." identifier)*
 static Node* postfix()
 {
     Node* node = primary();
-    while (consume("[")) {
-        Node* index = expression();
-        node = newAdd(node, index);
-        node = newNode(NODE_DEREF, node, NULL);
-        expect("]");
+    while (1) {
+        if (consume("[")) {
+            Node* index = expression();
+            node = newAdd(node, index);
+            node = newNode(NODE_DEREF, node, NULL);
+            expect("]");
+        } else if (consume(".")) {
+            addType(node);
+            Member* m = findMember(node->type, expectIdentifier());
+            node = newNode(NODE_MEMBER, node, NULL);
+            node->member = m;
+        } else {
+            break;
+        }
     }
     return node;
 }
@@ -489,7 +513,7 @@ static Node* statementExpression()
 
 bool isTypeName()
 {
-    return peek("int") || peek("char");
+    return peek("int") || peek("char") || peek("struct");
 }
 
 // statement = "return" expression ";"
@@ -563,7 +587,7 @@ static Node* statement()
     return node;
 }
 
-// basetype = ("int" | "char") "*"*
+// basetype = ("int" | "char" | "struct" "{" member* "}") "*"*
 static Type* basetype()
 {
     Type* type;
@@ -571,6 +595,23 @@ static Type* basetype()
         type = &INT_TYPE;
     } else if (consume("char")) {
         type = &CHAR_TYPE;
+    } else if (consume("struct")) {
+        expect("{");
+        type = calloc(1, sizeof(Type));
+        type->kind = TYPE_STRUCT;
+        while (!consume("}")) {
+            Member* m = calloc(1, sizeof(Member));
+            m->type = basetype();
+            m->name = expectIdentifier();
+            expect(";");
+            if (!type->members) {
+                m->offset = size(m->type);
+            } else {
+                m->offset = type->members->offset + size(m->type);
+            }
+            m->next = type->members;
+            type->members = m;
+        }
     } else {
         error_at(rp->pos, src, file, "unexpected basetype");
         return NULL;

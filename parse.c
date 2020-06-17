@@ -1,7 +1,7 @@
 // program = (globalVariable | function)*
 // globalVariable = basetype identifier ("[" arraySize "]")? ("=" expression)?
 // function = basetype identifier "(" parameters? ")" "{" statement* "}"
-// basetype = ("int" | "char") "*"*
+// basetype = ("int" | "char" | "struct" "{" member* "}") "*"*
 // parameters = parameter ("," parameter)*
 // parameter = basetype identifier
 // statement = "return" expression ";"

@@ -62,9 +62,6 @@ void addType(Node* tree)
         addType(arg);
     }
 
-    static Type intType = { TYPE_INT, NULL };
-    static Type pointerType = { TYPE_INT, NULL };
-    static Type noType = { TYPE_NO, NULL };
     if (tree->kind == NODE_ADDITION
         || tree->kind == NODE_SUBTRACTION
         || tree->kind == NODE_MULTIPLICATION
@@ -74,7 +71,7 @@ void addType(Node* tree)
         || tree->kind == NODE_LESS_THAN
         || tree->kind == NODE_LESS_OR_EQUAL
         || tree->kind == NODE_NUMBER) {
-        tree->type = &intType;
+        tree->type = &INT_TYPE;
         return;
     } else if (tree->kind == NODE_POINTER_ADDITION
         || tree->kind == NODE_POINTER_SUBTRACTION
@@ -96,7 +93,7 @@ void addType(Node* tree)
     } else if (tree->kind == NODE_MEMBER) {
         tree->type = tree->member->type;
     } else {
-        tree->type = &noType;
+        tree->type = &NO_TYPE;
         return;
     }
 }

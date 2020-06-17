@@ -4,16 +4,18 @@
 
 Type* pointerTo(Type* type)
 {
-    Type* newType = calloc(1, sizeof(Type));
-    newType->kind = TYPE_POINTER;
-    newType->pointerTo = type;
-    return newType;
+    Type* pointer = calloc(1, sizeof(Type));
+    pointer->kind = TYPE_POINTER;
+    pointer->align = 4;
+    pointer->pointerTo = type;
+    return pointer;
 }
 
 Type* arrayOf(Type* type, int size)
 {
     Type* array = calloc(1, sizeof(Type));
     array->kind = TYPE_ARRAY;
+    array->align = type->align;
     array->arrayOf = type;
     array->arraySize = size;
     return array;

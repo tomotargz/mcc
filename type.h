@@ -23,14 +23,19 @@ typedef struct Member {
 
 typedef struct Type {
     TypeKind kind;
+    int align;
+    // pointer
     struct Type* pointerTo;
+    // array
     struct Type* arrayOf;
     int arraySize;
+    // struct
     Member* members;
 } Type;
 
-static Type INT_TYPE = { TYPE_INT, NULL, NULL, 0 };
-static Type CHAR_TYPE = { TYPE_CHAR, NULL, NULL, 0 };
+static Type INT_TYPE = { TYPE_INT, 1, NULL, NULL, 0, NULL };
+static Type CHAR_TYPE = { TYPE_CHAR, 4, NULL, NULL, 0, NULL };
+static Type NO_TYPE = { TYPE_NO, 0, NULL, NULL, 0, NULL };
 
 Type* pointerTo(Type* to);
 Type* arrayOf(Type* type, int size);

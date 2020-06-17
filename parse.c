@@ -417,7 +417,9 @@ static Variable* declareLocalVariable(Type* type, char* name)
     v->type = type;
     v->isGlobal = false;
     if (localVariables) {
-        v->offset = localVariables->variable->offset + size(type);
+        int aligned
+            = alignOffset(localVariables->variable->offset, type->align);
+        v->offset = aligned + size(type);
     } else {
         v->offset = size(type);
     }

@@ -167,6 +167,8 @@ int main()
     assertEq(3, ({struct {struct{int a; int b;}internal; int c;} s; s.internal.a = 3;s.internal.a; }), "struct {struct{int a; int b;}internal; int c;} s; s.internal.a = 3;s.internal.a;");
     assertEq(12, ({struct {char a; int b; char c;}s; sizeof(s); }), "{struct {char a; int b; char c;}s; sizeof(s);");
 
+    assertEq(3, ({char a; int b; char c; b = 3; b; }), "char a; int b; char c; b = 3; b;");
+
     printf("OK\n");
     return 0;
 }

@@ -43,13 +43,25 @@
 #include "type.h"
 #include "variable.h"
 
+typedef struct StructTag {
+    char* name;
+    Type* type;
+    struct StructTag* next;
+} StructTag;
+
+typedef struct Scope {
+    StructTag* structTags;
+    VariableList* variables;
+} Scope;
+
 static char* src;
 static char* file;
 static Token* rp = NULL;
 
 static VariableList* globalVariables;
 static VariableList* localVariables;
-static VariableList* scope;
+static VariableList* variableScope;
+static StructTag* structTagScope;
 
 static Node* expression();
 static Type* basetype();
@@ -57,6 +69,20 @@ static Node* newAdd(Node* lhs, Node* rhs);
 static Node* newSub(Node* lhs, Node* rhs);
 static Variable* declareGlobalVariable(Type* type, char* name);
 static Node* statement();
+
+static Scope* saveScope()
+{
+    Scope* s = calloc(1, sizeof(Scope));
+    s->structTags = structTagScope;
+    s->variables = variableScope;
+    return s;
+}
+
+static void restoreScope(Scope* s)
+{
+    structTagScope = s->structTags;
+    variableScope = s->variables;
+}
 
 static Token* consume(char* str)
 {
@@ -118,7 +144,7 @@ static bool peek(char* str)
 
 static Variable* variable(char* str)
 {
-    for (VariableList* l = scope; l; l = l->next) {
+    for (VariableList* l = variableScope; l; l = l->next) {
         if (strlen(str) == strlen(l->variable->name)
             && strncmp(str, l->variable->name, strlen(str)) == 0) {
             return l->variable;
@@ -128,12 +154,12 @@ static Variable* variable(char* str)
     return NULL;
 }
 
-static Token* consumeIdentifier()
+static char* consumeIdentifier()
 {
     if (rp->kind == TOKEN_IDENTIFIER) {
         Token* identifier = rp;
         rp = rp->next;
-        return identifier;
+        return identifier->str;
     }
     return NULL;
 }
@@ -168,7 +194,7 @@ static char* stringLabel()
 
 static Node* expressionStatement()
 {
-    VariableList* currentScope = scope;
+    Scope* currentScope = saveScope();
     Node* node = newNode(NODE_BLOCK, NULL, NULL);
     Node dummy = {};
     Node* prev = NULL;
@@ -184,7 +210,7 @@ static Node* expressionStatement()
     prev->next = curr->lhs;
     node->statements = dummy.next;
     expect(")");
-    scope = currentScope;
+    restoreScope(currentScope);
     return node;
 }
 
@@ -209,17 +235,17 @@ static Node* primary()
         return newNodeNum(expectNumber());
     }
 
-    Token* identifier = consumeIdentifier();
+    char* identifier = consumeIdentifier();
     if (identifier) {
         // Function call
         if (consume("(")) {
             Node* node = newNode(NODE_CALL, NULL, NULL);
-            node->name = identifier->str;
+            node->name = identifier;
             arguments(node);
             return node;
         }
         // Variable
-        Node* node = newNodeVariable(variable(identifier->str));
+        Node* node = newNodeVariable(variable(identifier));
         return node;
     }
 
@@ -429,8 +455,8 @@ static Variable* declareLocalVariable(Type* type, char* name)
     localVariables = l;
     VariableList* ls = calloc(1, sizeof(VariableList));
     ls->variable = v;
-    ls->next = scope;
-    scope = ls;
+    ls->next = variableScope;
+    variableScope = ls;
     return v;
 }
 
@@ -487,9 +513,13 @@ static Node* localVariableInitializer(Variable* v)
 }
 
 // declaration = basetype ident ("[" arraySize? "]")? ("=" localVariableInitializer)? ";"
+//             | basetype
 static Node* localVariable()
 {
     Type* type = basetype();
+    if (peek(";")) {
+        return newNode(NODE_NULL, NULL, NULL);
+    }
     char* name = expectIdentifier();
     if (consume("[")) {
         if (consume("]")) {
@@ -572,7 +602,7 @@ static Node* statement()
         }
         node->body = statement();
     } else if (consume("{")) {
-        VariableList* currentScope = scope;
+        Scope* currentScope = saveScope();
         node = newNode(NODE_BLOCK, NULL, NULL);
         Node dummy = {};
         Node* tail = &dummy;
@@ -581,7 +611,7 @@ static Node* statement()
             tail = tail->next;
         }
         node->statements = dummy.next;
-        scope = currentScope;
+        restoreScope(currentScope);
     } else {
         node = statementExpression();
         expect(";");
@@ -589,7 +619,63 @@ static Node* statement()
     return node;
 }
 
-// basetype = ("int" | "char" | "struct" "{" member* "}") "*"*
+static Type* structMembers()
+{
+    Type* type = calloc(1, sizeof(Type));
+    type->kind = TYPE_STRUCT;
+    int align = 0;
+    while (!consume("}")) {
+        Member* m = calloc(1, sizeof(Member));
+        m->type = basetype();
+        m->name = expectIdentifier();
+        expect(";");
+        if (!type->members) {
+            m->offset = size(m->type);
+        } else {
+            m->offset = alignOffset(type->members->offset, m->type->align) + size(m->type);
+        }
+        m->next = type->members;
+        type->members = m;
+        if (align < m->type->align) {
+            align = m->type->align;
+        }
+    }
+    type->align = align;
+    return type;
+}
+
+// structDeclaration = "struct" identifier
+//                   | "struct" identifier? "{" member* "}"
+static Type* structDeclaration()
+{
+    expect("struct");
+    char* identifier = consumeIdentifier();
+    if (identifier) {
+        if (consume("{")) {
+            // declare struct tag
+            StructTag* tag = calloc(1, sizeof(StructTag));
+            tag->name = identifier;
+            tag->type = structMembers();
+            tag->next = structTagScope;
+            structTagScope = tag;
+            return tag->type;
+        } else {
+            // find tag
+            for (StructTag* s = structTagScope; s; s = s->next) {
+                if (strlen(identifier) == strlen(s->name)
+                    && !strcmp(identifier, s->name)) {
+                    return s->type;
+                }
+            }
+            error("no such struct tag");
+        }
+    }
+    // anonymous struct
+    expect("{");
+    return structMembers();
+}
+
+// basetype = ("int" | "char" | structDeclaration) "*"*
 static Type* basetype()
 {
     Type* type;
@@ -597,28 +683,8 @@ static Type* basetype()
         type = &INT_TYPE;
     } else if (consume("char")) {
         type = &CHAR_TYPE;
-    } else if (consume("struct")) {
-        expect("{");
-        type = calloc(1, sizeof(Type));
-        type->kind = TYPE_STRUCT;
-        int align = 0;
-        while (!consume("}")) {
-            Member* m = calloc(1, sizeof(Member));
-            m->type = basetype();
-            m->name = expectIdentifier();
-            expect(";");
-            if (!type->members) {
-                m->offset = size(m->type);
-            } else {
-                m->offset = alignOffset(type->members->offset, m->type->align) + size(m->type);
-            }
-            m->next = type->members;
-            type->members = m;
-            if (align < m->type->align) {
-                align = m->type->align;
-            }
-        }
-        type->align = align;
+    } else if (peek("struct")) {
+        type = structDeclaration();
     } else {
         error_at(rp->pos, src, file, "unexpected basetype");
         return NULL;
@@ -658,7 +724,7 @@ static Node* parameters()
 static Function* function(Type* type, char* name)
 {
     localVariables = NULL;
-    VariableList* currentScope = scope;
+    Scope* currentScope = saveScope();
     Function* func = calloc(1, sizeof(Function));
     func->name = name;
     if (!consume(")")) {
@@ -681,7 +747,7 @@ static Function* function(Type* type, char* name)
         func->stackSize = 0;
     }
     addType(func->statements);
-    scope = currentScope;
+    restoreScope(currentScope);
     return func;
 }
 
@@ -697,8 +763,8 @@ static Variable* declareGlobalVariable(Type* type, char* name)
     globalVariables = l;
     VariableList* ls = calloc(1, sizeof(VariableList));
     ls->variable = v;
-    ls->next = scope;
-    scope = ls;
+    ls->next = variableScope;
+    variableScope = ls;
     return v;
 }
 

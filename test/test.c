@@ -166,6 +166,9 @@ int main()
     assertEq(24, ({struct {int a;int b;} s[3]; sizeof(s); }), "struct {int a;int b;} s[3]; sizeof(s);");
     assertEq(3, ({struct {struct{int a; int b;}internal; int c;} s; s.internal.a = 3;s.internal.a; }), "struct {struct{int a; int b;}internal; int c;} s; s.internal.a = 3;s.internal.a;");
     assertEq(12, ({struct {char a; int b; char c;}s; sizeof(s); }), "{struct {char a; int b; char c;}s; sizeof(s);");
+    assertEq(3, ({struct tag{int a; int b;}; struct tag s; s.a = 3; s.a; }), "struct tag{int a; int b;}; struct tag s; s.a = 3; s.a;");
+    assertEq(3, ({struct tag{int a; int b;} s; s.a = 3; s.a; }), "struct tag{int a; int b;} s; s.a = 3; s.a;");
+    assertEq(8, ({struct tag{int a; int b;}; struct tag s; sizeof(s); }), "struct tag{int a; int b;}; struct tag s; sizeof(s);");
 
     assertEq(3, ({char a; int b; char c; b = 3; b; }), "char a; int b; char c; b = 3; b;");
 

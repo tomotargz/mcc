@@ -20,7 +20,7 @@
 // multiplication = unary ("*" unary | "/" unary)*
 // unary = ("+" | "-" | "*" | "&" | "sizeof")? unary
 //       | postfix
-// postfix = primary ("[" expression "]" | "." identifier)*
+// postfix = primary ("[" expression "]" | "." identifier | "->" identifier)*
 // primary = "(" "{" expressionStatement "}" ")"
 //         | "(" expression ")"
 //         | identifier arguments?
@@ -278,7 +278,16 @@ static Member* findMember(Type* type, char* name)
     return NULL;
 }
 
-// postfix = primary ("[" expression "]" | "." identifier)*
+static Node* structMember(Node* node)
+{
+    addType(node);
+    Member* m = findMember(node->type, expectIdentifier());
+    Node* n = newNode(NODE_MEMBER, node, NULL);
+    n->member = m;
+    return n;
+}
+
+// postfix = primary ("[" expression "]" | "." identifier | "->" identifier)*
 static Node* postfix()
 {
     Node* node = primary();
@@ -289,10 +298,11 @@ static Node* postfix()
             node = newNode(NODE_DEREF, node, NULL);
             expect("]");
         } else if (consume(".")) {
-            addType(node);
-            Member* m = findMember(node->type, expectIdentifier());
-            node = newNode(NODE_MEMBER, node, NULL);
-            node->member = m;
+            node = structMember(node);
+        } else if (consume("->")) {
+            // a->b is (*a).b
+            node = newNode(NODE_DEREF, node, NULL);
+            node = structMember(node);
         } else {
             break;
         }

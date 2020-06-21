@@ -169,6 +169,7 @@ int main()
     assertEq(3, ({struct tag{int a; int b;}; struct tag s; s.a = 3; s.a; }), "struct tag{int a; int b;}; struct tag s; s.a = 3; s.a;");
     assertEq(3, ({struct tag{int a; int b;} s; s.a = 3; s.a; }), "struct tag{int a; int b;} s; s.a = 3; s.a;");
     assertEq(8, ({struct tag{int a; int b;}; struct tag s; sizeof(s); }), "struct tag{int a; int b;}; struct tag s; sizeof(s);");
+    assertEq(3, ({struct tag{int a; int b;} s; struct tag* sp = &s; sp->a = 3; sp->a; }), "struct tag{int a; int b;} s; struct tag* sp = &s; sp->a = 3; sp->a;}");
 
     assertEq(3, ({char a; int b; char c; b = 3; b; }), "char a; int b; char c; b = 3; b;");
 

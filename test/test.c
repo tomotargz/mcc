@@ -173,6 +173,8 @@ int main()
 
     assertEq(3, ({char a; int b; char c; b = 3; b; }), "char a; int b; char c; b = 3; b;");
 
+    assertEq(3, ({typedef struct Node{int num;}Node; Node n; n.num = 3; n.num; }), "typedef struct Node{int num;}Node; Node n; n.num = 3; n.num;");
+
     printf("OK\n");
     return 0;
 }

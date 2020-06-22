@@ -9,6 +9,7 @@
 //           | "while" "(" expression ")" statement
 //           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" statementExpression? ")" statement
 //           | "{" statement* "}"
+//           | "typedef" basetype identifier ";"
 //           | localVariable ";"
 //           | statementExpression ";"
 // statementExpression = expression
@@ -49,9 +50,16 @@ typedef struct StructTag {
     struct StructTag* next;
 } StructTag;
 
+typedef struct Typedef {
+    char* name;
+    Type* type;
+    struct Typedef* next;
+} Typedef;
+
 typedef struct Scope {
     StructTag* structTags;
     VariableList* variables;
+    Typedef* typedefs;
 } Scope;
 
 static char* src;
@@ -62,6 +70,7 @@ static VariableList* globalVariables;
 static VariableList* localVariables;
 static VariableList* variableScope;
 static StructTag* structTagScope;
+static Typedef* typedefScope;
 
 static Node* expression();
 static Type* basetype();
@@ -75,6 +84,7 @@ static Scope* saveScope()
     Scope* s = calloc(1, sizeof(Scope));
     s->structTags = structTagScope;
     s->variables = variableScope;
+    s->typedefs = typedefScope;
     return s;
 }
 
@@ -82,6 +92,7 @@ static void restoreScope(Scope* s)
 {
     structTagScope = s->structTags;
     variableScope = s->variables;
+    typedefScope = s->typedefs;
 }
 
 static Token* consume(char* str)
@@ -553,9 +564,22 @@ static Node* statementExpression()
     return node;
 }
 
+Type* findTypedef(char* name)
+{
+    for (Typedef* t = typedefScope; t; t = t->next) {
+        if (strlen(name) == strlen(t->name) && !strcmp(name, t->name)) {
+            return t->type;
+        }
+    }
+    return NULL;
+}
+
 bool isTypeName()
 {
-    return peek("int") || peek("char") || peek("struct");
+    return peek("int")
+        || peek("char")
+        || peek("struct")
+        || findTypedef(rp->str);
 }
 
 // statement = "return" expression ";"
@@ -563,6 +587,7 @@ bool isTypeName()
 //           | "while" "(" expression ")" statement
 //           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" statementExpression? ")" statement
 //           | "{" statement* "}"
+//           | "typedef" basetype identifier ";"
 //           | localVariable ";"
 //           | statementExpression ";"
 static Node* statement()
@@ -622,6 +647,16 @@ static Node* statement()
         }
         node->statements = dummy.next;
         restoreScope(currentScope);
+    } else if (consume("typedef")) {
+        Type* type = basetype();
+        char* name = expectIdentifier();
+        Typedef* def = calloc(1, sizeof(Typedef));
+        def->name = name;
+        def->type = type;
+        def->next = typedefScope;
+        typedefScope = def;
+        expect(";");
+        node = newNode(NODE_NULL, NULL, NULL);
     } else {
         node = statementExpression();
         expect(";");
@@ -685,7 +720,7 @@ static Type* structDeclaration()
     return structMembers();
 }
 
-// basetype = ("int" | "char" | structDeclaration) "*"*
+// basetype = ("int" | "char" | structDeclaration | typedefName) "*"*
 static Type* basetype()
 {
     Type* type;
@@ -696,8 +731,10 @@ static Type* basetype()
     } else if (peek("struct")) {
         type = structDeclaration();
     } else {
-        error_at(rp->pos, src, file, "unexpected basetype");
-        return NULL;
+        type = findTypedef(expectIdentifier());
+        if (!type) {
+            error_at(rp->pos, src, file, "unexpected basetype");
+        }
     }
     while (consume("*")) {
         type = pointerTo(type);

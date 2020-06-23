@@ -30,7 +30,7 @@ static char* startsWithReserved(char* str)
 {
     static char* KEYWORD[] = {
         "return", "if", "else", "while", "for", "int", "char", "sizeof",
-        "struct", "typedef"
+        "struct", "typedef", "enum"
     };
     for (int i = 0; i < sizeof(KEYWORD) / sizeof(KEYWORD[0]); ++i) {
         int length = strlen(KEYWORD[i]);

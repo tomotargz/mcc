@@ -9,6 +9,7 @@ typedef enum TypeKind {
     TYPE_POINTER,
     TYPE_ARRAY,
     TYPE_STRUCT,
+    TYPE_ENUM,
     TYPE_NO
 } TypeKind;
 
@@ -35,6 +36,7 @@ typedef struct Type {
 
 static Type INT_TYPE = { TYPE_INT, 1, NULL, NULL, 0, NULL };
 static Type CHAR_TYPE = { TYPE_CHAR, 4, NULL, NULL, 0, NULL };
+static Type ENUM_TYPE = { TYPE_ENUM, 4, NULL, NULL, 0, NULL };
 static Type NO_TYPE = { TYPE_NO, 0, NULL, NULL, 0, NULL };
 
 Type* pointerTo(Type* to);

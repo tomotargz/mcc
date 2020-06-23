@@ -23,14 +23,15 @@ Type* arrayOf(Type* type, int size)
 
 int size(Type* type)
 {
-    if (type->kind == TYPE_INT) {
+    if (type->kind == TYPE_CHAR) {
+        return 1;
+    } else if (type->kind == TYPE_INT
+        || type->kind == TYPE_ENUM) {
         return 4;
     } else if (type->kind == TYPE_POINTER) {
         return 8;
     } else if (type->kind == TYPE_ARRAY) {
         return size(type->arrayOf) * type->arraySize;
-    } else if (type->kind == TYPE_CHAR) {
-        return 1;
     } else if (type->kind == TYPE_STRUCT) {
         return alignOffset(type->members->offset, type->align);
     }

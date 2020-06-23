@@ -176,6 +176,12 @@ int main()
     assertEq(3, ({typedef struct Node{int num;}Node; Node n; n.num = 3; n.num; }), "typedef struct Node{int num;}Node; Node n; n.num = 3; n.num;");
     assertEq(3, ({typedef int MyArray[5]; MyArray a; a[3] = 3;a[3]; }), "typedef int MyArray[5]; MyArray a; a[3] = 3;a[3];");
 
+    assertEq(1, ({enum {A,B,C};B; }), "enum {A,B,C};B;}");
+    assertEq(3, ({enum {A = 1,B,C};C; }), "enum {A = 1,B,C};C;}");
+    assertEq(4, ({enum {A,B,C} e;sizeof(e); }), "enum {A,B,C} e;sizeof(e);");
+    assertEq(1, ({enum tag {A,B,C};enum tag e; e = B;e; }), "enum tag{A,B,C};enum tag e; e = B;e;");
+    assertEq(1, ({typedef enum {A,B,C} E;E e;e = B;e; }), "typedef enum {A,B,C} E;E e;e = B;e;");
+
     printf("OK\n");
     return 0;
 }

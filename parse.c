@@ -56,11 +56,22 @@ typedef struct Typedef {
     struct Typedef* next;
 } Typedef;
 
+typedef struct VariableScope {
+    struct VariableScope* next;
+    char* name;
+    Variable* variable; // variable is null when it's an enum
+    int enumValue;
+} VariableScope;
+
 typedef struct Scope {
     StructTag* structTags;
-    VariableList* variables;
+    VariableScope* variables;
     Typedef* typedefs;
 } Scope;
+
+static VariableScope* variableScope;
+static StructTag* structTagScope;
+static Typedef* typedefScope;
 
 static char* src;
 static char* file;
@@ -68,9 +79,6 @@ static Token* rp = NULL;
 
 static VariableList* globalVariables;
 static VariableList* localVariables;
-static VariableList* variableScope;
-static StructTag* structTagScope;
-static Typedef* typedefScope;
 
 static Node* expression();
 static Type* basetype();
@@ -153,12 +161,12 @@ static bool peek(char* str)
         && strncmp(rp->str, str, strlen(rp->str)) == 0;
 }
 
-static Variable* variable(char* str)
+static VariableScope* variable(char* str)
 {
-    for (VariableList* l = variableScope; l; l = l->next) {
-        if (strlen(str) == strlen(l->variable->name)
-            && strncmp(str, l->variable->name, strlen(str)) == 0) {
-            return l->variable;
+    for (VariableScope* v = variableScope; v; v = v->next) {
+        if (strlen(str) == strlen(v->name)
+            && strncmp(str, v->name, strlen(str)) == 0) {
+            return v;
         }
     }
     error_at(rp->pos, src, file, "undefined variable");
@@ -175,12 +183,12 @@ static char* consumeIdentifier()
     return NULL;
 }
 
-static Node* identifier()
-{
-    Node* node = newNodeVariable(variable(rp->str));
-    rp = rp->next;
-    return node;
-}
+// static Node* identifier()
+// {
+//     Node* node = newNodeVariable(variable(rp->str));
+//     rp = rp->next;
+//     return node;
+// }
 
 // arguments = "(" (expression ("," expression)*)? ")"
 static void arguments(Node* function)
@@ -256,18 +264,21 @@ static Node* primary()
             return node;
         }
         // Variable
-        Node* node = newNodeVariable(variable(identifier));
-        return node;
+        VariableScope* v = variable(identifier);
+        if (v->variable) {
+            return newNodeVariable(v->variable);
+        }
+        // Enum
+        return newNodeNum(v->enumValue);
     }
 
-    if (rp->kind == TOKEN_STRING) {
+    char* str = consumeString();
+    if (str) {
         char* label = stringLabel();
         Type* type = arrayOf(&CHAR_TYPE, strlen(rp->str));
-        declareGlobalVariable(type, label);
-        globalVariables->variable->string = rp->str;
-        Node* node = newNodeVariable(variable(label));
-        rp = rp->next;
-        return node;
+        Variable* v = declareGlobalVariable(type, label);
+        v->string = str;
+        return newNodeVariable(v);
     }
 
     error_at(rp->pos, src, file, "invalid token.");
@@ -474,10 +485,13 @@ static Variable* declareLocalVariable(Type* type, char* name)
     l->variable = v;
     l->next = localVariables;
     localVariables = l;
-    VariableList* ls = calloc(1, sizeof(VariableList));
-    ls->variable = v;
-    ls->next = variableScope;
-    variableScope = ls;
+
+    VariableScope* s = calloc(1, sizeof(VariableScope));
+    s->name = name;
+    s->variable = v;
+    s->next = variableScope;
+    variableScope = s;
+
     return v;
 }
 
@@ -579,6 +593,7 @@ bool isTypeName()
     return peek("int")
         || peek("char")
         || peek("struct")
+        || peek("enum")
         || findTypedef(rp->str);
 }
 
@@ -724,7 +739,35 @@ static Type* structDeclaration()
     return structMembers();
 }
 
-// basetype = ("int" | "char" | structDeclaration | typedefName) "*"*
+// enumDeclaration = "enum" identifier
+//                 | "enum" identifier? "{" enumList* "}"
+// enumList = identifier ("=" number)? ("," identifier ("=" number)?)* ","?
+static Type* enumDeclaration()
+{
+    expect("enum");
+    char* tag = consumeIdentifier();
+    if (tag && !peek("{")) {
+        return &ENUM_TYPE;
+    }
+    expect("{");
+    int enumVal = 0;
+    while (!consume("}")) {
+        char* name = expectIdentifier();
+        if (consume("=")) {
+            enumVal = expectNumber();
+        }
+        VariableScope* s = calloc(1, sizeof(VariableScope));
+        s->name = name;
+        s->enumValue = enumVal;
+        s->next = variableScope;
+        variableScope = s;
+        ++enumVal;
+        consume(",");
+    }
+    return &ENUM_TYPE;
+}
+
+// basetype = ("int" | "char" | structDeclaration | enumDeclaration | typedefName) "*"*
 static Type* basetype()
 {
     Type* type;
@@ -734,6 +777,8 @@ static Type* basetype()
         type = &CHAR_TYPE;
     } else if (peek("struct")) {
         type = structDeclaration();
+    } else if (peek("enum")) {
+        type = enumDeclaration();
     } else {
         type = findTypedef(expectIdentifier());
         if (!type) {
@@ -812,10 +857,11 @@ static Variable* declareGlobalVariable(Type* type, char* name)
     l->variable = v;
     l->next = globalVariables;
     globalVariables = l;
-    VariableList* ls = calloc(1, sizeof(VariableList));
-    ls->variable = v;
-    ls->next = variableScope;
-    variableScope = ls;
+    VariableScope* s = calloc(1, sizeof(VariableScope));
+    s->name = name;
+    s->variable = v;
+    s->next = variableScope;
+    variableScope = s;
     return v;
 }
 

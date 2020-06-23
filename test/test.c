@@ -174,6 +174,7 @@ int main()
     assertEq(3, ({char a; int b; char c; b = 3; b; }), "char a; int b; char c; b = 3; b;");
 
     assertEq(3, ({typedef struct Node{int num;}Node; Node n; n.num = 3; n.num; }), "typedef struct Node{int num;}Node; Node n; n.num = 3; n.num;");
+    assertEq(3, ({typedef int MyArray[5]; MyArray a; a[3] = 3;a[3]; }), "typedef int MyArray[5]; MyArray a; a[3] = 3;a[3];");
 
     printf("OK\n");
     return 0;

@@ -9,7 +9,7 @@
 //           | "while" "(" expression ")" statement
 //           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" statementExpression? ")" statement
 //           | "{" statement* "}"
-//           | "typedef" basetype identifier ";"
+//           | "typedef" basetype identifier ("[" number "]")* ";"
 //           | localVariable ";"
 //           | statementExpression ";"
 // statementExpression = expression
@@ -587,7 +587,7 @@ bool isTypeName()
 //           | "while" "(" expression ")" statement
 //           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" statementExpression? ")" statement
 //           | "{" statement* "}"
-//           | "typedef" basetype identifier ";"
+//           | "typedef" basetype identifier ("[" number "]")* ";"
 //           | localVariable ";"
 //           | statementExpression ";"
 static Node* statement()
@@ -650,6 +650,10 @@ static Node* statement()
     } else if (consume("typedef")) {
         Type* type = basetype();
         char* name = expectIdentifier();
+        if (consume("[")) {
+            type = arrayOf(type, expectNumber());
+            expect("]");
+        }
         Typedef* def = calloc(1, sizeof(Typedef));
         def->name = name;
         def->type = type;

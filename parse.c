@@ -19,8 +19,9 @@
 // relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 // add = multiplication ("+" multiplication | "-" multiplication)*
 // multiplication = unary ("*" unary | "/" unary)*
-// unary = ("+" | "-" | "*" | "&" | "sizeof")? unary
+// unary = ("+" | "-" | "*" | "&" )? unary
 //       | postfix
+//       | "sizeof" unary
 // postfix = primary ("[" expression "]" | "." identifier | "->" identifier)*
 // primary = "(" "{" expressionStatement "}" ")"
 //         | "(" expression ")"
@@ -332,8 +333,9 @@ static Node* postfix()
     return node;
 }
 
-// unary = ("+" | "-" | "*" | "&" | "sizeof")? unary
+// unary = ("+" | "-" | "*" | "&" )? unary
 //       | postfix
+//       | "sizeof" unary
 static Node* unary()
 {
     if (consume("+")) {
@@ -345,7 +347,7 @@ static Node* unary()
     } else if (consume("*")) {
         return newNode(NODE_DEREF, unary(), NULL);
     } else if (consume("sizeof")) {
-        Node* node = expression();
+        Node* node = unary();
         addType(node);
         return newNodeNum(size(node->type));
     }

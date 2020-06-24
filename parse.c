@@ -22,6 +22,7 @@
 // unary = ("+" | "-" | "*" | "&" )? unary
 //       | postfix
 //       | "sizeof" unary
+//       | "sizeof" "(" typeName ")"
 // postfix = primary ("[" expression "]" | "." identifier | "->" identifier)*
 // primary = "(" "{" expressionStatement "}" ")"
 //         | "(" expression ")"
@@ -87,6 +88,7 @@ static Node* newAdd(Node* lhs, Node* rhs);
 static Node* newSub(Node* lhs, Node* rhs);
 static Variable* declareGlobalVariable(Type* type, char* name);
 static Node* statement();
+static bool isTypeName();
 
 static Scope* saveScope()
 {
@@ -333,9 +335,49 @@ static Node* postfix()
     return node;
 }
 
+static Node* unary();
+
+// type-suffix = ("[" num "]" type-suffix)?
+Type* typeSuffix(Type* t)
+{
+    while (consume("[")) {
+        t = arrayOf(t, expectNumber());
+        expect("]");
+    }
+    return t;
+}
+
+// abstractDeclarator = "*"* ("(" abstractDeclarator ")")?  typeSuffix?
+Type* abstractDeclarator(Type* t)
+{
+    while (consume("*")) {
+        t = pointerTo(t);
+    }
+    if (consume("(")) {
+        Type* placeholder = calloc(1, sizeof(Type));
+        Type* newType = abstractDeclarator(placeholder);
+        expect(")");
+        t = typeSuffix(t);
+        memcpy(placeholder, t, sizeof(Type));
+        return newType;
+    }
+    t = typeSuffix(t);
+    return t;
+}
+
+// typeName = basetype abstract-declarator type-suffix
+Type* typeName()
+{
+    Type* t = basetype();
+    t = abstractDeclarator(t);
+    t = typeSuffix(t);
+    return t;
+}
+
 // unary = ("+" | "-" | "*" | "&" )? unary
 //       | postfix
 //       | "sizeof" unary
+//       | "sizeof" "(" typeName ")"
 static Node* unary()
 {
     if (consume("+")) {
@@ -347,6 +389,17 @@ static Node* unary()
     } else if (consume("*")) {
         return newNode(NODE_DEREF, unary(), NULL);
     } else if (consume("sizeof")) {
+        if (consume("(")) {
+            if (isTypeName()) {
+                Type* t = typeName();
+                expect(")");
+                return newNodeNum(size(t));
+            }
+            Node* node = unary();
+            addType(node);
+            expect(")");
+            return newNodeNum(size(node->type));
+        }
         Node* node = unary();
         addType(node);
         return newNodeNum(size(node->type));
@@ -580,7 +633,7 @@ static Node* statementExpression()
     return node;
 }
 
-Type* findTypedef(char* name)
+static Type* findTypedef(char* name)
 {
     for (Typedef* t = typedefScope; t; t = t->next) {
         if (strlen(name) == strlen(t->name) && !strcmp(name, t->name)) {
@@ -590,7 +643,7 @@ Type* findTypedef(char* name)
     return NULL;
 }
 
-bool isTypeName()
+static bool isTypeName()
 {
     return peek("int")
         || peek("char")

@@ -182,6 +182,16 @@ int main()
     assertEq(1, ({enum tag {A,B,C};enum tag e; e = B;e; }), "enum tag{A,B,C};enum tag e; e = B;e;");
     assertEq(1, ({typedef enum {A,B,C} E;E e;e = B;e; }), "typedef enum {A,B,C} E;E e;e = B;e;");
 
+    assertEq(1, ({ sizeof(char); }), "sizeof(char);");
+    assertEq(4, ({ sizeof(int); }), "sizeof(int);");
+    assertEq(8, ({ sizeof(int*); }), "sizeof(int*);");
+    assertEq(20, ({ sizeof(int[5]); }), "sizeof(int[5]);");
+    assertEq(8, ({ struct s{int a; char b;};sizeof(struct s); }), "struct s{int a; char b;};sizeof(struct s);");
+    assertEq(8, ({ typedef struct s{int a; char b;} s;sizeof(s); }), "typedef struct s{int a; char b;} s;sizeof(s);");
+    assertEq(8, ({ sizeof(int(*)[5]); }), "sizeof(int(*)[5]);");
+    assertEq(8, ({ sizeof(int*(*)[5]); }), "sizeof(int(*)[5]);");
+    assertEq(40, ({ sizeof(int(*[5])[5]); }), "sizeof(int(*[5])[5]);");
+
     printf("OK\n");
     return 0;
 }

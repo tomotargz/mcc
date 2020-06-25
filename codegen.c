@@ -68,6 +68,32 @@ static void load(Type* type)
     printf("  push rax\n");
 }
 
+static void increment(Type* type)
+{
+    printf("  pop rax\n");
+    if (type->kind == TYPE_POINTER) {
+        printf("  add rax, %d\n", size(type->pointerTo));
+    } else if (type->kind == TYPE_ARRAY) {
+        printf("  add rax, %d\n", size(type->arrayOf));
+    } else {
+        printf("  add rax, 1\n");
+    }
+    printf("  push rax\n");
+}
+
+static void decrement(Type* type)
+{
+    printf("  pop rax\n");
+    if (type->kind == TYPE_POINTER) {
+        printf("  sub rax, %d\n", size(type->pointerTo));
+    } else if (type->kind == TYPE_ARRAY) {
+        printf("  sub rax, %d\n", size(type->arrayOf));
+    } else {
+        printf("  sub rax, 1\n");
+    }
+    printf("  push rax\n");
+}
+
 // generate code that pushes the evaluated value to the top of the stack
 static void generate(Node* node)
 {
@@ -190,6 +216,36 @@ static void generate(Node* node)
     } else if (node->kind == NODE_DEREF) {
         generate(node->lhs);
         load(node->type);
+        return;
+    } else if (node->kind == NODE_PRE_INCREMENT) {
+        generateAddress(node->lhs);
+        printf("  push [rsp]\n");
+        load(node->type);
+        increment(node->type);
+        store(node->type);
+        return;
+    } else if (node->kind == NODE_POST_INCREMENT) {
+        generateAddress(node->lhs);
+        printf("  push [rsp]\n");
+        load(node->type);
+        increment(node->type);
+        store(node->type);
+        decrement(node->type);
+        return;
+    } else if (node->kind == NODE_PRE_DECREMENT) {
+        generateAddress(node->lhs);
+        printf("  push [rsp]\n");
+        load(node->type);
+        decrement(node->type);
+        store(node->type);
+        return;
+    } else if (node->kind == NODE_POST_DECREMENT) {
+        generateAddress(node->lhs);
+        printf("  push [rsp]\n");
+        load(node->type);
+        decrement(node->type);
+        store(node->type);
+        increment(node->type);
         return;
     }
 

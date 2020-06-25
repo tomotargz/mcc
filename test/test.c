@@ -21,6 +21,11 @@ int funcWith6Args(int a, int b, int c, int d, int e, int f)
     return a + b + c + d + e + f;
 }
 
+int proxy(int num)
+{
+    return num;
+}
+
 int g1;
 int g2 = 3;
 char g3 = 3;
@@ -191,6 +196,21 @@ int main()
     assertEq(8, ({ sizeof(int(*)[5]); }), "sizeof(int(*)[5]);");
     assertEq(8, ({ sizeof(int*(*)[5]); }), "sizeof(int(*)[5]);");
     assertEq(40, ({ sizeof(int(*[5])[5]); }), "sizeof(int(*[5])[5]);");
+
+    assertEq(2, ({int i = 1; ++i; i; }), "int i = 1; ++i; i; ");
+    assertEq(2, ({int i = 1; i++; i; }), "int i = 1; i++; i; ");
+    assertEq(0, ({int i = 1; --i; i; }), "int i = 1; --i; i; ");
+    assertEq(0, ({int i = 1; i--; i; }), "int i = 1; i--; i; ");
+    assertEq(2, ({int i = 1; proxy(++i); }), "int i = 1; proxy(++i);");
+    assertEq(1, ({int i = 1; proxy(i++); }), "int i = 1; proxy(i++);");
+    assertEq(2, ({int i = 1; proxy(i++);i; }), "int i = 1; proxy(i++); i;");
+    assertEq(0, ({int i = 1; proxy(--i); }), "int i = 1; proxy(--i);");
+    assertEq(1, ({int i = 1; proxy(i--); }), "int i = 1; proxy(i--);");
+    assertEq(0, ({int i = 1; proxy(i--);i; }), "int i = 1; proxy(i--); i;");
+    assertEq(3, ({int a[3];a[1] = 3;int* p = a;p++;*p; }), "int a[3];a[1] = 3;int* p = a;p++;*p;");
+    assertEq(3, ({int a[3];a[1] = 3;int* p = a;++p;*p; }), "int a[3];a[1] = 3;int* p = a;++p;*p;");
+    assertEq(3, ({int a[3];a[1] = 3;int* p = a + 2;p--;*p; }), "int a[3];a[1] = 3;int* p = a + 2;p--;*p;");
+    assertEq(3, ({int a[3];a[1] = 3;int* p = a + 2;--p;*p; }), "int a[3];a[1] = 3;int* p = a + 2;--p;*p;");
 
     printf("OK\n");
     return 0;

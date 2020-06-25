@@ -21,9 +21,11 @@
 // multiplication = unary ("*" unary | "/" unary)*
 // unary = ("+" | "-" | "*" | "&" )? unary
 //       | postfix
+//       | "++" unary
+//       | "--" unary
 //       | "sizeof" unary
 //       | "sizeof" "(" typeName ")"
-// postfix = primary ("[" expression "]" | "." identifier | "->" identifier)*
+// postfix = primary ("[" expression "]" | "." identifier | "->" identifier | "++" | "--")*
 // primary = "(" "{" expressionStatement "}" ")"
 //         | "(" expression ")"
 //         | identifier arguments?
@@ -312,7 +314,7 @@ static Node* structMember(Node* node)
     return n;
 }
 
-// postfix = primary ("[" expression "]" | "." identifier | "->" identifier)*
+// postfix = primary ("[" expression "]" | "." identifier | "->" identifier | "++" | "--")*
 static Node* postfix()
 {
     Node* node = primary();
@@ -328,6 +330,10 @@ static Node* postfix()
             // a->b is (*a).b
             node = newNode(NODE_DEREF, node, NULL);
             node = structMember(node);
+        } else if (consume("++")) {
+            node = newNode(NODE_POST_INCREMENT, node, NULL);
+        } else if (consume("--")) {
+            node = newNode(NODE_POST_DECREMENT, node, NULL);
         } else {
             break;
         }
@@ -376,6 +382,8 @@ Type* typeName()
 
 // unary = ("+" | "-" | "*" | "&" )? unary
 //       | postfix
+//       | "++" unary
+//       | "--" unary
 //       | "sizeof" unary
 //       | "sizeof" "(" typeName ")"
 static Node* unary()
@@ -388,6 +396,10 @@ static Node* unary()
         return newNode(NODE_ADDR, unary(), NULL);
     } else if (consume("*")) {
         return newNode(NODE_DEREF, unary(), NULL);
+    } else if (consume("++")) {
+        return newNode(NODE_PRE_INCREMENT, unary(), NULL);
+    } else if (consume("--")) {
+        return newNode(NODE_PRE_DECREMENT, unary(), NULL);
     } else if (consume("sizeof")) {
         if (consume("(")) {
             if (isTypeName()) {

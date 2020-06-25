@@ -75,7 +75,11 @@ void addType(Node* tree)
         return;
     } else if (tree->kind == NODE_POINTER_ADDITION
         || tree->kind == NODE_POINTER_SUBTRACTION
-        || tree->kind == NODE_ASSIGNMENT) {
+        || tree->kind == NODE_ASSIGNMENT
+        || tree->kind == NODE_PRE_INCREMENT
+        || tree->kind == NODE_POST_INCREMENT
+        || tree->kind == NODE_PRE_DECREMENT
+        || tree->kind == NODE_POST_DECREMENT) {
         tree->type = tree->lhs->type;
         return;
     } else if (tree->kind == NODE_ADDR) {

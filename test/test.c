@@ -37,6 +37,16 @@ int g8[] = { 1, 2, 3 };
 char g9[] = "string";
 char g10[7] = "string";
 
+int* returnPointer()
+{
+    return &g2;
+}
+
+char* pointerToStr()
+{
+    return "string";
+}
+
 /* block comment */
 // line comment
 
@@ -211,6 +221,9 @@ int main()
     assertEq(3, ({int a[3];a[1] = 3;int* p = a;++p;*p; }), "int a[3];a[1] = 3;int* p = a;++p;*p;");
     assertEq(3, ({int a[3];a[1] = 3;int* p = a + 2;p--;*p; }), "int a[3];a[1] = 3;int* p = a + 2;p--;*p;");
     assertEq(3, ({int a[3];a[1] = 3;int* p = a + 2;--p;*p; }), "int a[3];a[1] = 3;int* p = a + 2;--p;*p;");
+
+    assertEq(3, ({ *returnPointer(); }), "*returnPointer();");
+    assertEq(105, ({ *(pointerToStr() + 3); }), "*(pointerToStr() + 3);");
 
     printf("OK\n");
     return 0;

@@ -63,8 +63,9 @@ typedef struct Typedef {
 typedef struct VariableScope {
     struct VariableScope* next;
     char* name;
-    Variable* variable; // variable is null when it's an enum
+    Variable* variable; // variable is null when it's an enum or a function.
     int enumValue;
+    Type* retType; // function's return type
 } VariableScope;
 
 typedef struct Scope {
@@ -106,6 +107,33 @@ static void restoreScope(Scope* s)
     structTagScope = s->structTags;
     variableScope = s->variables;
     typedefScope = s->typedefs;
+}
+
+static void addVarToVarScope(Variable* v)
+{
+    VariableScope* s = calloc(1, sizeof(VariableScope));
+    s->name = v->name;
+    s->variable = v;
+    s->next = variableScope;
+    variableScope = s;
+}
+
+static void addFuncToVarScope(char* name, Type* retType)
+{
+    VariableScope* s = calloc(1, sizeof(VariableScope));
+    s->name = name;
+    s->retType = retType;
+    s->next = variableScope;
+    variableScope = s;
+}
+
+static void addEnumToVarScope(char* name, int val)
+{
+    VariableScope* s = calloc(1, sizeof(VariableScope));
+    s->name = name;
+    s->enumValue = val;
+    s->next = variableScope;
+    variableScope = s;
 }
 
 static Token* consume(char* str)
@@ -166,7 +194,7 @@ static bool peek(char* str)
         && strncmp(rp->str, str, strlen(rp->str)) == 0;
 }
 
-static VariableScope* variable(char* str)
+static VariableScope* findVariable(char* str)
 {
     for (VariableScope* v = variableScope; v; v = v->next) {
         if (strlen(str) == strlen(v->name)
@@ -174,7 +202,6 @@ static VariableScope* variable(char* str)
             return v;
         }
     }
-    error_at(rp->pos, src, file, "undefined variable");
     return NULL;
 }
 
@@ -196,7 +223,7 @@ static char* consumeIdentifier()
 // }
 
 // arguments = "(" (expression ("," expression)*)? ")"
-static void arguments(Node* function)
+static Node* arguments()
 {
     Node dummy = {};
     Node* tail = &dummy;
@@ -205,7 +232,7 @@ static void arguments(Node* function)
         tail = tail->next;
         consume(",");
     }
-    function->args = dummy.next;
+    return dummy.next;
 }
 
 static char* stringLabel()
@@ -265,11 +292,19 @@ static Node* primary()
         if (consume("(")) {
             Node* node = newNode(NODE_CALL, NULL, NULL);
             node->name = identifier;
-            arguments(node);
+            node->args = arguments();
+            addType(node);
+            VariableScope* s = findVariable(identifier);
+            if (s) {
+                node->type = s->retType;
+            } else {
+                info("implicit function declaration: %s", identifier);
+                node->type = &INT_TYPE;
+            }
             return node;
         }
         // Variable
-        VariableScope* v = variable(identifier);
+        VariableScope* v = findVariable(identifier);
         if (v->variable) {
             return newNodeVariable(v->variable);
         }
@@ -552,13 +587,7 @@ static Variable* declareLocalVariable(Type* type, char* name)
     l->variable = v;
     l->next = localVariables;
     localVariables = l;
-
-    VariableScope* s = calloc(1, sizeof(VariableScope));
-    s->name = name;
-    s->variable = v;
-    s->next = variableScope;
-    variableScope = s;
-
+    addVarToVarScope(v);
     return v;
 }
 
@@ -823,11 +852,7 @@ static Type* enumDeclaration()
         if (consume("=")) {
             enumVal = expectNumber();
         }
-        VariableScope* s = calloc(1, sizeof(VariableScope));
-        s->name = name;
-        s->enumValue = enumVal;
-        s->next = variableScope;
-        variableScope = s;
+        addEnumToVarScope(name, enumVal);
         ++enumVal;
         consume(",");
     }
@@ -884,8 +909,9 @@ static Node* parameters()
 }
 
 // function = basetype identifier "(" parameters? ")" "{" statement* "}"
-static Function* function(Type* type, char* name)
+static Function* function(Type* retType, char* name)
 {
+    addFuncToVarScope(name, retType);
     localVariables = NULL;
     Scope* currentScope = saveScope();
     Function* func = calloc(1, sizeof(Function));
@@ -924,11 +950,7 @@ static Variable* declareGlobalVariable(Type* type, char* name)
     l->variable = v;
     l->next = globalVariables;
     globalVariables = l;
-    VariableScope* s = calloc(1, sizeof(VariableScope));
-    s->name = name;
-    s->variable = v;
-    s->next = variableScope;
-    variableScope = s;
+    addVarToVarScope(v);
     return v;
 }
 

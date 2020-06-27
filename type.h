@@ -32,6 +32,8 @@ typedef struct Type {
     int arraySize;
     // struct
     Member* members;
+    // function
+    Type* retType;
 } Type;
 
 static Type INT_TYPE = { TYPE_INT, 1, NULL, NULL, 0, NULL };

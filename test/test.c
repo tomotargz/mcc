@@ -47,6 +47,10 @@ char* pointerToStr()
     return "string";
 }
 
+void voidFunc()
+{
+}
+
 /* block comment */
 // line comment
 
@@ -228,6 +232,8 @@ int main()
     {
         void* v;
     }
+
+    voidFunc();
 
     printf("OK\n");
     return 0;

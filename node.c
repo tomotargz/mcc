@@ -36,68 +36,71 @@ Node* newNodeVariable(Variable* variable)
     return node;
 }
 
-void addType(Node* tree)
+void addType(Node* node)
 {
-    if (!tree || tree->type) {
+    if (!node || node->type) {
         return;
     }
 
-    addType(tree->next);
-    addType(tree->lhs);
-    addType(tree->rhs);
-    addType(tree->cond);
-    addType(tree->then);
-    addType(tree->els);
-    addType(tree->body);
-    addType(tree->init);
-    addType(tree->inc);
+    addType(node->next);
+    addType(node->lhs);
+    addType(node->rhs);
+    addType(node->cond);
+    addType(node->then);
+    addType(node->els);
+    addType(node->body);
+    addType(node->init);
+    addType(node->inc);
 
-    for (Node* statement = tree->statements;
+    for (Node* statement = node->statements;
          statement;
          statement = statement->next) {
         addType(statement);
     }
 
-    for (Node* arg = tree->args; arg; arg = arg->next) {
+    for (Node* arg = node->args; arg; arg = arg->next) {
         addType(arg);
     }
 
-    if (tree->kind == NODE_ADDITION
-        || tree->kind == NODE_SUBTRACTION
-        || tree->kind == NODE_MULTIPLICATION
-        || tree->kind == NODE_DIVISION
-        || tree->kind == NODE_EQUAL
-        || tree->kind == NODE_NOT_EQUAL
-        || tree->kind == NODE_LESS_THAN
-        || tree->kind == NODE_LESS_OR_EQUAL
-        || tree->kind == NODE_NUMBER) {
-        tree->type = &INT_TYPE;
+    if (node->kind == NODE_ADDITION
+        || node->kind == NODE_SUBTRACTION
+        || node->kind == NODE_MULTIPLICATION
+        || node->kind == NODE_DIVISION
+        || node->kind == NODE_EQUAL
+        || node->kind == NODE_NOT_EQUAL
+        || node->kind == NODE_LESS_THAN
+        || node->kind == NODE_LESS_OR_EQUAL
+        || node->kind == NODE_NUMBER) {
+        node->type = &INT_TYPE;
         return;
-    } else if (tree->kind == NODE_POINTER_ADDITION
-        || tree->kind == NODE_POINTER_SUBTRACTION
-        || tree->kind == NODE_ASSIGNMENT
-        || tree->kind == NODE_PRE_INCREMENT
-        || tree->kind == NODE_POST_INCREMENT
-        || tree->kind == NODE_PRE_DECREMENT
-        || tree->kind == NODE_POST_DECREMENT) {
-        tree->type = tree->lhs->type;
+    } else if (node->kind == NODE_POINTER_ADDITION
+        || node->kind == NODE_POINTER_SUBTRACTION
+        || node->kind == NODE_ASSIGNMENT
+        || node->kind == NODE_PRE_INCREMENT
+        || node->kind == NODE_POST_INCREMENT
+        || node->kind == NODE_PRE_DECREMENT
+        || node->kind == NODE_POST_DECREMENT) {
+        node->type = node->lhs->type;
         return;
-    } else if (tree->kind == NODE_ADDR) {
-        tree->type = calloc(1, sizeof(Type));
-        tree->type->kind = TYPE_POINTER;
-        tree->type->pointerTo = tree->lhs->type;
+    } else if (node->kind == NODE_ADDR) {
+        node->type = calloc(1, sizeof(Type));
+        node->type->kind = TYPE_POINTER;
+        node->type->pointerTo = node->lhs->type;
         return;
-    } else if (tree->kind == NODE_DEREF) {
-        if (tree->lhs->type->kind == TYPE_ARRAY) {
-            tree->type = tree->lhs->type->arrayOf;
-            return;
+    } else if (node->kind == NODE_DEREF) {
+        if (node->lhs->type->kind == TYPE_ARRAY) {
+            node->type = node->lhs->type->arrayOf;
+        } else if (node->lhs->type->kind == TYPE_POINTER) {
+            node->type = node->lhs->type->pointerTo;
         }
-        tree->type = tree->lhs->type->pointerTo;
+        if (node->type == TYPE_VOID) {
+            error("dereference to void type");
+        }
         return;
-    } else if (tree->kind == NODE_MEMBER) {
-        tree->type = tree->member->type;
+    } else if (node->kind == NODE_MEMBER) {
+        node->type = node->member->type;
     } else {
-        tree->type = &NO_TYPE;
+        node->type = &NO_TYPE;
         return;
     }
 }

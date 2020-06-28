@@ -225,6 +225,10 @@ int main()
     assertEq(3, ({ *returnPointer(); }), "*returnPointer();");
     assertEq(105, ({ *(pointerToStr() + 3); }), "*(pointerToStr() + 3);");
 
+    {
+        void* v;
+    }
+
     printf("OK\n");
     return 0;
 }

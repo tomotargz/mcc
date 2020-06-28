@@ -652,6 +652,9 @@ static Node* localVariable()
         return newNode(NODE_NULL, NULL, NULL);
     }
     char* name = expectIdentifier();
+    if (type == TYPE_VOID) {
+        error_at(rp->pos, src, file, "declare void type variable");
+    }
     if (consume("[")) {
         if (consume("]")) {
             type = arrayOf(type, 0);
@@ -686,7 +689,8 @@ static Type* findTypedef(char* name)
 
 static bool isTypeName()
 {
-    return peek("int")
+    return peek("void")
+        || peek("int")
         || peek("char")
         || peek("struct")
         || peek("enum")
@@ -867,6 +871,8 @@ static Type* basetype()
         type = &INT_TYPE;
     } else if (consume("char")) {
         type = &CHAR_TYPE;
+    } else if (consume("void")) {
+        type = &VOID_TYPE;
     } else if (peek("struct")) {
         type = structDeclaration();
     } else if (peek("enum")) {

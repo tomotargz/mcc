@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 typedef enum TypeKind {
+    TYPE_VOID,
     TYPE_INT,
     TYPE_CHAR,
     TYPE_POINTER,
@@ -36,6 +37,7 @@ typedef struct Type {
     Type* retType;
 } Type;
 
+static Type VOID_TYPE = { TYPE_VOID, 1, NULL, NULL, 0, NULL };
 static Type INT_TYPE = { TYPE_INT, 1, NULL, NULL, 0, NULL };
 static Type CHAR_TYPE = { TYPE_CHAR, 4, NULL, NULL, 0, NULL };
 static Type ENUM_TYPE = { TYPE_ENUM, 4, NULL, NULL, 0, NULL };

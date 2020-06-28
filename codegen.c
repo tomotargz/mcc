@@ -121,8 +121,10 @@ static void generate(Node* node)
         store(node->type);
         return;
     } else if (node->kind == NODE_RETURN) {
-        generate(node->lhs);
-        printf("  pop rax\n");
+        if (node->lhs) {
+            generate(node->lhs);
+            printf("  pop rax\n");
+        }
         printf("  jmp .L.return.%s\n", functionName);
         return;
     } else if (node->kind == NODE_IF) {

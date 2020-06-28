@@ -4,7 +4,7 @@
 // basetype = ("int" | "char" | "struct" "{" member* "}") "*"*
 // parameters = parameter ("," parameter)*
 // parameter = basetype identifier
-// statement = "return" expression ";"
+// statement = "return" expression? ";"
 //           | "if" "(" expression ")" statement ("else" statement)?
 //           | "while" "(" expression ")" statement
 //           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" statementExpression? ")" statement
@@ -697,7 +697,7 @@ static bool isTypeName()
         || findTypedef(rp->str);
 }
 
-// statement = "return" expression ";"
+// statement = "return" expression? ";"
 //           | "if" "(" expression ")" statement ("else" statement)?
 //           | "while" "(" expression ")" statement
 //           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" statementExpression? ")" statement
@@ -712,8 +712,12 @@ static Node* statement()
         node = localVariable();
         expect(";");
     } else if (consume("return")) {
-        node = newNode(NODE_RETURN, expression(), NULL);
-        expect(";");
+        if (consume(";")) {
+            node = newNode(NODE_RETURN, NULL, NULL);
+        } else {
+            node = newNode(NODE_RETURN, expression(), NULL);
+            expect(";");
+        }
     } else if (consume("if")) {
         node = newNode(NODE_IF, NULL, NULL);
         expect("(");

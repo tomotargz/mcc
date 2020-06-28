@@ -49,6 +49,7 @@ char* pointerToStr()
 
 void voidFunc()
 {
+    return;
 }
 
 /* block comment */

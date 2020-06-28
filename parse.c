@@ -35,18 +35,7 @@
 // localVariable = basetype identifier ("[" arraySize "]")? ("=" expression)?
 // localVariableInitializer = expression | "{" (expression ("," expression)*)? "}"
 
-#include <ctype.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "error.h"
-#include "node.h"
-#include "parse.h"
-#include "tokenize.h"
-#include "type.h"
-#include "variable.h"
+#include "mcc.h"
 
 typedef struct StructTag {
     char* name;

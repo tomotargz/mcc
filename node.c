@@ -1,9 +1,4 @@
-#include <stdlib.h>
-
-#include "error.h"
-#include "node.h"
-#include "parse.h"
-#include "type.h"
+#include "mcc.h"
 
 Node* newNode(NodeKind kind, Node* lhs, Node* rhs)
 {

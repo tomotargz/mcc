@@ -1,7 +1,4 @@
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "mcc.h"
 
 void info(char* format, ...)
 {

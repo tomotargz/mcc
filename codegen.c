@@ -1,9 +1,4 @@
-#include <stdio.h>
-
-#include "codegen.h"
-#include "error.h"
-#include "parse.h"
-#include "variable.h"
+#include "mcc.h"
 
 static int tag = 0;
 static char* functionName;

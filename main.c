@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "codegen.h"
-#include "error.h"
+#include "mcc.h"
 
 char* openFile(char* path)
 {

@@ -1,11 +1,4 @@
-#include <ctype.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "error.h"
-#include "tokenize.h"
+#include "mcc.h"
 
 static bool startsWith(char* a, char* b)
 {

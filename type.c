@@ -1,6 +1,4 @@
-#include "type.h"
-#include "error.h"
-#include "stdlib.h"
+#include "mcc.h"
 
 Type* pointerTo(Type* type)
 {

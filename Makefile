@@ -12,7 +12,9 @@ mcc: $(OBJS)
 	$(CC) $(CFLAGS) -c -MMD -MP $<
 
 test: mcc
-	./test.sh
+	./mcc "test/test.c" > tmp.s
+	gcc -static -O0 -o tmp tmp.s
+	./tmp
 
 clean:
 	rm -f mcc *.o *~ tmp*

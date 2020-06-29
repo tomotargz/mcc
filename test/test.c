@@ -230,6 +230,17 @@ int main()
     assertEq(3, ({ *returnPointer(); }), "*returnPointer();");
     assertEq(105, ({ *(pointerToStr() + 3); }), "*(pointerToStr() + 3);");
 
+    assertEq(0, ({ !1; }), "!1");
+    assertEq(1, ({ !0; }), "!0");
+    // assertEq(1, ({ 1 && 1; }), "1 && 1;");
+    // assertEq(0, ({ 1 && 0; }), "1 && 0;");
+    // assertEq(0, ({ 0 && 1; }), "0 && 1;");
+    // assertEq(0, ({ 0 && 0; }), "0 && 0;");
+    // assertEq(1, ({ 1 || 1; }), "1 || 1;");
+    // assertEq(1, ({ 1 || 0; }), "1 || 0;");
+    // assertEq(1, ({ 0 || 1; }), "0 || 1;");
+    // assertEq(0, ({ 0 || 0; }), "0 || 0;");
+
     {
         void* v;
     }

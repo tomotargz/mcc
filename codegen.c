@@ -244,6 +244,14 @@ static void generate(Node* node)
         store(node->type);
         increment(node->type);
         return;
+    } else if (node->kind == NODE_NOT) {
+        generate(node->lhs);
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
+        printf("  sete al\n");
+        printf("  movzb rax, al\n");
+        printf("  push rax\n");
+        return;
     }
 
     generate(node->lhs);

@@ -65,6 +65,7 @@ void addType(Node* node)
         || node->kind == NODE_NOT_EQUAL
         || node->kind == NODE_LESS_THAN
         || node->kind == NODE_LESS_OR_EQUAL
+        || node->kind == NODE_NOT
         || node->kind == NODE_NUMBER) {
         node->type = &INT_TYPE;
         return;

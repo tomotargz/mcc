@@ -39,7 +39,7 @@ static char* startsWithReserved(char* str)
         "++", "--",
         "=", "+", "-", "*", "/",
         "(", ")", "{", "}", "[", "]",
-        ";", ",", "&", "."
+        ";", ",", "&", ".", "!"
     };
     for (int i = 0; i < sizeof(PUNCTUATION) / sizeof(PUNCTUATION[0]); ++i) {
         int length = strlen(PUNCTUATION[i]);

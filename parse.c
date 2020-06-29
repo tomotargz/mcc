@@ -19,7 +19,7 @@
 // relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 // add = multiplication ("+" multiplication | "-" multiplication)*
 // multiplication = unary ("*" unary | "/" unary)*
-// unary = ("+" | "-" | "*" | "&" )? unary
+// unary = ("+" | "-" | "*" | "&" | "!")? unary
 //       | postfix
 //       | "++" unary
 //       | "--" unary
@@ -404,7 +404,7 @@ Type* typeName()
     return t;
 }
 
-// unary = ("+" | "-" | "*" | "&" )? unary
+// unary = ("+" | "-" | "*" | "&" | "!")? unary
 //       | postfix
 //       | "++" unary
 //       | "--" unary
@@ -420,6 +420,8 @@ static Node* unary()
         return newNode(NODE_ADDR, unary(), NULL);
     } else if (consume("*")) {
         return newNode(NODE_DEREF, unary(), NULL);
+    } else if (consume("!")) {
+        return newNode(NODE_NOT, unary(), NULL);
     } else if (consume("++")) {
         return newNode(NODE_PRE_INCREMENT, unary(), NULL);
     } else if (consume("--")) {

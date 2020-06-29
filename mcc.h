@@ -112,6 +112,9 @@ typedef enum {
     NODE_POST_INCREMENT,
     NODE_PRE_DECREMENT,
     NODE_POST_DECREMENT,
+    NODE_NOT,
+    NODE_AND,
+    NODE_OR,
     NODE_NULL,
 } NodeKind;
 

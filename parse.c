@@ -14,7 +14,9 @@
 //           | statementExpression ";"
 // statementExpression = expression
 // expression = assign
-// assign = equality ("=" assign)?
+// assign = or ("=" assign)?
+// or = and ("||" and)?
+// and = equality ("&&" equality)?
 // equality = relational ("==" relational | "!=" relational)*
 // relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 // add = multiplication ("+" multiplication | "-" multiplication)*
@@ -545,10 +547,30 @@ static Node* equality()
     }
 }
 
-// assign = equality ("=" assign)?
-static Node* assign()
+// and = equality ("&&" equality)?
+static Node* and ()
 {
     Node* node = equality();
+    if (consume("&&")) {
+        node = newNode(NODE_AND, node, equality());
+    }
+    return node;
+}
+
+// or = and ("||" and)?
+static Node* or ()
+{
+    Node* node = and();
+    if (consume("||")) {
+        node = newNode(NODE_OR, node, and());
+    }
+    return node;
+}
+
+// assign = or ("=" assign)?
+static Node* assign()
+{
+    Node* node = or();
     if (consume("=")) {
         node = newNode(NODE_ASSIGNMENT, node, assign());
     }

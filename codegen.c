@@ -299,6 +299,30 @@ static void generate(Node* node)
         printf("  cmp rax, rdi\n");
         printf("  setle al\n");
         printf("  movzb rax, al\n");
+    } else if (node->kind == NODE_AND) {
+        int t = tag++;
+        printf("  cmp rax, 0\n");
+        printf("  je .Lfalse%d\n", t);
+        printf("  cmp rdi, 0\n");
+        printf("  je .Lfalse%d\n", t);
+        printf("  push 1\n");
+        printf("  jmp .Lend%d\n", t);
+        printf(".Lfalse%d:\n", t);
+        printf("  push 0\n");
+        printf(".Lend%d:\n", t);
+        return;
+    } else if (node->kind == NODE_OR) {
+        int t = tag++;
+        printf("  cmp rax, 1\n");
+        printf("  je .Ltrue%d\n", t);
+        printf("  cmp rdi, 1\n");
+        printf("  je .Ltrue%d\n", t);
+        printf("  push 0\n");
+        printf("  jmp .Lend%d\n", t);
+        printf(".Ltrue%d:\n", t);
+        printf("  push 1\n");
+        printf(".Lend%d:\n", t);
+        return;
     }
 
     printf("  push rax\n");

@@ -320,7 +320,7 @@ static Node* primary()
 static Member* findMember(Type* type, char* name)
 {
     if (type->kind != TYPE_STRUCT) {
-        error("attempt to find a member from non struct type");
+        error_at(rp->pos, src, file, "attempt to find a member from non struct type");
     }
     for (Member* m = type->members; m; m = m->next) {
         if (strlen(m->name) == strlen(name)
@@ -328,7 +328,7 @@ static Member* findMember(Type* type, char* name)
             return m;
         }
     }
-    error("no such member");
+    error_at(rp->pos, src, file, "no such member");
     return NULL;
 }
 
@@ -855,7 +855,7 @@ static Type* structDeclaration()
                     return s->type;
                 }
             }
-            error("no such struct tag");
+            error_at(rp->pos, src, file, "no such struct tag");
         }
     }
     // anonymous struct

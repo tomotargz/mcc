@@ -855,7 +855,16 @@ static Type* structDeclaration()
                     return s->type;
                 }
             }
-            error_at(rp->pos, src, file, "no such struct tag");
+            // declare struct tag
+            Type* type = calloc(1, sizeof(Type));
+            type->kind = TYPE_STRUCT;
+            type->align = 1;
+            StructTag* tag = calloc(1, sizeof(StructTag));
+            tag->name = identifier;
+            tag->type = type;
+            tag->next = structTagScope;
+            structTagScope = tag;
+            return type;
         }
     }
     // anonymous struct

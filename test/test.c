@@ -57,6 +57,8 @@ void voidFunc()
 
 int main()
 {
+    typedef int myint1;
+    typedef int myint2;
     assertEq(3, ({int a[10];a[3] = 3;*(a+3); }), "int a[10];a[3] = 3;*(a+3);");
     assertEq(3, ({int a[10];a[1] = 3;*(a+3-2); }), "int a[10];a[1] = 3;*(a+3-2);");
     assertEq(3, ({int* a[10];int b[10];b[3] = 3;a[3] = b;*(*(a+3)+3); }), "int* a[10];int b[10];b[3] = 3;a[3] = b;*(*(a+3)+3);");

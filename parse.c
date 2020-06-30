@@ -570,7 +570,7 @@ static Node* or ()
 // assign = or ("=" assign)?
 static Node* assign()
 {
-    Node* node = or();
+    Node* node = or ();
     if (consume("=")) {
         node = newNode(NODE_ASSIGNMENT, node, assign());
     }
@@ -707,7 +707,7 @@ static bool isTypeName()
         || peek("char")
         || peek("struct")
         || peek("enum")
-        || findTypedef(rp->str);
+        || (rp->kind == TOKEN_IDENTIFIER && findTypedef(rp->str));
 }
 
 // statement = "return" expression? ";"

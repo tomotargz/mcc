@@ -333,6 +333,9 @@ static char* parameterRegister(int size, int index)
     static char* ARG_REG1[] = {
         "al", "sil", "dl", "cl", "r8b", "r9b"
     };
+    static char* ARG_REG2[] = {
+        "ax", "si", "dx", "cx", "r8w", "r9w"
+    };
     static char* ARG_REG4[] = {
         "edi", "esi", "edx", "ecx", "r8d", "r9d"
     };
@@ -398,12 +401,14 @@ static char* dataType(Type* t)
 {
     if (t->kind == TYPE_ARRAY) {
         return dataType(t->arrayOf);
-    }
-    if (t->kind == TYPE_CHAR) {
+    } else if (t->kind == TYPE_CHAR) {
         return "byte";
+    } else if (t->kind == TYPE_SHORT) {
+        return "value";
     } else if (t->kind == TYPE_INT) {
         return "long";
-    } else if (t->kind == TYPE_POINTER) {
+    } else if (t->kind == TYPE_LONG
+        || t->kind == TYPE_POINTER) {
         return "quad";
     }
     error("invalid type");

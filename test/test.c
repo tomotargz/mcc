@@ -60,8 +60,11 @@ typedef int gmyint2;
 
 int main()
 {
-    typedef int myint1;
-    typedef int myint2;
+    {
+        typedef int myint1;
+        typedef int myint2;
+    }
+
     assertEq(3, ({int a[10];a[3] = 3;*(a+3); }), "int a[10];a[3] = 3;*(a+3);");
     assertEq(3, ({int a[10];a[1] = 3;*(a+3-2); }), "int a[10];a[1] = 3;*(a+3-2);");
     assertEq(3, ({int* a[10];int b[10];b[3] = 3;a[3] = b;*(*(a+3)+3); }), "int* a[10];int b[10];b[3] = 3;a[3] = b;*(*(a+3)+3);");
@@ -245,6 +248,11 @@ int main()
     assertEq(1, ({ 1 || 0; }), "1 || 0;");
     assertEq(1, ({ 0 || 1; }), "0 || 1;");
     assertEq(0, ({ 0 || 0; }), "0 || 0;");
+
+    assertEq(3, ({short s = 3; s; }), "short s = 3; s;");
+    assertEq(2, ({ sizeof(short); }), " sizeof(short);");
+    assertEq(3, ({long l = 3; l; }), "long l = 3; l;");
+    assertEq(8, ({ sizeof(long); }), " sizeof(long);");
 
     {
         void* v;

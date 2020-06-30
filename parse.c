@@ -1,7 +1,8 @@
 // program = (globalVariable | function | typedefStatement)*
 // globalVariable = basetype identifier ("[" arraySize "]")? ("=" expression)?
 // function = basetype identifier "(" parameters? ")" "{" statement* "}"
-// basetype = ("int" | "char" | "struct" "{" member* "}") "*"*
+// basetype = (builtinType | structDeclaration | enumDeclaration | typedefName) "*"*
+// builtInType = "void" | "char" | "short" | "int" | "long"
 // parameters = parameter ("," parameter)*
 // parameter = basetype identifier
 // statement = "return" expression? ";"
@@ -291,7 +292,7 @@ static Node* primary()
                 node->type = s->retType;
             } else {
                 info("implicit function declaration: %s", identifier);
-                node->type = &INT_TYPE;
+                node->type = intType();
             }
             return node;
         }
@@ -307,7 +308,7 @@ static Node* primary()
     char* str = consumeString();
     if (str) {
         char* label = stringLabel();
-        Type* type = arrayOf(&CHAR_TYPE, strlen(rp->str));
+        Type* type = arrayOf(charType(), strlen(rp->str));
         Variable* v = declareGlobalVariable(type, label);
         v->string = str;
         return newNodeVariable(v);
@@ -704,8 +705,10 @@ static Type* findTypedef(char* name)
 static bool isTypeName()
 {
     return peek("void")
-        || peek("int")
         || peek("char")
+        || peek("short")
+        || peek("int")
+        || peek("long")
         || peek("struct")
         || peek("enum")
         || (rp->kind == TOKEN_IDENTIFIER && findTypedef(rp->str));
@@ -880,7 +883,7 @@ static Type* enumDeclaration()
     expect("enum");
     char* tag = consumeIdentifier();
     if (tag && !peek("{")) {
-        return &ENUM_TYPE;
+        return enumType();
     }
     expect("{");
     int enumVal = 0;
@@ -893,19 +896,24 @@ static Type* enumDeclaration()
         ++enumVal;
         consume(",");
     }
-    return &ENUM_TYPE;
+    return enumType();
 }
 
-// basetype = ("int" | "char" | structDeclaration | enumDeclaration | typedefName) "*"*
+// basetype = (builtinType | structDeclaration | enumDeclaration | typedefName) "*"*
+// builtInType = "void" | "char" | "short" | "int" | "long"
 static Type* basetype()
 {
     Type* type;
-    if (consume("int")) {
-        type = &INT_TYPE;
+    if (consume("void")) {
+        type = voidType();
     } else if (consume("char")) {
-        type = &CHAR_TYPE;
-    } else if (consume("void")) {
-        type = &VOID_TYPE;
+        type = charType();
+    } else if (consume("short")) {
+        type = shortType();
+    } else if (consume("int")) {
+        type = intType();
+    } else if (consume("long")) {
+        type = longType();
     } else if (peek("struct")) {
         type = structDeclaration();
     } else if (peek("enum")) {
@@ -1002,7 +1010,7 @@ static void globalVariableInitializer(Variable* v)
         if (v->type->kind == TYPE_POINTER
             && v->type->pointerTo->kind == TYPE_CHAR) {
             char* label = stringLabel();
-            Type* type = arrayOf(&CHAR_TYPE, strlen(str) + 1);
+            Type* type = arrayOf(charType(), strlen(str) + 1);
             declareGlobalVariable(type, label);
             globalVariables->variable->string = str;
             v->initialValue->label = label;

@@ -69,7 +69,7 @@ void addType(Node* node)
         || node->kind == NODE_AND
         || node->kind == NODE_OR
         || node->kind == NODE_NUMBER) {
-        node->type = &INT_TYPE;
+        node->type = intType();
         return;
     } else if (node->kind == NODE_POINTER_ADDITION
         || node->kind == NODE_POINTER_SUBTRACTION
@@ -98,7 +98,7 @@ void addType(Node* node)
     } else if (node->kind == NODE_MEMBER) {
         node->type = node->member->type;
     } else {
-        node->type = &NO_TYPE;
+        node->type = noType();
         return;
     }
 }

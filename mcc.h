@@ -9,8 +9,10 @@
 
 typedef enum TypeKind {
     TYPE_VOID,
-    TYPE_INT,
     TYPE_CHAR,
+    TYPE_SHORT,
+    TYPE_INT,
+    TYPE_LONG,
     TYPE_POINTER,
     TYPE_ARRAY,
     TYPE_STRUCT,
@@ -41,12 +43,13 @@ typedef struct Type {
     Type* retType;
 } Type;
 
-static Type VOID_TYPE = { TYPE_VOID, 1, NULL, NULL, 0, NULL };
-static Type INT_TYPE = { TYPE_INT, 1, NULL, NULL, 0, NULL };
-static Type CHAR_TYPE = { TYPE_CHAR, 4, NULL, NULL, 0, NULL };
-static Type ENUM_TYPE = { TYPE_ENUM, 4, NULL, NULL, 0, NULL };
-static Type NO_TYPE = { TYPE_NO, 0, NULL, NULL, 0, NULL };
-
+Type* voidType();
+Type* charType();
+Type* shortType();
+Type* intType();
+Type* longType();
+Type* enumType();
+Type* noType();
 Type* pointerTo(Type* to);
 Type* arrayOf(Type* type, int size);
 int size(Type* type);

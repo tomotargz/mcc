@@ -1,4 +1,4 @@
-// program = (globalVariable | function)*
+// program = (globalVariable | function | typedefStatement)*
 // globalVariable = basetype identifier ("[" arraySize "]")? ("=" expression)?
 // function = basetype identifier "(" parameters? ")" "{" statement* "}"
 // basetype = ("int" | "char" | "struct" "{" member* "}") "*"*
@@ -9,9 +9,10 @@
 //           | "while" "(" expression ")" statement
 //           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" statementExpression? ")" statement
 //           | "{" statement* "}"
-//           | "typedef" basetype identifier ("[" number "]")* ";"
+//           | typedefStatement
 //           | localVariable ";"
 //           | statementExpression ";"
+// typedefStatement = "typedef" basetype identifier ("[" number "]")* ";"
 // statementExpression = expression
 // expression = assign
 // assign = or ("=" assign)?
@@ -710,12 +711,30 @@ static bool isTypeName()
         || (rp->kind == TOKEN_IDENTIFIER && findTypedef(rp->str));
 }
 
+// typedefStatement = "typedef" basetype identifier ("[" number "]")* ";"
+static Node* typedefStatement()
+{
+    Type* type = basetype();
+    char* name = expectIdentifier();
+    if (consume("[")) {
+        type = arrayOf(type, expectNumber());
+        expect("]");
+    }
+    Typedef* def = calloc(1, sizeof(Typedef));
+    def->name = name;
+    def->type = type;
+    def->next = typedefScope;
+    typedefScope = def;
+    expect(";");
+    return newNode(NODE_NULL, NULL, NULL);
+}
+
 // statement = "return" expression? ";"
 //           | "if" "(" expression ")" statement ("else" statement)?
 //           | "while" "(" expression ")" statement
 //           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" statementExpression? ")" statement
 //           | "{" statement* "}"
-//           | "typedef" basetype identifier ("[" number "]")* ";"
+//           | typedefStatement
 //           | localVariable ";"
 //           | statementExpression ";"
 static Node* statement()
@@ -780,19 +799,7 @@ static Node* statement()
         node->statements = dummy.next;
         restoreScope(currentScope);
     } else if (consume("typedef")) {
-        Type* type = basetype();
-        char* name = expectIdentifier();
-        if (consume("[")) {
-            type = arrayOf(type, expectNumber());
-            expect("]");
-        }
-        Typedef* def = calloc(1, sizeof(Typedef));
-        def->name = name;
-        def->type = type;
-        def->next = typedefScope;
-        typedefScope = def;
-        expect(";");
-        node = newNode(NODE_NULL, NULL, NULL);
+        node = typedefStatement();
     } else {
         node = statementExpression();
         expect(";");
@@ -1036,13 +1043,17 @@ static void globalVariableInitializer(Variable* v)
     v->initialValue->valueList = l;
 }
 
-// program = (globalVariable | function)*
+// program = (globalVariable | function | typedefStatement)*
 static Program* program()
 {
     Function dummyFunction = {};
     Function* functionTail = &dummyFunction;
 
     while (rp->kind != TOKEN_EOF) {
+        if (consume("typedef")) {
+            typedefStatement();
+            continue;
+        }
         Type* type = basetype();
         char* name = expectIdentifier();
         if (consume("(")) {

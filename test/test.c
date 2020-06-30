@@ -55,6 +55,9 @@ void voidFunc()
 /* block comment */
 // line comment
 
+typedef int gmyint1;
+typedef int gmyint2;
+
 int main()
 {
     typedef int myint1;
@@ -248,6 +251,8 @@ int main()
     }
 
     voidFunc();
+
+    gmyint1 gmyint = 1;
 
     printf("OK\n");
     return 0;

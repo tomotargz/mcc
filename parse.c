@@ -86,6 +86,11 @@ static Variable* declareGlobalVariable(Type* type, char* name);
 static Node* statement();
 static bool isTypeName();
 
+static void errorMsg(char* str)
+{
+    error_at(rp->pos, src, file, str);
+}
+
 static Scope* saveScope()
 {
     Scope* s = calloc(1, sizeof(Scope));
@@ -156,7 +161,7 @@ static void expect(char* str)
     if (rp->kind != TOKEN_RESERVED
         || strlen(rp->str) != strlen(str)
         || strncmp(rp->str, str, strlen(rp->str))) {
-        error_at(rp->pos, src, file, "unexpected token");
+        errorMsg("unexpected token");
     }
     rp = rp->next;
 }
@@ -164,7 +169,7 @@ static void expect(char* str)
 static int expectNumber()
 {
     if (rp->kind != TOKEN_NUMBER)
-        error_at(rp->pos, src, file, "unexpected non number token");
+        errorMsg("unexpected non number token");
     int val = rp->val;
     rp = rp->next;
     return val;
@@ -173,7 +178,7 @@ static int expectNumber()
 static char* expectIdentifier()
 {
     if (rp->kind != TOKEN_IDENTIFIER) {
-        error_at(rp->pos, src, file, "unexpected non identifier token");
+        errorMsg("unexpected non identifier token");
     }
     char* name = rp->str;
     rp = rp->next;
@@ -249,7 +254,7 @@ static Node* expressionStatement()
         curr = curr->next;
     }
     if (curr->kind != NODE_STATEMENT_EXPRESSION) {
-        error_at(rp->pos, src, file, "expression statement must end with statement expression");
+        errorMsg("expression statement must end with statement expression");
     }
     prev->next = curr->lhs;
     node->statements = dummy.next;
@@ -314,14 +319,14 @@ static Node* primary()
         return newNodeVariable(v);
     }
 
-    error_at(rp->pos, src, file, "invalid token.");
+    errorMsg("invalid token.");
     return NULL;
 }
 
 static Member* findMember(Type* type, char* name)
 {
     if (type->kind != TYPE_STRUCT) {
-        error_at(rp->pos, src, file, "attempt to find a member from non struct type");
+        errorMsg("attempt to find a member from non struct type");
     }
     for (Member* m = type->members; m; m = m->next) {
         if (strlen(m->name) == strlen(name)
@@ -329,7 +334,7 @@ static Member* findMember(Type* type, char* name)
             return m;
         }
     }
-    error_at(rp->pos, src, file, "no such member");
+    errorMsg("no such member");
     return NULL;
 }
 
@@ -478,7 +483,7 @@ static Node* newAdd(Node* lhs, Node* rhs)
         && (rType == TYPE_INT || rType == TYPE_CHAR)) {
         return newNode(NODE_POINTER_ADDITION, lhs, rhs);
     }
-    error_at(rp->pos, src, file, "invalid addition");
+    errorMsg("invalid addition");
     return NULL;
 }
 
@@ -496,7 +501,7 @@ static Node* newSub(Node* lhs, Node* rhs)
         && (rType == TYPE_INT || rType == TYPE_CHAR)) {
         return newNode(NODE_POINTER_SUBTRACTION, lhs, rhs);
     }
-    error_at(rp->pos, src, file, "invalid subtraction");
+    errorMsg("invalid subtraction");
     return NULL;
 }
 
@@ -668,7 +673,7 @@ static Node* localVariable()
     }
     char* name = expectIdentifier();
     if (type == TYPE_VOID) {
-        error_at(rp->pos, src, file, "declare void type variable");
+        errorMsg("declare void type variable");
     }
     if (consume("[")) {
         if (consume("]")) {
@@ -921,7 +926,7 @@ static Type* basetype()
     } else {
         type = findTypedef(expectIdentifier());
         if (!type) {
-            error_at(rp->pos, src, file, "unexpected basetype");
+            errorMsg("unexpected basetype");
         }
     }
     while (consume("*")) {

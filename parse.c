@@ -1,44 +1,3 @@
-// program = (globalVariable | function | typedefStatement)*
-// globalVariable = basetype identifier ("[" arraySize "]")? ("=" expression)?
-// function = basetype identifier "(" parameters? ")" "{" statement* "}"
-// basetype = (builtinType | structDeclaration | enumDeclaration | typedefName) "*"*
-// builtInType = "void" | "char" | "short" | "int" | "long"
-// parameters = parameter ("," parameter)*
-// parameter = basetype identifier
-// statement = "return" expression? ";"
-//           | "if" "(" expression ")" statement ("else" statement)?
-//           | "while" "(" expression ")" statement
-//           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" statementExpression? ")" statement
-//           | "{" statement* "}"
-//           | typedefStatement
-//           | localVariable ";"
-//           | statementExpression ";"
-// typedefStatement = "typedef" basetype identifier ("[" number "]")* ";"
-// statementExpression = expression
-// expression = assign
-// assign = or ("=" assign)?
-// or = and ("||" and)?
-// and = equality ("&&" equality)?
-// equality = relational ("==" relational | "!=" relational)*
-// relational = add ("<" add | "<=" add | ">" add | ">=" add)*
-// add = multiplication ("+" multiplication | "-" multiplication)*
-// multiplication = unary ("*" unary | "/" unary)*
-// unary = ("+" | "-" | "*" | "&" | "!")? unary
-//       | postfix
-//       | "++" unary
-//       | "--" unary
-//       | "sizeof" unary
-//       | "sizeof" "(" typeName ")"
-// postfix = primary ("[" expression "]" | "." identifier | "->" identifier | "++" | "--")*
-// primary = "(" "{" expressionStatement "}" ")"
-//         | "(" expression ")"
-//         | identifier arguments?
-//         | number
-//         | string
-// arguments = "(" (expression ("," expression)*)? ")"
-// localVariable = basetype identifier ("[" arraySize "]")? ("=" expression)?
-// localVariableInitializer = expression | "{" (expression ("," expression)*)? "}"
-
 #include "mcc.h"
 
 typedef struct StructTag {
@@ -79,12 +38,13 @@ static VariableList* globalVariables;
 static VariableList* localVariables;
 
 static Node* expression();
-static Type* basetype();
+static Type* basetype(bool* isTypedef);
 static Node* newAdd(Node* lhs, Node* rhs);
 static Node* newSub(Node* lhs, Node* rhs);
 static Variable* declareGlobalVariable(Type* type, char* name);
 static Node* statement();
 static bool isTypeName();
+static Type* declarator(Type* t, char** name);
 
 static void errorMsg(char* str)
 {
@@ -213,13 +173,6 @@ static char* consumeIdentifier()
     return NULL;
 }
 
-// static Node* identifier()
-// {
-//     Node* node = newNodeVariable(variable(rp->str));
-//     rp = rp->next;
-//     return node;
-// }
-
 // arguments = "(" (expression ("," expression)*)? ")"
 static Node* arguments()
 {
@@ -338,7 +291,7 @@ static Member* findMember(Type* type, char* name)
     return NULL;
 }
 
-static Node* structMember(Node* node)
+static Node* structRef(Node* node)
 {
     addType(node);
     Member* m = findMember(node->type, expectIdentifier());
@@ -358,11 +311,11 @@ static Node* postfix()
             node = newNode(NODE_DEREF, node, NULL);
             expect("]");
         } else if (consume(".")) {
-            node = structMember(node);
+            node = structRef(node);
         } else if (consume("->")) {
             // a->b is (*a).b
             node = newNode(NODE_DEREF, node, NULL);
-            node = structMember(node);
+            node = structRef(node);
         } else if (consume("++")) {
             node = newNode(NODE_POST_INCREMENT, node, NULL);
         } else if (consume("--")) {
@@ -376,11 +329,15 @@ static Node* postfix()
 
 static Node* unary();
 
-// type-suffix = ("[" num "]" type-suffix)?
+// type-suffix = ("[" num? "]")*
 Type* typeSuffix(Type* t)
 {
     while (consume("[")) {
-        t = arrayOf(t, expectNumber());
+        if (rp->kind == TOKEN_NUMBER) {
+            t = arrayOf(t, expectNumber());
+        } else {
+            t = arrayOf(t, 0);
+        }
         expect("]");
     }
     return t;
@@ -407,7 +364,7 @@ Type* abstractDeclarator(Type* t)
 // typeName = basetype abstract-declarator type-suffix
 Type* typeName()
 {
-    Type* t = basetype();
+    Type* t = basetype(NULL);
     t = abstractDeclarator(t);
     t = typeSuffix(t);
     return t;
@@ -663,30 +620,39 @@ static Node* localVariableInitializer(Variable* v)
     return node;
 }
 
-// declaration = basetype ident ("[" arraySize? "]")? ("=" localVariableInitializer)? ";"
-//             | basetype
+// localVariable = basetype declarator typeSuffix ("=" localVariableInitializer)? ";"
+//               | basetype ";"
 static Node* localVariable()
 {
-    Type* type = basetype();
-    if (peek(";")) {
+    bool isTypedef;
+    Type* t = basetype(&isTypedef);
+    if (consume(";")) {
         return newNode(NODE_NULL, NULL, NULL);
     }
-    char* name = expectIdentifier();
-    if (type == TYPE_VOID) {
+    char* name = NULL;
+    t = declarator(t, &name);
+    t = typeSuffix(t);
+    if (isTypedef) {
+        Typedef* tdef = calloc(1, sizeof(Typedef));
+        tdef->name = name;
+        tdef->type = t;
+        tdef->next = typedefScope;
+        typedefScope = tdef;
+        expect(";");
+        return newNode(NODE_NULL, NULL, NULL);
+    }
+
+    if (t == TYPE_VOID) {
         errorMsg("declare void type variable");
     }
-    if (consume("[")) {
-        if (consume("]")) {
-            type = arrayOf(type, 0);
-        } else {
-            type = arrayOf(type, expectNumber());
-            expect("]");
-        }
-    }
-    Variable* v = declareLocalVariable(type, name);
+
+    Variable* v = declareLocalVariable(t, name);
     if (consume("=")) {
-        return localVariableInitializer(v);
+        Node* node = localVariableInitializer(v);
+        expect(";");
+        return node;
     }
+    expect(";");
     return newNode(NODE_NULL, NULL, NULL);
 }
 
@@ -716,25 +682,8 @@ static bool isTypeName()
         || peek("long")
         || peek("struct")
         || peek("enum")
+        || peek("typedef")
         || (rp->kind == TOKEN_IDENTIFIER && findTypedef(rp->str));
-}
-
-// typedefStatement = "typedef" basetype identifier ("[" number "]")* ";"
-static Node* typedefStatement()
-{
-    Type* type = basetype();
-    char* name = expectIdentifier();
-    if (consume("[")) {
-        type = arrayOf(type, expectNumber());
-        expect("]");
-    }
-    Typedef* def = calloc(1, sizeof(Typedef));
-    def->name = name;
-    def->type = type;
-    def->next = typedefScope;
-    typedefScope = def;
-    expect(";");
-    return newNode(NODE_NULL, NULL, NULL);
 }
 
 // statement = "return" expression? ";"
@@ -742,15 +691,13 @@ static Node* typedefStatement()
 //           | "while" "(" expression ")" statement
 //           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" statementExpression? ")" statement
 //           | "{" statement* "}"
-//           | typedefStatement
-//           | localVariable ";"
+//           | localVariable
 //           | statementExpression ";"
 static Node* statement()
 {
     Node* node = NULL;
     if (isTypeName()) {
         node = localVariable();
-        expect(";");
     } else if (consume("return")) {
         if (consume(";")) {
             node = newNode(NODE_RETURN, NULL, NULL);
@@ -783,8 +730,8 @@ static Node* statement()
                 node->init = localVariable();
             } else {
                 node->init = statementExpression();
+                expect(";");
             }
-            expect(";");
         }
         if (!consume(";")) {
             node->cond = expression();
@@ -806,8 +753,6 @@ static Node* statement()
         }
         node->statements = dummy.next;
         restoreScope(currentScope);
-    } else if (consume("typedef")) {
-        node = typedefStatement();
     } else {
         node = statementExpression();
         expect(";");
@@ -815,20 +760,33 @@ static Node* statement()
     return node;
 }
 
+// structMember = basetype declarator typeSuffix ";"
+static Member* structMember()
+{
+    Type* t = basetype(NULL);
+    char* name = NULL;
+    t = declarator(t, &name);
+    t = typeSuffix(t);
+    expect(";");
+
+    Member* m = calloc(1, sizeof(Member));
+    m->name = name;
+    m->type = t;
+    return m;
+}
+
+// structMembers = structMember* "}"
 static Type* structMembers()
 {
     Type* type = calloc(1, sizeof(Type));
     type->kind = TYPE_STRUCT;
     int align = 0;
     while (!consume("}")) {
-        Member* m = calloc(1, sizeof(Member));
-        m->type = basetype();
-        m->name = expectIdentifier();
-        expect(";");
-        if (!type->members) {
-            m->offset = size(m->type);
-        } else {
+        Member* m = structMember();
+        if (type->members) {
             m->offset = alignOffset(type->members->offset, m->type->align) + size(m->type);
+        } else {
+            m->offset = size(m->type);
         }
         m->next = type->members;
         type->members = m;
@@ -841,7 +799,7 @@ static Type* structMembers()
 }
 
 // structDeclaration = "struct" identifier
-//                   | "struct" identifier? "{" member* "}"
+//                   | "struct" identifier? "{" structMembers
 static Type* structDeclaration()
 {
     expect("struct");
@@ -906,40 +864,48 @@ static Type* enumDeclaration()
 
 // basetype = (builtinType | structDeclaration | enumDeclaration | typedefName) "*"*
 // builtInType = "void" | "char" | "short" | "int" | "long"
-static Type* basetype()
+static Type* basetype(bool* isTypedef)
 {
-    Type* type;
+    if (isTypedef) {
+        *isTypedef = false;
+    }
+
+    if (consume("typedef")) {
+        if (!isTypedef) {
+            errorMsg("typedef is not allowed here");
+        }
+        *isTypedef = true;
+    }
+
     if (consume("void")) {
-        type = voidType();
+        return voidType();
     } else if (consume("char")) {
-        type = charType();
+        return charType();
     } else if (consume("short")) {
-        type = shortType();
+        return shortType();
     } else if (consume("int")) {
-        type = intType();
+        return intType();
     } else if (consume("long")) {
-        type = longType();
+        return longType();
     } else if (peek("struct")) {
-        type = structDeclaration();
+        return structDeclaration();
     } else if (peek("enum")) {
-        type = enumDeclaration();
+        return enumDeclaration();
     } else {
-        type = findTypedef(expectIdentifier());
+        Type* type = findTypedef(expectIdentifier());
         if (!type) {
             errorMsg("unexpected basetype");
         }
+        return type;
     }
-    while (consume("*")) {
-        type = pointerTo(type);
-    }
-    return type;
 }
 
-// parameter = basetype identifier
+// parameter = basetype declarator typeSuffix
 static Node* parameter()
 {
-    Type* type = basetype();
-    char* name = expectIdentifier();
+    Type* type = basetype(NULL);
+    char* name = NULL;
+    type = declarator(type, &name);
     Variable* localVariable = declareLocalVariable(type, name);
     Node* node = newNode(NODE_NULL, NULL, NULL);
     node->type = type;
@@ -960,9 +926,14 @@ static Node* parameters()
     return head.next;
 }
 
-// function = basetype identifier "(" parameters? ")" "{" statement* "}"
-static Function* function(Type* retType, char* name)
+// function = basetype declarator "(" parameters? ")" "{" statement* "}"
+static Function* function()
 {
+    Type* retType = basetype(NULL);
+    char* name;
+    retType = declarator(retType, &name);
+    expect("(");
+
     addFuncToVarScope(name, retType);
     localVariables = NULL;
     Scope* currentScope = saveScope();
@@ -1065,43 +1036,81 @@ static void globalVariableInitializer(Variable* v)
     v->initialValue->valueList = l;
 }
 
-// program = (globalVariable | function | typedefStatement)*
+// declarator = "*"* ("(" declarator ")" | identifier) typeSuffix
+static Type* declarator(Type* t, char** name)
+{
+    while (consume("*")) {
+        t = pointerTo(t);
+    }
+
+    if (consume("(")) {
+        Type* placeholder = calloc(1, sizeof(Type));
+        Type* newType = declarator(placeholder, name);
+        expect(")");
+        memcpy(placeholder, typeSuffix(t), sizeof(Type));
+        return newType;
+    }
+
+    *name = expectIdentifier();
+    return typeSuffix(t);
+}
+
+// globalVariable = basetype declarator typeSuffix ("=" globalVariableInitializer)? ";"
+static void globalVariable()
+{
+    bool isTypedef;
+    Type* t = basetype(&isTypedef);
+    char* name = NULL;
+    t = declarator(t, &name);
+    t = typeSuffix(t);
+    if (isTypedef) {
+        Typedef* tdef = calloc(1, sizeof(Typedef));
+        tdef->name = name;
+        tdef->type = t;
+        tdef->next = typedefScope;
+        typedefScope = tdef;
+    } else {
+        Variable* v = declareGlobalVariable(t, name);
+        if (consume("=")) {
+            globalVariableInitializer(v);
+        }
+    }
+    expect(";");
+}
+
+bool isFunc()
+{
+    Token* token = rp;
+    bool isTypedef;
+    Type* type = basetype(&isTypedef);
+    char* name = NULL;
+    declarator(type, &name);
+    if (consume("(")) {
+        rp = token;
+        return true;
+    }
+    rp = token;
+    return false;
+}
+
 static Program* program()
 {
-    Function dummyFunction = {};
-    Function* functionTail = &dummyFunction;
+    Function dummyFunc;
+    Function* funcs = &dummyFunc;
 
     while (rp->kind != TOKEN_EOF) {
-        if (consume("typedef")) {
-            typedefStatement();
-            continue;
-        }
-        Type* type = basetype();
-        char* name = expectIdentifier();
-        if (consume("(")) {
-            functionTail->next = function(type, name);
-            functionTail = functionTail->next;
+        if (isFunc()) {
+            funcs->next = function();
+            funcs = funcs->next;
         } else {
-            if (consume("[")) {
-                if (consume("]")) {
-                    type = arrayOf(type, 0);
-                } else {
-                    type = arrayOf(type, expectNumber());
-                    expect("]");
-                }
-            }
-            Variable* v = declareGlobalVariable(type, name);
-            if (consume("=")) {
-                globalVariableInitializer(v);
-            }
-            expect(";");
+            globalVariable();
         }
     }
 
-    Program* p = calloc(1, sizeof(Program));
-    p->functions = dummyFunction.next;
-    p->globalVariables = globalVariables;
-    return p;
+    Program* prog = calloc(1, sizeof(Program));
+    prog->functions = dummyFunc.next;
+    prog->globalVariables = globalVariables;
+    return prog;
 }
 
 Program* parse(Token* tokens, char* source, char* fileName)

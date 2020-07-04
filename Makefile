@@ -26,6 +26,6 @@ test2: mcc2
 	./tmp2
 
 clean:
-	rm -f mcc mcc2 *.o *~ tmp*
+	rm -rf mcc mcc2 *.o *~ tmp*
 
 .PHONY: test clean

@@ -7,7 +7,7 @@ DEPS := $(SRCS:%.c=%.d)
 mcc: $(OBJS)
 	$(CC) -o mcc $(OBJS) $(LDFLAGS)
 
-mcc2: mcc $(SRCS) $(HDRS)
+mcc2: mcc $(SRCS) $(HDRS) self.sh
 	./self.sh
 
 -include $(DEPS)

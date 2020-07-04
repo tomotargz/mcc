@@ -36,6 +36,9 @@ int g7[3] = { 1 };
 int g8[] = { 1, 2, 3 };
 char g9[] = "string";
 char g10[7] = "string";
+struct gs {
+    int a;
+};
 
 int* returnPointer()
 {

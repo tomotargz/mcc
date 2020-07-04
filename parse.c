@@ -1086,10 +1086,14 @@ static Type* declarator(Type* t, char** name)
 }
 
 // globalVariable = basetype declarator typeSuffix ("=" globalVariableInitializer)? ";"
+//                | basetype ";"
 static void globalVariable()
 {
     StorageClass sc;
     Type* t = basetype(&sc);
+    if (consume(";")) {
+        return;
+    }
     char* name = NULL;
     t = declarator(t, &name);
     t = typeSuffix(t);
@@ -1113,6 +1117,10 @@ bool isFunc()
     Token* token = rp;
     StorageClass sc;
     Type* type = basetype(&sc);
+    if (consume(";")) {
+        rp = token;
+        return false;
+    }
     char* name = NULL;
     declarator(type, &name);
     if (consume("(")) {

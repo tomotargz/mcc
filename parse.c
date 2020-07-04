@@ -933,7 +933,7 @@ static Node* parameters()
     return head.next;
 }
 
-// function = basetype declarator "(" parameters? ")" "{" statement* "}"
+// function = basetype declarator "(" parameters? ")" ("{" statement* "}" | ";")
 static Function* function()
 {
     Type* retType = basetype(NULL);
@@ -949,6 +949,10 @@ static Function* function()
     if (!consume(")")) {
         func->params = parameters();
         expect(")");
+    }
+    if (consume(";")) {
+        restoreScope(currentScope);
+        return NULL;
     }
     expect("{");
     Node head;
@@ -1107,8 +1111,11 @@ static Program* program()
 
     while (rp->kind != TOKEN_EOF) {
         if (isFunc()) {
-            funcs->next = function();
-            funcs = funcs->next;
+            Function* f = function();
+            if (f) {
+                funcs->next = f;
+                funcs = funcs->next;
+            }
         } else {
             globalVariable();
         }

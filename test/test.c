@@ -52,6 +52,8 @@ void voidFunc()
     return;
 }
 
+int declareFunction(int param);
+
 /* block comment */
 // line comment
 

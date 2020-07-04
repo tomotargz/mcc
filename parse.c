@@ -881,6 +881,8 @@ static Type* basetype(bool* isTypedef)
         *isTypedef = true;
     }
 
+    consume("extern");
+
     if (consume("void")) {
         return voidType();
     } else if (consume("char")) {

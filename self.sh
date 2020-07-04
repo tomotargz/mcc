@@ -42,7 +42,7 @@ EOF
 
     grep -v '^#' mcc.h >> $TMP/$1
     grep -v '^#' $1 >> $TMP/$1
-    sed -i 's/\bbool\b/_Bool/g' $TMP/$1
+    sed -i 's/\bbool\b/int/g' $TMP/$1
     sed -i 's/\berrno\b/*__errno_location()/g' $TMP/$1
     sed -i 's/\btrue\b/1/g; s/\bfalse\b/0/g;' $TMP/$1
     sed -i 's/\bNULL\b/0/g' $TMP/$1

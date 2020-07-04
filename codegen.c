@@ -357,7 +357,9 @@ static char* parameterRegister(int size, int index)
 static void generateFunction(Function* function)
 {
     functionName = function->name;
-    printf(".global %s\n", function->name);
+    if (!function->isStatic) {
+        printf(".global %s\n", function->name);
+    }
     printf("%s:\n", function->name);
 
     // prologue

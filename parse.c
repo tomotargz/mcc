@@ -26,6 +26,11 @@ typedef struct Scope {
     Typedef* typedefs;
 } Scope;
 
+typedef struct StorageClass {
+    bool isStatic;
+    bool isTypedef;
+} StorageClass;
+
 static VariableScope* variableScope;
 static StructTag* structTagScope;
 static Typedef* typedefScope;
@@ -38,7 +43,7 @@ static VariableList* globalVariables;
 static VariableList* localVariables;
 
 static Node* expression();
-static Type* basetype(bool* isTypedef);
+static Type* basetype(StorageClass* sc);
 static Node* newAdd(Node* lhs, Node* rhs);
 static Node* newSub(Node* lhs, Node* rhs);
 static Variable* declareGlobalVariable(Type* type, char* name);
@@ -628,15 +633,15 @@ static Node* localVariableInitializer(Variable* v)
 //               | basetype ";"
 static Node* localVariable()
 {
-    bool isTypedef;
-    Type* t = basetype(&isTypedef);
+    StorageClass sc;
+    Type* t = basetype(&sc);
     if (consume(";")) {
         return newNode(NODE_NULL, NULL, NULL);
     }
     char* name = NULL;
     t = declarator(t, &name);
     t = typeSuffix(t);
-    if (isTypedef) {
+    if (sc.isTypedef) {
         Typedef* tdef = calloc(1, sizeof(Typedef));
         tdef->name = name;
         tdef->type = t;
@@ -868,17 +873,25 @@ static Type* enumDeclaration()
 
 // basetype = (builtinType | structDeclaration | enumDeclaration | typedefName) "*"*
 // builtInType = "void" | "char" | "short" | "int" | "long"
-static Type* basetype(bool* isTypedef)
+static Type* basetype(StorageClass* sc)
 {
-    if (isTypedef) {
-        *isTypedef = false;
+    if (sc) {
+        sc->isStatic = false;
+        sc->isStatic = false;
     }
 
     if (consume("typedef")) {
-        if (!isTypedef) {
+        if (!sc) {
             errorAt(rp, "typedef is not allowed here");
         }
-        *isTypedef = true;
+        sc->isTypedef = true;
+    }
+
+    if (consume("static")) {
+        if (!sc) {
+            errorAt(rp, "static is not allowed here");
+        }
+        sc->isStatic = true;
     }
 
     consume("extern");
@@ -936,7 +949,8 @@ static Node* parameters()
 // function = basetype declarator "(" parameters? ")" ("{" statement* "}" | ";")
 static Function* function()
 {
-    Type* retType = basetype(NULL);
+    StorageClass sc;
+    Type* retType = basetype(&sc);
     char* name;
     retType = declarator(retType, &name);
     expect("(");
@@ -946,6 +960,7 @@ static Function* function()
     Scope* currentScope = saveScope();
     Function* func = calloc(1, sizeof(Function));
     func->name = name;
+    func->isStatic = sc.isStatic;
     if (!consume(")")) {
         func->params = parameters();
         expect(")");
@@ -1069,12 +1084,12 @@ static Type* declarator(Type* t, char** name)
 // globalVariable = basetype declarator typeSuffix ("=" globalVariableInitializer)? ";"
 static void globalVariable()
 {
-    bool isTypedef;
-    Type* t = basetype(&isTypedef);
+    StorageClass sc;
+    Type* t = basetype(&sc);
     char* name = NULL;
     t = declarator(t, &name);
     t = typeSuffix(t);
-    if (isTypedef) {
+    if (sc.isTypedef) {
         Typedef* tdef = calloc(1, sizeof(Typedef));
         tdef->name = name;
         tdef->type = t;
@@ -1092,8 +1107,8 @@ static void globalVariable()
 bool isFunc()
 {
     Token* token = rp;
-    bool isTypedef;
-    Type* type = basetype(&isTypedef);
+    StorageClass sc;
+    Type* type = basetype(&sc);
     char* name = NULL;
     declarator(type, &name);
     if (consume("(")) {

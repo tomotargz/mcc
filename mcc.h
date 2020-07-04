@@ -187,6 +187,7 @@ struct Function {
     Node* statements;
     VariableList* localVariables;
     int stackSize;
+    bool isStatic;
 };
 
 typedef struct {

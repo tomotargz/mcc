@@ -54,6 +54,12 @@ void voidFunc()
 
 int declareFunction(int param);
 
+static int staticFunc(int param);
+static int staticFunc(int param)
+{
+    return 3;
+}
+
 /* block comment */
 // line comment
 
@@ -255,6 +261,8 @@ int main()
     assertEq(2, ({ sizeof(short); }), " sizeof(short);");
     assertEq(3, ({long l = 3; l; }), "long l = 3; l;");
     assertEq(8, ({ sizeof(long); }), " sizeof(long);");
+
+    assertEq(3, ({ staticFunc(3); }), " staticFunc(3); ");
 
     {
         void* v;

@@ -188,6 +188,7 @@ struct Function {
     VariableList* localVariables;
     int stackSize;
     bool isStatic;
+    bool isVariadic;
 };
 
 typedef struct {

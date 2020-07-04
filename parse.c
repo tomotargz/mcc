@@ -933,17 +933,21 @@ static Node* parameter()
 }
 
 // parameters = parameter ("," parameter)*
-static Node* parameters()
+static void parameters(Function* f)
 {
     Node head = {};
     Node* tail = &head;
     tail->next = parameter();
     tail = tail->next;
     while (consume(",")) {
+        if (consume("...")) {
+            f->isVariadic = true;
+            break;
+        }
         tail->next = parameter();
         tail = tail->next;
     }
-    return head.next;
+    f->params = head.next;
 }
 
 // function = basetype declarator "(" parameters? ")" ("{" statement* "}" | ";")
@@ -962,7 +966,7 @@ static Function* function()
     func->name = name;
     func->isStatic = sc.isStatic;
     if (!consume(")")) {
-        func->params = parameters();
+        parameters(func);
         expect(")");
     }
     if (consume(";")) {

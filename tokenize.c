@@ -36,6 +36,7 @@ static char* startsWithReserved(char* str)
     }
 
     static char* PUNCTUATION[] = {
+        "...",
         "==", "!=", "<=", ">=", "->", "<", ">",
         "++", "--",
         "&&", "||",

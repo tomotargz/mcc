@@ -258,10 +258,13 @@ int main()
     assertEq(0, ({ 1 && 0; }), "1 && 0;");
     assertEq(0, ({ 0 && 1; }), "0 && 1;");
     assertEq(0, ({ 0 && 0; }), "0 && 0;");
+    assertEq(0, ({ 0 && 0 && 0; }), "0 && 0 && 0;");
     assertEq(1, ({ 1 || 1; }), "1 || 1;");
     assertEq(1, ({ 1 || 0; }), "1 || 0;");
     assertEq(1, ({ 0 || 1; }), "0 || 1;");
     assertEq(0, ({ 0 || 0; }), "0 || 0;");
+    assertEq(0, ({ 0 || 0 || 0; }), "0 || 0 || 0;");
+    assertEq(0, ({ 0 || 0 && 0 || 0 && 0; }), " 0 || 0 && 0 || 0 && 0; ");
 
     assertEq(3, ({short s = 3; s; }), "short s = 3; s;");
     assertEq(2, ({ sizeof(short); }), " sizeof(short);");

@@ -527,21 +527,21 @@ static Node* equality()
     }
 }
 
-// and = equality ("&&" equality)?
+// and = equality ("&&" equality)*
 static Node* and ()
 {
     Node* node = equality();
-    if (consume("&&")) {
+    while (consume("&&")) {
         node = newNode(NODE_AND, node, equality());
     }
     return node;
 }
 
-// or = and ("||" and)?
+// or = and ("||" and)*
 static Node* or ()
 {
     Node* node = and();
-    if (consume("||")) {
+    while (consume("||")) {
         node = newNode(NODE_OR, node, and());
     }
     return node;

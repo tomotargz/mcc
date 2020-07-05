@@ -877,7 +877,7 @@ static Type* basetype(StorageClass* sc)
 {
     if (sc) {
         sc->isStatic = false;
-        sc->isStatic = false;
+        sc->isTypedef = false;
     }
 
     if (consume("typedef")) {

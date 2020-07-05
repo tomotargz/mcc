@@ -40,6 +40,9 @@ struct gs {
     int a;
 };
 
+static int sg1;
+static int sg = 3;
+
 int* returnPointer()
 {
     return &g2;

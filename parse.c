@@ -4,6 +4,7 @@ typedef struct StructTag {
     char* name;
     Type* type;
     struct StructTag* next;
+    int depth;
 } StructTag;
 
 typedef struct Typedef {
@@ -34,6 +35,7 @@ typedef struct StorageClass {
 static VariableScope* variableScope;
 static StructTag* structTagScope;
 static Typedef* typedefScope;
+static int scopeDepth;
 
 static char* src;
 static char* file;
@@ -60,20 +62,22 @@ static void errorAt(Token* tk, char* format, ...)
     error_at(tk->pos, src, file, format, ap);
 }
 
-static Scope* saveScope()
+static Scope* enterScope()
 {
     Scope* s = calloc(1, sizeof(Scope));
     s->structTags = structTagScope;
     s->variables = variableScope;
     s->typedefs = typedefScope;
+    ++scopeDepth;
     return s;
 }
 
-static void restoreScope(Scope* s)
+static void exitScope(Scope* s)
 {
     structTagScope = s->structTags;
     variableScope = s->variables;
     typedefScope = s->typedefs;
+    --scopeDepth;
 }
 
 static void addVarToVarScope(Variable* v)
@@ -205,7 +209,7 @@ static char* stringLabel()
 
 static Node* expressionStatement()
 {
-    Scope* currentScope = saveScope();
+    Scope* currentScope = enterScope();
     Node* node = newNode(NODE_BLOCK, NULL, NULL);
     Node dummy = {};
     Node* prev = NULL;
@@ -221,7 +225,7 @@ static Node* expressionStatement()
     prev->next = curr->lhs;
     node->statements = dummy.next;
     expect(")");
-    restoreScope(currentScope);
+    exitScope(currentScope);
     return node;
 }
 
@@ -755,7 +759,7 @@ static Node* statement()
         }
         node->body = statement();
     } else if (consume("{")) {
-        Scope* currentScope = saveScope();
+        Scope* currentScope = enterScope();
         node = newNode(NODE_BLOCK, NULL, NULL);
         Node dummy = {};
         Node* tail = &dummy;
@@ -764,7 +768,7 @@ static Node* statement()
             tail = tail->next;
         }
         node->statements = dummy.next;
-        restoreScope(currentScope);
+        exitScope(currentScope);
     } else {
         node = statementExpression();
         expect(";");
@@ -810,6 +814,17 @@ static Type* structMembers()
     return type;
 }
 
+static StructTag* findStructTag(char* name)
+{
+    for (StructTag* st = structTagScope; st; st = st->next) {
+        if (strlen(st->name) == strlen(name)
+            && !strcmp(st->name, name)) {
+            return st;
+        }
+    }
+    return NULL;
+}
+
 // structDeclaration = "struct" identifier
 //                   | "struct" identifier? "{" structMembers "}"
 static Type* structDeclaration()
@@ -819,26 +834,36 @@ static Type* structDeclaration()
     if (identifier) {
         if (consume("{")) {
             // declare struct tag
-            StructTag* tag = calloc(1, sizeof(StructTag));
-            tag->name = identifier;
-            tag->type = structMembers();
+
+            // Redefinition
+            StructTag* tag = findStructTag(identifier);
+            if (tag && tag->depth == scopeDepth) {
+                Type* t = structMembers();
+                memcpy(tag->type, t, sizeof(Type));
+                expect("}");
+                return tag->type;
+            }
+
+            StructTag* newTag = calloc(1, sizeof(StructTag));
+            newTag->name = identifier;
+            newTag->type = structMembers();
+            newTag->depth = scopeDepth;
             expect("}");
-            tag->next = structTagScope;
-            structTagScope = tag;
-            return tag->type;
+            newTag->next = structTagScope;
+            structTagScope = newTag;
+            return newTag->type;
         } else {
             // find tag
-            for (StructTag* s = structTagScope; s; s = s->next) {
-                if (strlen(identifier) == strlen(s->name)
-                    && !strcmp(identifier, s->name)) {
-                    return s->type;
-                }
+            StructTag* st = findStructTag(identifier);
+            if (st) {
+                return st->type;
             }
             // declare struct tag
             Type* type = calloc(1, sizeof(Type));
             type->kind = TYPE_STRUCT;
             type->align = 1;
             StructTag* tag = calloc(1, sizeof(StructTag));
+            tag->depth = scopeDepth;
             tag->name = identifier;
             tag->type = type;
             tag->next = structTagScope;
@@ -967,7 +992,7 @@ static Function* function()
 
     addFuncToVarScope(name, retType);
     localVariables = NULL;
-    Scope* currentScope = saveScope();
+    Scope* currentScope = enterScope();
     Function* func = calloc(1, sizeof(Function));
     func->name = name;
     func->isStatic = sc.isStatic;
@@ -976,7 +1001,7 @@ static Function* function()
         expect(")");
     }
     if (consume(";")) {
-        restoreScope(currentScope);
+        exitScope(currentScope);
         return NULL;
     }
     expect("{");
@@ -995,7 +1020,7 @@ static Function* function()
         func->stackSize = 0;
     }
     addType(func->statements);
-    restoreScope(currentScope);
+    exitScope(currentScope);
     return func;
 }
 

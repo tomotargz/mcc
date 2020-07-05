@@ -271,6 +271,18 @@ int main()
     assertEq(3, ({ staticFunc(3); }), " staticFunc(3); ");
 
     {
+        typedef struct S S;
+        struct S {
+            S* next;
+        };
+        S s1;
+        S s2;
+        s1.next = &s2;
+        s2.next = &s1;
+        assertEq(1, ({ s1.next->next == &s1; }), "s1.next->next == &s1;");
+    }
+
+    {
         void* v;
     }
 

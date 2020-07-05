@@ -296,14 +296,17 @@ static Member* findMember(Type* type, char* name)
             return m;
         }
     }
-    errorAt(rp, "no such member");
     return NULL;
 }
 
 static Node* structRef(Node* node)
 {
     addType(node);
+    Token* tk = rp;
     Member* m = findMember(node->type, expectIdentifier());
+    if (!m) {
+        errorAt(tk, "no such member");
+    }
     Node* n = newNode(NODE_MEMBER, node, NULL);
     n->member = m;
     return n;

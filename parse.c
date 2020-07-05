@@ -699,6 +699,7 @@ static bool isTypeName()
         || peek("struct")
         || peek("enum")
         || peek("typedef")
+        || peek("static")
         || (rp->kind == TOKEN_IDENTIFIER && findTypedef(rp->str));
 }
 

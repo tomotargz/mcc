@@ -287,6 +287,8 @@ int main()
 
     assertEq(3, ({int count = 0;for (int i = 0; i < 3; ++i, ++count) {} count; }), "int count = 0;for (int i = 0; i < 3; ++i, ++count) {} count;");
 
+    assertEq(3, ({int i = 0; i+=3;i; }), "int i = 0; i+=3;i;");
+
     {
         void* v;
     }

@@ -77,6 +77,7 @@ void addType(Node* node)
     } else if (node->kind == NODE_POINTER_ADDITION
         || node->kind == NODE_POINTER_SUBTRACTION
         || node->kind == NODE_ASSIGNMENT
+        || node->kind == NODE_ADD_EQ
         || node->kind == NODE_PRE_INCREMENT
         || node->kind == NODE_POST_INCREMENT
         || node->kind == NODE_PRE_DECREMENT

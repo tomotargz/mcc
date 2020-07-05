@@ -252,6 +252,16 @@ static void generate(Node* node)
         printf("  movzb rax, al\n");
         printf("  push rax\n");
         return;
+    } else if (node->kind == NODE_ADD_EQ) {
+        generateAddress(node->lhs);
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
+        printf("  add rax, rdi\n");
+        printf("  push rax\n");
+        store(node->type);
+        return;
     }
 
     generate(node->lhs);

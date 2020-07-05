@@ -547,12 +547,15 @@ static Node* or ()
     return node;
 }
 
-// assign = or ("=" assign)?
+// assign = or (assignOp assign)?
+// assignOp = "=" | "+="
 static Node* assign()
 {
     Node* node = or ();
     if (consume("=")) {
         node = newNode(NODE_ASSIGNMENT, node, assign());
+    } else if (consume("+=")) {
+        node = newNode(NODE_ADD_EQ, node, assign());
     }
     return node;
 }

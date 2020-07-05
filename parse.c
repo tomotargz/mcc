@@ -787,13 +787,13 @@ static Member* structMember()
     return m;
 }
 
-// structMembers = structMember* "}"
+// structMembers = structMember*
 static Type* structMembers()
 {
     Type* type = calloc(1, sizeof(Type));
     type->kind = TYPE_STRUCT;
     int align = 0;
-    while (!consume("}")) {
+    while (!peek("}")) {
         Member* m = structMember();
         if (type->members) {
             m->offset = alignOffset(type->members->offset, m->type->align) + size(m->type);
@@ -811,7 +811,7 @@ static Type* structMembers()
 }
 
 // structDeclaration = "struct" identifier
-//                   | "struct" identifier? "{" structMembers
+//                   | "struct" identifier? "{" structMembers "}"
 static Type* structDeclaration()
 {
     expect("struct");
@@ -822,6 +822,7 @@ static Type* structDeclaration()
             StructTag* tag = calloc(1, sizeof(StructTag));
             tag->name = identifier;
             tag->type = structMembers();
+            expect("}");
             tag->next = structTagScope;
             structTagScope = tag;
             return tag->type;
@@ -847,7 +848,9 @@ static Type* structDeclaration()
     }
     // anonymous struct
     expect("{");
-    return structMembers();
+    Type* t = structMembers();
+    expect("}");
+    return t;
 }
 
 // enumDeclaration = "enum" identifier

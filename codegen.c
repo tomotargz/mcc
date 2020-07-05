@@ -163,8 +163,8 @@ static void generate(Node* node)
             printf("  je .Lend%d\n", t);
         }
         generate(node->body);
-        if (node->inc) {
-            generate(node->inc);
+        for (Node* n = node->incs; n; n = n->next) {
+            generate(n);
         }
         printf("  jmp .Lbegin%d\n", t);
         printf(".Lend%d:\n", t);

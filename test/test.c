@@ -285,6 +285,8 @@ int main()
         assertEq(1, ({ s1.next->next == &s1; }), "s1.next->next == &s1;");
     }
 
+    assertEq(3, ({int count = 0;for (int i = 0; i < 3; ++i, ++count) {} count; }), "int count = 0;for (int i = 0; i < 3; ++i, ++count) {} count;");
+
     {
         void* v;
     }

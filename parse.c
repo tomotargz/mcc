@@ -706,7 +706,7 @@ static bool isTypeName()
 // statement = "return" expression? ";"
 //           | "if" "(" expression ")" statement ("else" statement)?
 //           | "while" "(" expression ")" statement
-//           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" statementExpression? ")" statement
+//           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" (statementExpression ("," statementExpression)*)? ")" statement
 //           | "{" statement* "}"
 //           | localVariable
 //           | statementExpression ";"
@@ -754,10 +754,17 @@ static Node* statement()
             node->cond = expression();
             expect(";");
         }
-        if (!consume(")")) {
-            node->inc = statementExpression();
-            expect(")");
+
+        Node incHead;
+        incHead.next = NULL;
+        Node* incTail = &incHead;
+        while (!consume(")")) {
+            incTail->next = statementExpression();
+            incTail = incTail->next;
+            consume(",");
         }
+        node->incs = incHead.next;
+
         node->body = statement();
     } else if (consume("{")) {
         Scope* currentScope = enterScope();

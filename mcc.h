@@ -139,7 +139,7 @@ struct Node {
     Node* els;
     Node* body;
     Node* init;
-    Node* inc;
+    Node* incs;
 
     Node* statements;
 

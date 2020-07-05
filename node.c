@@ -45,7 +45,10 @@ void addType(Node* node)
     addType(node->els);
     addType(node->body);
     addType(node->init);
-    addType(node->inc);
+
+    for (Node* n = node->incs; n; n = n->next) {
+        addType(n);
+    }
 
     for (Node* statement = node->statements;
          statement;

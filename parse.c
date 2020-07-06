@@ -446,14 +446,10 @@ static Node* newAdd(Node* lhs, Node* rhs)
 {
     addType(lhs);
     addType(rhs);
-    TypeKind lType = lhs->type->kind;
-    TypeKind rType = rhs->type->kind;
-    if ((lType == TYPE_INT || lType == TYPE_CHAR)
-        && (rType == TYPE_INT || rType == TYPE_CHAR)) {
+    if (isInteger(lhs->type) && isInteger(rhs->type)) {
         return newNode(NODE_ADDITION, lhs, rhs);
     }
-    if ((lType == TYPE_POINTER || lType == TYPE_ARRAY)
-        && (rType == TYPE_INT || rType == TYPE_CHAR)) {
+    if (isPointerOrArray(lhs->type) && isInteger(rhs->type)) {
         return newNode(NODE_POINTER_ADDITION, lhs, rhs);
     }
     errorAt(rp, "invalid addition");
@@ -464,14 +460,11 @@ static Node* newSub(Node* lhs, Node* rhs)
 {
     addType(lhs);
     addType(rhs);
-    TypeKind lType = lhs->type->kind;
-    TypeKind rType = rhs->type->kind;
-    if ((lType == TYPE_INT || lType == TYPE_CHAR)
-        && (rType == TYPE_INT || rType == TYPE_CHAR)) {
+    if ((isInteger(lhs->type) && isInteger(rhs->type))
+        || (isPointer(lhs->type) && isPointer(rhs->type))) {
         return newNode(NODE_SUBTRACTION, lhs, rhs);
     }
-    if ((lType == TYPE_POINTER || lType == TYPE_ARRAY)
-        && (rType == TYPE_INT || rType == TYPE_CHAR)) {
+    if (isPointerOrArray(lhs->type) && isInteger(rhs->type)) {
         return newNode(NODE_POINTER_SUBTRACTION, lhs, rhs);
     }
     errorAt(rp, "invalid subtraction");

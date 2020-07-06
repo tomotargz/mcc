@@ -94,3 +94,22 @@ int alignOffset(int offset, int align)
     }
     return offset;
 }
+
+bool isInteger(Type* type)
+{
+    return type->kind == TYPE_CHAR
+        || type->kind == TYPE_SHORT
+        || type->kind == TYPE_INT
+        || type->kind == TYPE_LONG;
+}
+
+bool isPointer(Type* type)
+{
+    return type->kind == TYPE_POINTER;
+}
+
+bool isPointerOrArray(Type* type)
+{
+    return type->kind == TYPE_POINTER
+        || type->kind == TYPE_ARRAY;
+}

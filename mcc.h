@@ -54,6 +54,9 @@ Type* pointerTo(Type* to);
 Type* arrayOf(Type* type, int size);
 int size(Type* type);
 int alignOffset(int offset, int align);
+bool isInteger(Type* type);
+bool isPointer(Type* type);
+bool isPointerOrArray(Type* type);
 
 // variable.h-------------------------------------------------------------------
 

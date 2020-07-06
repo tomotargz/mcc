@@ -292,6 +292,8 @@ int main()
     assertEq(97, 'a', "'a'");
     assertEq(10, '\n', "\'\\n\'");
 
+    assertEq(3, ({char* p1;char* p2 = p1 +3;p2 - p1; }), "char* p1;char* p2 = p1 +3;p2 - p1;");
+
     {
         void* v;
     }

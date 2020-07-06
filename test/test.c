@@ -289,6 +289,9 @@ int main()
 
     assertEq(3, ({int i = 0; i+=3;i; }), "int i = 0; i+=3;i;");
 
+    assertEq(97, 'a', "'a'");
+    assertEq(10, '\n', "\'\\n\'");
+
     {
         void* v;
     }

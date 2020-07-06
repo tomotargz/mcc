@@ -77,6 +77,10 @@ char* decodeEscape(char* str)
                 *w = '\n';
             } else if (*(r + 1) == '"') {
                 *w = '"';
+            } else if (*(r + 1) == '\'') {
+                *w = '\'';
+            } else if (*(r + 1) == '\\') {
+                *w = '\\';
             } else {
                 error("unsupported escape character");
             }
@@ -160,6 +164,37 @@ Token* tokenize(char* source, char* file)
             tail = append(tail, token);
             continue;
         }
+
+        if (*rp == '\'') {
+            ++rp;
+            Token* token = newToken(TOKEN_NUMBER, rp);
+            if (*rp == '\\') {
+                ++rp;
+                if (*rp == 'n') {
+                    token->val = '\n';
+                } else if (*rp == '0') {
+                    token->val = '\0';
+                } else if (*rp == '\\') {
+                    token->val = '\\';
+                } else if (*rp == '\'') {
+                    token->val = '\'';
+                } else if (*rp == '"') {
+                    token->val = '"';
+                } else {
+                    error_at(rp, source, file, "unsupported escape char");
+                }
+            } else {
+                token->val = *rp;
+            }
+            tail = append(tail, token);
+            ++rp;
+            if (*rp != '\'') {
+                error_at(rp, source, file, "expect '");
+            }
+            ++rp;
+            continue;
+        }
+
         error_at(rp, source, file, "Can't tokenize");
     }
     Token* token = newToken(TOKEN_EOF, rp);

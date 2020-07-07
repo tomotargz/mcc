@@ -708,6 +708,8 @@ static bool isTypeName()
 //           | "if" "(" expression ")" statement ("else" statement)?
 //           | "while" "(" expression ")" statement
 //           | "for" "(" (localVariable | statementExpression)? ";" expression? ";" (statementExpression ("," statementExpression)*)? ")" statement
+//           | "break" ";"
+//           | "continue" ";"
 //           | "{" statement* "}"
 //           | localVariable
 //           | statementExpression ";"
@@ -767,6 +769,12 @@ static Node* statement()
         node->incs = incHead.next;
 
         node->body = statement();
+    } else if (consume("break")) {
+        node = newNode(NODE_BREAK, NULL, NULL);
+        expect(";");
+    } else if (consume("continue")) {
+        node = newNode(NODE_CONTINUE, NULL, NULL);
+        expect(";");
     } else if (consume("{")) {
         Scope* currentScope = enterScope();
         node = newNode(NODE_BLOCK, NULL, NULL);

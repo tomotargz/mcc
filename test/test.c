@@ -294,6 +294,11 @@ int main()
 
     assertEq(3, ({char* p1;char* p2 = p1 +3;p2 - p1; }), "char* p1;char* p2 = p1 +3;p2 - p1;");
 
+    assertEq(3, ({int i = 0; for(;i < 10;++i){if(i == 3){break;}}i; }), "int i = 0; for(;i < 10;++i){if(i == 3){break;}}i; ");
+    assertEq(3, ({int i = 0; while(i < 10){if(i == 3){break;}++i;}i; }), "int i = 0; while(i < 10){if(i == 3){break;}++i;}i;");
+    assertEq(3, ({int i = 0; for(;i<3;++i){if(i < 3){continue;}break;}i; }), "int i = 0; for(;;++i){if(i < 3){continue;}break;}i;");
+    assertEq(3, ({int i = 0; while(1){if(i < 3){++i;continue;}break;}i; }), "int i = 0; while(1){if(i < 3){++i;continue;}break;}i;");
+
     {
         void* v;
     }

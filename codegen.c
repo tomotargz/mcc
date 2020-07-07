@@ -1,6 +1,7 @@
 #include "mcc.h"
 
 static int tag = 0;
+static int loopTag = 0;
 static char* functionName;
 
 static void generate(Node* node);
@@ -122,6 +123,12 @@ static void generate(Node* node)
         }
         printf("  jmp .L.return.%s\n", functionName);
         return;
+    } else if (node->kind == NODE_BREAK) {
+        printf("  jmp .Lbreak%d\n", loopTag);
+        return;
+    } else if (node->kind == NODE_CONTINUE) {
+        printf("  jmp .Lcontinue%d\n", loopTag);
+        return;
     } else if (node->kind == NODE_IF) {
         int t = tag++;
         generate(node->cond);
@@ -141,17 +148,22 @@ static void generate(Node* node)
         return;
     } else if (node->kind == NODE_WHILE) {
         int t = tag++;
-        printf(".Lbegin%d:\n", t);
+        int temp = loopTag;
+        loopTag = t;
+        printf(".Lcontinue%d:\n", t);
         generate(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  je .Lend%d\n", t);
+        printf("  je .Lbreak%d\n", t);
         generate(node->body);
-        printf(" jmp .Lbegin%d\n", t);
-        printf(".Lend%d:\n", t);
+        printf(" jmp .Lcontinue%d\n", t);
+        printf(".Lbreak%d:\n", t);
+        loopTag = temp;
         return;
     } else if (node->kind == NODE_FOR) {
         int t = tag++;
+        int temp = loopTag;
+        loopTag = t;
         if (node->init) {
             generate(node->init);
         }
@@ -160,14 +172,16 @@ static void generate(Node* node)
             generate(node->cond);
             printf("  pop rax\n");
             printf("  cmp rax, 0\n");
-            printf("  je .Lend%d\n", t);
+            printf("  je .Lbreak%d\n", t);
         }
         generate(node->body);
+        printf(".Lcontinue%d:\n", t);
         for (Node* n = node->incs; n; n = n->next) {
             generate(n);
         }
         printf("  jmp .Lbegin%d\n", t);
-        printf(".Lend%d:\n", t);
+        printf(".Lbreak%d:\n", t);
+        loopTag = temp;
         return;
     } else if (node->kind == NODE_BLOCK) {
         for (Node* statement = node->statements;

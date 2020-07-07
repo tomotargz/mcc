@@ -108,6 +108,8 @@ typedef enum {
     NODE_IF,
     NODE_WHILE,
     NODE_FOR,
+    NODE_BREAK,
+    NODE_CONTINUE,
     NODE_BLOCK,
     NODE_RETURN,
     NODE_CALL,

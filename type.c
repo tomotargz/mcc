@@ -88,7 +88,10 @@ int alignOffset(int offset, int align)
     if (align <= 0) {
         error("invalid align");
     }
-    int diff = offset % align;
+    int diff = offset;
+    while(diff >= align){
+        diff = diff - align;
+    }
     if (diff) {
         return offset + align - diff;
     }

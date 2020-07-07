@@ -189,7 +189,8 @@ static char* consumeIdentifier()
 // arguments = "(" (expression ("," expression)*)? ")"
 static Node* arguments()
 {
-    Node dummy = {};
+    Node dummy;
+    dummy.next = NULL;
     Node* tail = &dummy;
     while (!consume(")")) {
         tail->next = expression();
@@ -211,7 +212,8 @@ static Node* expressionStatement()
 {
     Scope* currentScope = enterScope();
     Node* node = newNode(NODE_BLOCK, NULL, NULL);
-    Node dummy = {};
+    Node dummy;
+    dummy.next = NULL;
     Node* prev = NULL;
     Node* curr = &dummy;
     while (!consume("}")) {
@@ -765,7 +767,8 @@ static Node* statement()
     } else if (consume("{")) {
         Scope* currentScope = enterScope();
         node = newNode(NODE_BLOCK, NULL, NULL);
-        Node dummy = {};
+        Node dummy;
+        dummy.next = NULL;
         Node* tail = &dummy;
         while (!consume("}")) {
             tail->next = statement();
@@ -970,7 +973,8 @@ static Node* parameter()
 // parameters = parameter ("," parameter)*
 static void parameters(Function* f)
 {
-    Node head = {};
+    Node head;
+    head.next = NULL;
     Node* tail = &head;
     tail->next = parameter();
     tail = tail->next;

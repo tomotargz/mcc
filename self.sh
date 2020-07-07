@@ -46,6 +46,9 @@ EOF
     sed -i 's/\berrno\b/*__errno_location()/g' $TMP/$1
     sed -i 's/\btrue\b/1/g; s/\bfalse\b/0/g;' $TMP/$1
     sed -i 's/\bNULL\b/0/g' $TMP/$1
+    sed -i 's/\bSEEK_END\b/2/g' $TMP/$1
+    sed -i 's/\bSEEK_SET\b/0/g' $TMP/$1
+    sed -i 's/\bsize_t\b/int/g' $TMP/$1
     sed -i 's/INT_MAX/2147483647/g' $TMP/$1
 
     ./mcc $TMP/$1 > $TMP/${1%.c}.s

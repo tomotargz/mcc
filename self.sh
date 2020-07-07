@@ -64,4 +64,4 @@ compileWithMcc2 parse.c
 compileWithMcc2 tokenize.c
 compileWithMcc2 type.c
 
-gcc -static -o mcc2 $TMP/*.o
+# gcc -static -o mcc2 $TMP/*.o

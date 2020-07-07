@@ -264,7 +264,6 @@ static Node* primary()
             if (s) {
                 node->type = s->retType;
             } else {
-                info("implicit function declaration: %s", identifier);
                 node->type = intType();
             }
             return node;

@@ -525,8 +525,8 @@ static Node* equality()
     }
 }
 
-// and = equality ("&&" equality)*
-static Node* and ()
+// logicalAnd = equality ("&&" equality)*
+static Node* logicalAnd()
 {
     Node* node = equality();
     while (consume("&&")) {
@@ -535,21 +535,21 @@ static Node* and ()
     return node;
 }
 
-// or = and ("||" and)*
-static Node* or ()
+// logicalOr = logicalAnd ("||" logicalAnd)*
+static Node* logicalOr()
 {
-    Node* node = and();
+    Node* node = logicalAnd();
     while (consume("||")) {
-        node = newNode(NODE_OR, node, and());
+        node = newNode(NODE_OR, node, logicalAnd());
     }
     return node;
 }
 
-// assign = or (assignOp assign)?
+// assign = logicalOr (assignOp assign)?
 // assignOp = "=" | "+="
 static Node* assign()
 {
-    Node* node = or ();
+    Node* node = logicalOr();
     if (consume("=")) {
         node = newNode(NODE_ASSIGNMENT, node, assign());
     } else if (consume("+=")) {

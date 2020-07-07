@@ -252,6 +252,7 @@ static Node* primary()
         return newNodeNum(expectNumber());
     }
 
+    Token* tk = rp;
     char* identifier = consumeIdentifier();
     if (identifier) {
         // Function call
@@ -270,6 +271,9 @@ static Node* primary()
         }
         // Variable
         VariableScope* v = findVariable(identifier);
+        if (!v) {
+            errorAt(tk, "undeclared variable");
+        }
         if (v->variable) {
             return newNodeVariable(v->variable);
         }

@@ -1,46 +1,59 @@
 #include "mcc.h"
 
-static Type VOID_TYPE = { TYPE_VOID, 1, NULL, NULL, 0, NULL };
-static Type CHAR_TYPE = { TYPE_CHAR, 1, NULL, NULL, 0, NULL };
-static Type SHORT_TYPE = { TYPE_SHORT, 2, NULL, NULL, 0, NULL };
-static Type INT_TYPE = { TYPE_INT, 4, NULL, NULL, 0, NULL };
-static Type LONG_TYPE = { TYPE_LONG, 8, NULL, NULL, 0, NULL };
-static Type ENUM_TYPE = { TYPE_ENUM, 4, NULL, NULL, 0, NULL };
-static Type NO_TYPE = { TYPE_NO, 0, NULL, NULL, 0, NULL };
-
 Type* voidType()
 {
-    return &VOID_TYPE;
+    Type* t = calloc(1, sizeof(Type));
+    t->kind = TYPE_VOID;
+    t->align = 1;
+    return t;
 }
 
 Type* charType()
 {
-    return &CHAR_TYPE;
+    Type* t = calloc(1, sizeof(Type));
+    t->kind = TYPE_CHAR;
+    t->align = 1;
+    return t;
 }
 
 Type* shortType()
 {
-    return &SHORT_TYPE;
+    Type* t = calloc(1, sizeof(Type));
+    t->kind = TYPE_SHORT;
+    t->align = 2;
+    return t;
 }
 
 Type* intType()
 {
-    return &INT_TYPE;
+    Type* t = calloc(1, sizeof(Type));
+    t->kind = TYPE_INT;
+    t->align = 4;
+    return t;
 }
 
 Type* longType()
 {
-    return &LONG_TYPE;
+    Type* t = calloc(1, sizeof(Type));
+    t->kind = TYPE_LONG;
+    t->align = 8;
+    return t;
 }
 
 Type* enumType()
 {
-    return &ENUM_TYPE;
+    Type* t = calloc(1, sizeof(Type));
+    t->kind = TYPE_ENUM;
+    t->align = 4;
+    return t;
 }
 
 Type* noType()
 {
-    return &NO_TYPE;
+    Type* t = calloc(1, sizeof(Type));
+    t->kind = TYPE_NO;
+    t->align = 0;
+    return t;
 }
 
 Type* pointerTo(Type* type)
@@ -89,7 +102,7 @@ int alignOffset(int offset, int align)
         error("invalid align");
     }
     int diff = offset;
-    while(diff >= align){
+    while (diff >= align) {
         diff = diff - align;
     }
     if (diff) {

@@ -264,6 +264,8 @@ static Node* primary()
             VariableScope* s = findVariable(identifier);
             if (s) {
                 node->type = s->retType;
+            } else if (!strcmp(identifier, "__builtin_va_start")) {
+                node->type = voidType();
             } else {
                 node->type = intType();
             }
@@ -992,6 +994,9 @@ static void parameters(Function* f)
     while (consume(",")) {
         if (consume("...")) {
             f->isVariadic = true;
+            for (Node* n = head.next; n; n = n->next) {
+                n->offset +=56;
+            }
             break;
         }
         tail->next = parameter();

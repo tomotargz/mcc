@@ -191,6 +191,16 @@ static void generate(Node* node)
         }
         return;
     } else if (node->kind == NODE_CALL) {
+        if (!strcmp(node->name, "__builtin_va_start")) {
+            printf("  pop rax\n");
+            printf("  mov edi, dword ptr [rbp-8]\n");
+            printf("  mov dword ptr [rax], 0\n");
+            printf("  mov dword ptr [rax+4], 0\n");
+            printf("  mov qword ptr [rax+8], rdi\n");
+            printf("  mov qword ptr [rax+16], 0\n");
+            return;
+        }
+
         int t = tag++;
         int argNum = 0;
         for (Node* arg = node->args; arg; arg = arg->next) {
@@ -390,6 +400,21 @@ static void generateFunction(Function* function)
     printf("# prolugue\n");
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
+
+    // Save arg registers if function is variadic
+    if (function->isVariadic) {
+        int n = 0;
+        for (Node* p = function->params; p; p = p->next) {
+            n++;
+        }
+        printf("mov dword ptr [rbp-8], %d\n", n * 8);
+        printf("mov [rbp-16], r9\n");
+        printf("mov [rbp-24], r8\n");
+        printf("mov [rbp-32], rcx\n");
+        printf("mov [rbp-40], rdx\n");
+        printf("mov [rbp-48], rsi\n");
+        printf("mov [rbp-56], rdi\n");
+    }
 
     // copy params to stack
     printf("# push params to stack\n");

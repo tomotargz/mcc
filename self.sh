@@ -53,6 +53,7 @@ EOF
 
     ./mcc $TMP/$1 > $TMP/${1%.c}.s
     gcc -c -o $TMP/${1%.c}.o $TMP/${1%.c}.s
+    echo $1 compiled
 }
 
 for i in ./*.c; do
@@ -67,4 +68,5 @@ compileWithMcc2 parse.c
 compileWithMcc2 tokenize.c
 compileWithMcc2 type.c
 
-# gcc -static -o mcc2 $TMP/*.o
+gcc -static -o mcc2 $TMP/*.o
+echo mcc2 generated

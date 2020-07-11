@@ -72,6 +72,9 @@ static int staticFunc(int param)
 typedef int gmyint1;
 typedef int gmyint2;
 
+int sum1(int a, ...);
+int sum2(int a, int b, ...);
+
 int main()
 {
     {
@@ -306,6 +309,9 @@ int main()
     voidFunc();
 
     gmyint1 gmyint = 1;
+
+    assertEq(10, ({ sum1(1, 2, 3, 4, 0); }), " sum1(1, 2, 3, 4, 0); ");
+    assertEq(10, ({ sum2(1, 2, 3, 4, 0); }), " sum2(1, 2, 3, 4, 0); ");
 
     printf("OK\n");
     return 0;

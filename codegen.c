@@ -492,6 +492,7 @@ static bool initializeGlobalVariable(Variable* v)
 
 static void generateGlobalVariable(Variable* variable)
 {
+    printf(".align %d\n", variable->type->align);
     printf("%s:\n", variable->name);
 
     if (variable->string) {

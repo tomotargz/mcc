@@ -11,8 +11,7 @@ static void generateAddress(Node* node)
 {
     if (node->kind == NODE_LOCAL_VARIABLE
         || node->kind == NODE_MEMBER) {
-        printf("  mov rax, rbp\n");
-        printf("  sub rax, %d\n", node->offset);
+        printf("  lea rax, [rbp-%d]\n", node->offset);
         printf("  push rax\n");
         return;
     }

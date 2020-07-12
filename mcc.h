@@ -135,7 +135,7 @@ struct Node {
     Node* rhs;
     int val;
     Type* type;
-    int offset;
+    Variable* var;
 
     // if(cond)then;else els;
     // while(cond)body;
@@ -192,7 +192,6 @@ struct Function {
     Node* params;
     Node* statements;
     VariableList* localVariables;
-    int stackSize;
     bool isStatic;
     bool isVariadic;
 };

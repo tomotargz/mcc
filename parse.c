@@ -981,12 +981,11 @@ static Type* basetype(StorageClass* sc)
 // parameter = basetype declarator typeSuffix
 static Node* parameter()
 {
-    Type* type = basetype(NULL);
-    char* name = NULL;
-    type = declarator(type, &name);
-    Variable* localVariable = declareLocalVariable(type, name);
     Node* node = newNode(NODE_NULL, NULL, NULL);
-    node->type = type;
+    node->type = basetype(NULL);
+    char* name = NULL;
+    node->type = declarator(node->type, &name);
+    node->var = declareLocalVariable(node->type, name);
     return node;
 }
 
@@ -1001,9 +1000,6 @@ static void parameters(Function* f)
     while (consume(",")) {
         if (consume("...")) {
             f->isVariadic = true;
-            for (Node* n = head.next; n; n = n->next) {
-                n->offset += 56;
-            }
             break;
         }
         tail->next = parameter();
@@ -1044,12 +1040,12 @@ static Function* function()
         tail = tail->next;
     }
     func->statements = head.next;
-    func->localVariables = localVariables;
-    if (localVariables) {
-        func->stackSize = localVariables->variable->offset;
-    } else {
-        func->stackSize = 0;
+    if (func->isVariadic) {
+        for (VariableList* v = localVariables; v; v = v->next) {
+            v->variable->offset += 56;
+        }
     }
+    func->localVariables = localVariables;
     addType(func->statements);
     exitScope(currentScope);
     return func;

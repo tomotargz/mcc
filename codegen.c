@@ -9,9 +9,14 @@ static void generate(Node* node);
 // push the local variable's address to the stack
 static void generateAddress(Node* node)
 {
-    if (node->kind == NODE_LOCAL_VARIABLE
-        || node->kind == NODE_MEMBER) {
-        printf("  lea rax, [rbp-%d]\n", node->offset);
+    if (node->kind == NODE_LOCAL_VARIABLE) {
+        printf("  lea rax, [rbp-%d]\n", node->var->offset);
+        printf("  push rax\n");
+        return;
+    }
+
+    if (node->kind == NODE_MEMBER) {
+        printf("  lea rax, [rbp-%d]\n", node->member->offset);
         printf("  push rax\n");
         return;
     }
@@ -400,6 +405,11 @@ static void generateFunction(Function* function)
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
 
+    // Extend stack for local variables
+    if (function->localVariables) {
+        printf("  sub rsp, %d\n", function->localVariables->variable->offset);
+    }
+
     // Save arg registers if function is variadic
     if (function->isVariadic) {
         int n = 0;
@@ -419,17 +429,9 @@ static void generateFunction(Function* function)
     printf("# push params to stack\n");
     Node* param = function->params;
     int i = 0;
-    int totalParamSize = 0;
     for (; param; param = param->next, ++i) {
-        int paramSize = size(param->type);
-        totalParamSize += paramSize;
-        printf("  sub rsp, %d\n", paramSize);
-        printf("  mov [rsp], %s\n", parameterRegister(size(param->type), i));
+        printf("  mov [rbp-%d], %s\n", param->var->offset, parameterRegister(size(param->type), i));
     }
-
-    // extend stack for local variable
-    printf("# extend stack for local variables\n");
-    printf("  sub rsp, %d\n", function->stackSize - totalParamSize);
 
     // generate body
     printf("# generate body\n");

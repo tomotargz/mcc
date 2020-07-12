@@ -25,8 +25,8 @@ Node* newNodeVariable(Variable* variable)
     } else {
         node->kind = NODE_LOCAL_VARIABLE;
     }
+    node->var = variable;
     node->name = variable->name;
-    node->offset = variable->offset;
     node->type = variable->type;
     return node;
 }

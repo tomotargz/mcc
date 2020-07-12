@@ -30,6 +30,7 @@ typedef struct Scope {
 typedef struct StorageClass {
     bool isStatic;
     bool isTypedef;
+    bool isExtern;
 } StorageClass;
 
 static VariableScope* variableScope;
@@ -48,7 +49,7 @@ static Node* expression();
 static Type* basetype(StorageClass* sc);
 static Node* newAdd(Node* lhs, Node* rhs);
 static Node* newSub(Node* lhs, Node* rhs);
-static Variable* declareGlobalVariable(Type* type, char* name);
+static Variable* declareGlobalVariable(Type* type, char* name, bool emit);
 static Node* statement();
 static bool isTypeName();
 static Type* declarator(Type* t, char** name);
@@ -287,7 +288,7 @@ static Node* primary()
     if (str) {
         char* label = stringLabel();
         Type* type = arrayOf(charType(), strlen(rp->str));
-        Variable* v = declareGlobalVariable(type, label);
+        Variable* v = declareGlobalVariable(type, label, true);
         v->string = str;
         return newNodeVariable(v);
     }
@@ -929,6 +930,7 @@ static Type* basetype(StorageClass* sc)
     if (sc) {
         sc->isStatic = false;
         sc->isTypedef = false;
+        sc->isExtern = false;
     }
 
     if (consume("typedef")) {
@@ -945,7 +947,12 @@ static Type* basetype(StorageClass* sc)
         sc->isStatic = true;
     }
 
-    consume("extern");
+    if (consume("extern")) {
+        if (!sc) {
+            errorAt(rp, "extern is not allowed here");
+        }
+        sc->isExtern = true;
+    }
 
     if (consume("void")) {
         return voidType();
@@ -995,7 +1002,7 @@ static void parameters(Function* f)
         if (consume("...")) {
             f->isVariadic = true;
             for (Node* n = head.next; n; n = n->next) {
-                n->offset +=56;
+                n->offset += 56;
             }
             break;
         }
@@ -1048,16 +1055,18 @@ static Function* function()
     return func;
 }
 
-static Variable* declareGlobalVariable(Type* type, char* name)
+static Variable* declareGlobalVariable(Type* type, char* name, bool emit)
 {
     Variable* v = calloc(1, sizeof(Variable));
     v->name = name;
     v->type = type;
     v->isGlobal = true;
-    VariableList* l = calloc(1, sizeof(VariableList));
-    l->variable = v;
-    l->next = globalVariables;
-    globalVariables = l;
+    if (emit) {
+        VariableList* l = calloc(1, sizeof(VariableList));
+        l->variable = v;
+        l->next = globalVariables;
+        globalVariables = l;
+    }
     addVarToVarScope(v);
     return v;
 }
@@ -1072,7 +1081,7 @@ static void globalVariableInitializer(Variable* v)
             && v->type->pointerTo->kind == TYPE_CHAR) {
             char* label = stringLabel();
             Type* type = arrayOf(charType(), strlen(str) + 1);
-            declareGlobalVariable(type, label);
+            declareGlobalVariable(type, label, true);
             globalVariables->variable->string = str;
             v->initialValue->label = label;
             return;
@@ -1159,7 +1168,7 @@ static void globalVariable()
         tdef->next = typedefScope;
         typedefScope = tdef;
     } else {
-        Variable* v = declareGlobalVariable(t, name);
+        Variable* v = declareGlobalVariable(t, name, !sc.isExtern);
         if (consume("=")) {
             globalVariableInitializer(v);
         }

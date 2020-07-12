@@ -43,6 +43,8 @@ struct gs {
 static int sg1;
 static int sg = 3;
 
+extern int externVar;
+
 int* returnPointer()
 {
     return &g2;
@@ -312,6 +314,7 @@ int main()
 
     assertEq(10, ({ sum1(1, 2, 3, 4, 0); }), " sum1(1, 2, 3, 4, 0); ");
     assertEq(10, ({ sum2(1, 2, 3, 4, 0); }), " sum2(1, 2, 3, 4, 0); ");
+    assertEq(3, ({ externVar; }), "externVar;");
 
     printf("OK\n");
     return 0;

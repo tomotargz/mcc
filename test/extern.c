@@ -27,3 +27,5 @@ int sum2(int a, int b, ...)
         sum += n;
     }
 }
+
+int externVar = 3;

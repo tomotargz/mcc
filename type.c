@@ -60,7 +60,7 @@ Type* pointerTo(Type* type)
 {
     Type* pointer = calloc(1, sizeof(Type));
     pointer->kind = TYPE_POINTER;
-    pointer->align = 4;
+    pointer->align = 8;
     pointer->pointerTo = type;
     return pointer;
 }

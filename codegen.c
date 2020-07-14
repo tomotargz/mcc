@@ -401,7 +401,6 @@ static void generateFunction(Function* function)
     printf("%s:\n", function->name);
 
     // prologue
-    printf("# prolugue\n");
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
 
@@ -426,7 +425,6 @@ static void generateFunction(Function* function)
     }
 
     // copy params to stack
-    printf("# push params to stack\n");
     Node* param = function->params;
     int i = 0;
     for (; param; param = param->next, ++i) {
@@ -434,7 +432,6 @@ static void generateFunction(Function* function)
     }
 
     // generate body
-    printf("# generate body\n");
     for (Node* statement = function->statements;
          statement;
          statement = statement->next) {
@@ -442,7 +439,6 @@ static void generateFunction(Function* function)
     }
 
     // epilogue
-    printf("# epilogue\n");
     printf(".L.return.%s:\n", function->name);
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");

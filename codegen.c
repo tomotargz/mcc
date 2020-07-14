@@ -128,63 +128,63 @@ static void generate(Node* node)
         printf("  jmp .L.return.%s\n", functionName);
         return;
     } else if (node->kind == NODE_BREAK) {
-        printf("  jmp .Lbreak%d\n", loopTag);
+        printf("  jmp .L.break.%d\n", loopTag);
         return;
     } else if (node->kind == NODE_CONTINUE) {
-        printf("  jmp .Lcontinue%d\n", loopTag);
+        printf("  jmp .L.continue.%d\n", loopTag);
         return;
     } else if (node->kind == NODE_IF) {
-        int t = tag++;
+        int t = ++tag;
         generate(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
         if (node->els) {
-            printf("  je .Lelse%d\n", t);
+            printf("  je .L.else.%d\n", t);
             generate(node->then);
-            printf("  jmp .Lend%d\n", t);
-            printf(".Lelse%d:\n", t);
+            printf("  jmp .L.end.%d\n", t);
+            printf(".L.else.%d:\n", t);
             generate(node->els);
         } else {
-            printf("  je .Lend%d\n", t);
+            printf("  je .L.end.%d\n", t);
             generate(node->then);
         }
-        printf(".Lend%d:\n", t);
+        printf(".L.end.%d:\n", t);
         return;
     } else if (node->kind == NODE_WHILE) {
-        int t = tag++;
+        int t = ++tag;
         int temp = loopTag;
         loopTag = t;
-        printf(".Lcontinue%d:\n", t);
+        printf(".L.continue.%d:\n", t);
         generate(node->cond);
         printf("  pop rax\n");
         printf("  cmp rax, 0\n");
-        printf("  je .Lbreak%d\n", t);
+        printf("  je .L.break.%d\n", t);
         generate(node->body);
-        printf(" jmp .Lcontinue%d\n", t);
-        printf(".Lbreak%d:\n", t);
+        printf(" jmp .L.continue.%d\n", t);
+        printf(".L.break.%d:\n", t);
         loopTag = temp;
         return;
     } else if (node->kind == NODE_FOR) {
-        int t = tag++;
+        int t = ++tag;
         int temp = loopTag;
         loopTag = t;
         if (node->init) {
             generate(node->init);
         }
-        printf(".Lbegin%d:\n", t);
+        printf(".L.begin.%d:\n", t);
         if (node->cond) {
             generate(node->cond);
             printf("  pop rax\n");
             printf("  cmp rax, 0\n");
-            printf("  je .Lbreak%d\n", t);
+            printf("  je .L.break.%d\n", t);
         }
         generate(node->body);
-        printf(".Lcontinue%d:\n", t);
+        printf(".L.continue.%d:\n", t);
         for (Node* n = node->incs; n; n = n->next) {
             generate(n);
         }
-        printf("  jmp .Lbegin%d\n", t);
-        printf(".Lbreak%d:\n", t);
+        printf("  jmp .L.begin.%d\n", t);
+        printf(".L.break.%d:\n", t);
         loopTag = temp;
         return;
     } else if (node->kind == NODE_BLOCK) {
@@ -205,7 +205,7 @@ static void generate(Node* node)
             return;
         }
 
-        int t = tag++;
+        int t = ++tag;
         int argNum = 0;
         for (Node* arg = node->args; arg; arg = arg->next) {
             generate(arg);
@@ -223,16 +223,16 @@ static void generate(Node* node)
         // 16byte align
         printf("  mov rax, rsp\n");
         printf("  and rax, 15\n");
-        printf("  jnz .Lalign%d\n", t);
+        printf("  jnz .L.call.%d\n", t);
         printf("  mov rax, 0\n");
         printf("  call %s\n", node->name);
-        printf("  jmp .Lend%d\n", t);
-        printf(".Lalign%d:\n", t);
+        printf("  jmp .L.end.%d\n", t);
+        printf(".L.call.%d:\n", t);
         printf("  sub rsp, 8\n");
         printf("  mov rax, 0\n");
         printf("  call %s\n", node->name);
         printf("  add rsp, 8\n");
-        printf(".Lend%d:\n", t);
+        printf(".L.end.%d:\n", t);
         printf("  push rax\n");
         return;
     } else if (node->kind == NODE_ADDR) {
@@ -338,28 +338,28 @@ static void generate(Node* node)
         printf("  setle al\n");
         printf("  movzb rax, al\n");
     } else if (node->kind == NODE_AND) {
-        int t = tag++;
+        int t = ++tag;
         printf("  cmp rax, 0\n");
-        printf("  je .Lfalse%d\n", t);
+        printf("  je .L.false.%d\n", t);
         printf("  cmp rdi, 0\n");
-        printf("  je .Lfalse%d\n", t);
+        printf("  je .L.false.%d\n", t);
         printf("  push 1\n");
-        printf("  jmp .Lend%d\n", t);
-        printf(".Lfalse%d:\n", t);
+        printf("  jmp .L.end.%d\n", t);
+        printf(".L.false.%d:\n", t);
         printf("  push 0\n");
-        printf(".Lend%d:\n", t);
+        printf(".L.end.%d:\n", t);
         return;
     } else if (node->kind == NODE_OR) {
-        int t = tag++;
+        int t = ++tag;
         printf("  cmp rax, 1\n");
-        printf("  je .Ltrue%d\n", t);
+        printf("  je .L.true.%d\n", t);
         printf("  cmp rdi, 1\n");
-        printf("  je .Ltrue%d\n", t);
+        printf("  je .L.true.%d\n", t);
         printf("  push 0\n");
-        printf("  jmp .Lend%d\n", t);
-        printf(".Ltrue%d:\n", t);
+        printf("  jmp .L.end.%d\n", t);
+        printf(".L.true.%d:\n", t);
         printf("  push 1\n");
-        printf(".Lend%d:\n", t);
+        printf(".L.end.%d:\n", t);
         return;
     }
 

@@ -205,7 +205,7 @@ static char* stringLabel()
 {
     static int tag = 0;
     char* label = calloc(20, sizeof(char));
-    sprintf(label, "str.literal.%d", tag++);
+    sprintf(label, ".L.data.%d", tag++);
     return label;
 }
 

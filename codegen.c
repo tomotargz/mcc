@@ -61,7 +61,7 @@ static void load(Type* type)
     } else if (byte == 2) {
         printf("  movsx rax, word ptr [rax]\n");
     } else if (byte == 4) {
-        printf("  movsx rax, dword ptr [rax]\n");
+        printf("  movsxd rax, dword ptr [rax]\n");
     } else if (byte == 8) {
         printf("  mov rax, [rax]\n");
     }

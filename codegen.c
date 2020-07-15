@@ -16,7 +16,9 @@ static void generateAddress(Node* node)
     }
 
     if (node->kind == NODE_MEMBER) {
-        printf("  lea rax, [rbp-%d]\n", node->member->offset);
+        generateAddress(node->lhs);
+        printf("  pop rax\n");
+        printf("  add rax, %d\n", node->member->offset);
         printf("  push rax\n");
         return;
     }

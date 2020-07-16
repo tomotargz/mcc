@@ -21,7 +21,7 @@ static Token* append(Token* tail, Token* token)
 
 static char* startsWithReserved(char* str)
 {
-    static char* KEYWORD[] = {
+    char* KEYWORD[] = {
         "return", "if", "else", "while", "for", "break", "continue",
         "void", "char", "short", "int", "long", "struct", "enum",
         "typedef", "extern", "static", "sizeof"
@@ -35,7 +35,7 @@ static char* startsWithReserved(char* str)
         }
     }
 
-    static char* PUNCTUATION[] = {
+    char* PUNCTUATION[] = {
         "...",
         "==", "!=", "<=", ">=", "->", "<", ">",
         "++", "--", "+=",

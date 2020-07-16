@@ -90,7 +90,7 @@ int size(Type* type)
     } else if (type->kind == TYPE_ARRAY) {
         return size(type->arrayOf) * type->arraySize;
     } else if (type->kind == TYPE_STRUCT) {
-        return alignOffset(type->members->offset, type->align);
+        return alignOffset(type->members->offset + size(type->members->type), type->align);
     }
     error("invalid type");
     return 0;

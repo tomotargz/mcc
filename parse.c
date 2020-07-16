@@ -818,12 +818,15 @@ static Type* structMembers()
     Type* type = calloc(1, sizeof(Type));
     type->kind = TYPE_STRUCT;
     int align = 0;
+    int offset = 0;
     while (!peek("}")) {
         Member* m = structMember();
         if (type->members) {
-            m->offset = alignOffset(type->members->offset, m->type->align) + size(m->type);
+            m->offset = alignOffset(offset, m->type->align);
+            offset = m->offset + size(m->type);
         } else {
-            m->offset = size(m->type);
+            m->offset = 0;
+            offset = size(m->type);
         }
         m->next = type->members;
         type->members = m;

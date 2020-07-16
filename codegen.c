@@ -350,10 +350,10 @@ static void generate(Node* node)
         return;
     } else if (node->kind == NODE_OR) {
         int t = ++tag;
-        printf("  cmp rax, 1\n");
-        printf("  je .L.true.%d\n", t);
-        printf("  cmp rdi, 1\n");
-        printf("  je .L.true.%d\n", t);
+        printf("  cmp rax, 0\n");
+        printf("  jne .L.true.%d\n", t);
+        printf("  cmp rdi, 0\n");
+        printf("  jne .L.true.%d\n", t);
         printf("  push 0\n");
         printf("  jmp .L.end.%d\n", t);
         printf(".L.true.%d:\n", t);

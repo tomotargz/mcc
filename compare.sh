@@ -9,6 +9,8 @@ FILE=$1
 TMP=tmp-compare
 mkdir -p $TMP
 ./preproc.sh $FILE $TMP
+make mcc
+make chibicc
 ./mcc $TMP/$FILE > $TMP/$FILE.mcc
 ./chibicc/chibicc $TMP/$FILE > $TMP/$FILE.chibicc
 diff -u $TMP/$FILE.mcc $TMP/$FILE.chibicc > $TMP/$FILE.diff || true

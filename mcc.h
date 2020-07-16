@@ -192,6 +192,7 @@ struct Function {
     Node* params;
     Node* statements;
     VariableList* localVariables;
+    int stackSize;
     bool isStatic;
     bool isVariadic;
 };

@@ -573,13 +573,6 @@ static Variable* declareLocalVariable(Type* type, char* name)
     v->name = name;
     v->type = type;
     v->isGlobal = false;
-    if (localVariables) {
-        int aligned
-            = alignOffset(localVariables->variable->offset, type->align);
-        v->offset = aligned + size(type);
-    } else {
-        v->offset = size(type);
-    }
     VariableList* l = calloc(1, sizeof(VariableList));
     l->variable = v;
     l->next = localVariables;
@@ -1043,12 +1036,21 @@ static Function* function()
         tail = tail->next;
     }
     func->statements = head.next;
+
+    int offset = 0;
     if (func->isVariadic) {
-        for (VariableList* v = localVariables; v; v = v->next) {
-            v->variable->offset += 56;
-        }
+        offset = 56;
     }
+
+    for (VariableList* v = localVariables; v; v = v->next) {
+        v->variable->offset
+            = alignOffset(offset, v->variable->type->align)
+            + size(v->variable->type);
+        offset = v->variable->offset;
+    }
+
     func->localVariables = localVariables;
+    func->stackSize = alignOffset(offset, 8);
     addType(func->statements);
     exitScope(currentScope);
     return func;

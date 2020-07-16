@@ -404,8 +404,8 @@ static void generateFunction(Function* function)
     printf("  mov rbp, rsp\n");
 
     // Extend stack for local variables
-    if (function->localVariables) {
-        printf("  sub rsp, %d\n", function->localVariables->variable->offset);
+    if (function->stackSize) {
+        printf("  sub rsp, %d\n", function->stackSize);
     }
 
     // Save arg registers if function is variadic

@@ -162,7 +162,7 @@ static void generate(Node* node)
         printf("  cmp rax, 0\n");
         printf("  je .L.break.%d\n", t);
         generate(node->body);
-        printf(" jmp .L.continue.%d\n", t);
+        printf("  jmp .L.continue.%d\n", t);
         printf(".L.break.%d:\n", t);
         loopTag = temp;
         return;

@@ -100,41 +100,32 @@ static void decrement(Type* type)
 static void generate(Node* node)
 {
     if (node->kind == NODE_NULL) {
-        return;
     } else if (node->kind == NODE_STATEMENT_EXPRESSION) {
         generate(node->lhs);
         printf("  add rsp, 8\n");
-        return;
     } else if (node->kind == NODE_NUMBER) {
         printf("  push %d\n", node->val);
-        return;
     } else if (node->kind == NODE_LOCAL_VARIABLE
         || node->kind == NODE_GLOBAL_VARIABLE
         || node->kind == NODE_MEMBER) {
         generateAddress(node);
-        if (node->type->kind == TYPE_ARRAY) {
-            return;
+        if (node->type->kind != TYPE_ARRAY) {
+            load(node->type);
         }
-        load(node->type);
-        return;
     } else if (node->kind == NODE_ASSIGNMENT) {
         generateAddress(node->lhs);
         generate(node->rhs);
         store(node->type);
-        return;
     } else if (node->kind == NODE_RETURN) {
         if (node->lhs) {
             generate(node->lhs);
             printf("  pop rax\n");
         }
         printf("  jmp .L.return.%s\n", functionName);
-        return;
     } else if (node->kind == NODE_BREAK) {
         printf("  jmp .L.break.%d\n", loopTag);
-        return;
     } else if (node->kind == NODE_CONTINUE) {
         printf("  jmp .L.continue.%d\n", loopTag);
-        return;
     } else if (node->kind == NODE_IF) {
         int t = ++tag;
         generate(node->cond);
@@ -151,7 +142,6 @@ static void generate(Node* node)
             generate(node->then);
         }
         printf(".L.end.%d:\n", t);
-        return;
     } else if (node->kind == NODE_WHILE) {
         int t = ++tag;
         int temp = loopTag;
@@ -165,7 +155,6 @@ static void generate(Node* node)
         printf("  jmp .L.continue.%d\n", t);
         printf(".L.break.%d:\n", t);
         loopTag = temp;
-        return;
     } else if (node->kind == NODE_FOR) {
         int t = ++tag;
         int temp = loopTag;
@@ -188,14 +177,12 @@ static void generate(Node* node)
         printf("  jmp .L.begin.%d\n", t);
         printf(".L.break.%d:\n", t);
         loopTag = temp;
-        return;
     } else if (node->kind == NODE_BLOCK) {
         for (Node* statement = node->statements;
              statement;
              statement = statement->next) {
             generate(statement);
         }
-        return;
     } else if (node->kind == NODE_CALL) {
         if (!strcmp(node->name, "__builtin_va_start")) {
             printf("  pop rax\n");
@@ -204,50 +191,45 @@ static void generate(Node* node)
             printf("  mov dword ptr [rax+4], 0\n");
             printf("  mov qword ptr [rax+8], rdi\n");
             printf("  mov qword ptr [rax+16], 0\n");
-            return;
+        } else {
+            int t = ++tag;
+            int argNum = 0;
+            for (Node* arg = node->args; arg; arg = arg->next) {
+                generate(arg);
+                ++argNum;
+            }
+            char* ARG_REG[] = {
+                "rdi", "rsi", "rdx", "rcx", "r8", "r9"
+            };
+            for (int i = argNum; i > 0; --i) {
+                printf("  pop %s\n", ARG_REG[i - 1]);
+            }
+            // 16byte align
+            printf("  mov rax, rsp\n");
+            printf("  and rax, 15\n");
+            printf("  jnz .L.call.%d\n", t);
+            printf("  mov rax, 0\n");
+            printf("  call %s\n", node->name);
+            printf("  jmp .L.end.%d\n", t);
+            printf(".L.call.%d:\n", t);
+            printf("  sub rsp, 8\n");
+            printf("  mov rax, 0\n");
+            printf("  call %s\n", node->name);
+            printf("  add rsp, 8\n");
+            printf(".L.end.%d:\n", t);
+            printf("  push rax\n");
         }
-
-        int t = ++tag;
-        int argNum = 0;
-        for (Node* arg = node->args; arg; arg = arg->next) {
-            generate(arg);
-            ++argNum;
-        }
-        char* ARG_REG[] = {
-            "rdi", "rsi", "rdx", "rcx", "r8", "r9"
-        };
-        for (int i = argNum; i > 0; --i) {
-            printf("  pop %s\n", ARG_REG[i - 1]);
-        }
-        // 16byte align
-        printf("  mov rax, rsp\n");
-        printf("  and rax, 15\n");
-        printf("  jnz .L.call.%d\n", t);
-        printf("  mov rax, 0\n");
-        printf("  call %s\n", node->name);
-        printf("  jmp .L.end.%d\n", t);
-        printf(".L.call.%d:\n", t);
-        printf("  sub rsp, 8\n");
-        printf("  mov rax, 0\n");
-        printf("  call %s\n", node->name);
-        printf("  add rsp, 8\n");
-        printf(".L.end.%d:\n", t);
-        printf("  push rax\n");
-        return;
     } else if (node->kind == NODE_ADDR) {
         generateAddress(node->lhs);
-        return;
     } else if (node->kind == NODE_DEREF) {
         generate(node->lhs);
         load(node->type);
-        return;
     } else if (node->kind == NODE_PRE_INCREMENT) {
         generateAddress(node->lhs);
         printf("  push [rsp]\n");
         load(node->type);
         increment(node->type);
         store(node->type);
-        return;
     } else if (node->kind == NODE_POST_INCREMENT) {
         generateAddress(node->lhs);
         printf("  push [rsp]\n");
@@ -255,14 +237,12 @@ static void generate(Node* node)
         increment(node->type);
         store(node->type);
         decrement(node->type);
-        return;
     } else if (node->kind == NODE_PRE_DECREMENT) {
         generateAddress(node->lhs);
         printf("  push [rsp]\n");
         load(node->type);
         decrement(node->type);
         store(node->type);
-        return;
     } else if (node->kind == NODE_POST_DECREMENT) {
         generateAddress(node->lhs);
         printf("  push [rsp]\n");
@@ -270,7 +250,6 @@ static void generate(Node* node)
         decrement(node->type);
         store(node->type);
         increment(node->type);
-        return;
     } else if (node->kind == NODE_NOT) {
         generate(node->lhs);
         printf("  pop rax\n");
@@ -278,7 +257,6 @@ static void generate(Node* node)
         printf("  sete al\n");
         printf("  movzb rax, al\n");
         printf("  push rax\n");
-        return;
     } else if (node->kind == NODE_ADD_EQ) {
         generateAddress(node->lhs);
         generate(node->lhs);
@@ -288,55 +266,100 @@ static void generate(Node* node)
         printf("  add rax, rdi\n");
         printf("  push rax\n");
         store(node->type);
-        return;
-    }
-
-    generate(node->lhs);
-    generate(node->rhs);
-
-    printf("  pop rdi\n");
-    printf("  pop rax\n");
-
-    if (node->kind == NODE_ADDITION) {
+    } else if (node->kind == NODE_ADDITION) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
         printf("  add rax, rdi\n");
+        printf("  push rax\n");
     } else if (node->kind == NODE_SUBTRACTION) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
         printf("  sub rax, rdi\n");
+        printf("  push rax\n");
     } else if (node->kind == NODE_POINTER_ADDITION) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
         if (node->type->kind == TYPE_ARRAY) {
             printf("  imul rdi, %d\n", size(node->type->arrayOf));
         } else {
             printf("  imul rdi, %d\n", size(node->type->pointerTo));
         }
         printf("  add rax, rdi\n");
+        printf("  push rax\n");
     } else if (node->kind == NODE_POINTER_SUBTRACTION) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
         if (node->type->kind == TYPE_ARRAY) {
             printf("  imul rdi, %d\n", size(node->type->arrayOf));
         } else {
             printf("  imul rdi, %d\n", size(node->type->pointerTo));
         }
         printf("  sub rax, rdi\n");
+        printf("  push rax\n");
     } else if (node->kind == NODE_MULTIPLICATION) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
         printf("  imul rax, rdi\n");
+        printf("  push rax\n");
     } else if (node->kind == NODE_DIVISION) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
         printf("  cqo\n");
         printf("  idiv rdi\n");
+        printf("  push rax\n");
     } else if (node->kind == NODE_EQUAL) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
         printf("  cmp rax, rdi\n");
         printf("  sete al\n");
         printf("  movzb rax, al\n");
+        printf("  push rax\n");
     } else if (node->kind == NODE_NOT_EQUAL) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
         printf("  cmp rax, rdi\n");
         printf("  setne al\n");
         printf("  movzb rax, al\n");
+        printf("  push rax\n");
     } else if (node->kind == NODE_LESS_THAN) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
         printf("  cmp rax, rdi\n");
         printf("  setl al\n");
         printf("  movzb rax, al\n");
+        printf("  push rax\n");
     } else if (node->kind == NODE_LESS_OR_EQUAL) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
         printf("  cmp rax, rdi\n");
         printf("  setle al\n");
         printf("  movzb rax, al\n");
+        printf("  push rax\n");
     } else if (node->kind == NODE_AND) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
         int t = ++tag;
         printf("  cmp rax, 0\n");
         printf("  je .L.false.%d\n", t);
@@ -347,8 +370,11 @@ static void generate(Node* node)
         printf(".L.false.%d:\n", t);
         printf("  push 0\n");
         printf(".L.end.%d:\n", t);
-        return;
     } else if (node->kind == NODE_OR) {
+        generate(node->lhs);
+        generate(node->rhs);
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
         int t = ++tag;
         printf("  cmp rax, 0\n");
         printf("  jne .L.true.%d\n", t);
@@ -359,10 +385,7 @@ static void generate(Node* node)
         printf(".L.true.%d:\n", t);
         printf("  push 1\n");
         printf(".L.end.%d:\n", t);
-        return;
     }
-
-    printf("  push rax\n");
 }
 
 static char* parameterRegister(int size, int index)

@@ -356,14 +356,14 @@ static void generate(Node* node)
         printf("  movzb rax, al\n");
         printf("  push rax\n");
     } else if (node->kind == NODE_AND) {
-        generate(node->lhs);
-        generate(node->rhs);
-        printf("  pop rdi\n");
-        printf("  pop rax\n");
         int t = ++tag;
+        generate(node->lhs);
+        printf("  pop rax\n");
         printf("  cmp rax, 0\n");
         printf("  je .L.false.%d\n", t);
-        printf("  cmp rdi, 0\n");
+        generate(node->rhs);
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
         printf("  je .L.false.%d\n", t);
         printf("  push 1\n");
         printf("  jmp .L.end.%d\n", t);
@@ -371,14 +371,14 @@ static void generate(Node* node)
         printf("  push 0\n");
         printf(".L.end.%d:\n", t);
     } else if (node->kind == NODE_OR) {
-        generate(node->lhs);
-        generate(node->rhs);
-        printf("  pop rdi\n");
-        printf("  pop rax\n");
         int t = ++tag;
+        generate(node->lhs);
+        printf("  pop rax\n");
         printf("  cmp rax, 0\n");
         printf("  jne .L.true.%d\n", t);
-        printf("  cmp rdi, 0\n");
+        generate(node->rhs);
+        printf("  pop rax\n");
+        printf("  cmp rax, 0\n");
         printf("  jne .L.true.%d\n", t);
         printf("  push 0\n");
         printf("  jmp .L.end.%d\n", t);

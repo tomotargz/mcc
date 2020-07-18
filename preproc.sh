@@ -47,7 +47,9 @@ grep -v '^#' mcc.h >> $dir/$src
 grep -v '^#' $1 >> $dir/$src
 sed -i 's/\bbool\b/int/g' $dir/$src
 sed -i 's/\berrno\b/*__errno_location()/g' $dir/$src
+sed -i 's/\.true\./\.TRUE\./g; s/\.false\./\.FALSE\./g;' $dir/$src
 sed -i 's/\btrue\b/1/g; s/\bfalse\b/0/g;' $dir/$src
+sed -i 's/\.TRUE\./\.true\./g; s/\.FALSE\./\.false\./g;' $dir/$src
 sed -i 's/\bNULL\b/0/g' $dir/$src
 sed -i 's/\bSEEK_END\b/2/g' $dir/$src
 sed -i 's/\bSEEK_SET\b/0/g' $dir/$src

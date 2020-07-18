@@ -45,6 +45,8 @@ static Token* rp = NULL;
 static VariableList* globalVariables;
 static VariableList* localVariables;
 
+static int strLabelSeq = 0;
+
 static Node* expression();
 static Type* basetype(StorageClass* sc);
 static Node* newAdd(Node* lhs, Node* rhs);
@@ -203,9 +205,8 @@ static Node* arguments()
 
 static char* stringLabel()
 {
-    static int tag = 0;
     char* label = calloc(20, sizeof(char));
-    sprintf(label, ".L.data.%d", tag++);
+    sprintf(label, ".L.data.%d", strLabelSeq++);
     return label;
 }
 

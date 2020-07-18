@@ -29,4 +29,4 @@ chibicc:
 clean:
 	rm -rf mcc mcc2 *.o *~ tmp*
 
-.PHONY: test clean chibicc
+.PHONY: test test2 clean chibicc

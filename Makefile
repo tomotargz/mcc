@@ -23,10 +23,7 @@ test2: mcc2 extern.o
 	gcc -static -o tmp tmp.s extern.o
 	./tmp
 
-chibicc:
-	./chibicc.sh
-
 clean:
 	rm -rf mcc mcc2 *.o *~ tmp*
 
-.PHONY: test test2 clean chibicc
+.PHONY: test test2 clean

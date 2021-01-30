@@ -1,10 +1,8 @@
-# About mcc
+# Mcc
 
-Mcc is a compiler I developed to learn low level programming.
-It compiles source code written in the subset of the C language into x86-64 assembly.
-It can self-host except preprocess.
+Mcc is a self-hosting compiler that compiles a subset of the C language into the x86-64 assembly.
 
-# How to build and test
+# Build and Test
 
 |make rule|use|
 |:---|:---|
